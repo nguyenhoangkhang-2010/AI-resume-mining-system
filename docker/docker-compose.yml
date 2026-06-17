@@ -1,0 +1,56 @@
+version: '3.8'
+
+services:
+  mongodb:
+    image: mongo:latest
+    container_name: ai_resume_mongodb
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    environment:
+      MONGO_INITDB_DATABASE: resume_mining_db
+
+  fastapi_app:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: ai_resume_fastapi
+    restart: always
+    ports:
+      - "8000:8000"
+    volumes:
+      - ../data/uploads:/app/data/uploads
+      - ../data/faiss_index:/app/data/faiss_index
+      - huggingface_cache:/root/.cache/huggingface # Caches downloaded ML models
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - DB_NAME=resume_mining_db
+      - MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2
+      - FAISS_INDEX_PATH=data/faiss_index/candidate.index
+    depends_on:
+      - mongodb
+
+  streamlit_dashboard:
+    build:
+      context: ../
+      dockerfile: docker/Dockerfile
+    container_name: ai_resume_streamlit
+    restart: always
+    ports:
+      - "8501:8501"
+    volumes:
+      - ../data/uploads:/app/data/uploads
+      - ../data/faiss_index:/app/data/faiss_index
+    environment:
+      - MONGO_URI=mongodb://mongodb:27017/
+      - DB_NAME=resume_mining_db
+    depends_on:
+      - fastapi_app
+      - mongodb
+    command: ["streamlit", "run", "app/analytics/dashboards/main_dashboard.py", "--server.port=8501", "--server.address=0.0.0.0"]
+
+volumes:
+  mongo_data:
+  huggingface_cache:
