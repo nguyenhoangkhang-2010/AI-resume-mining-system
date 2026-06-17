@@ -36,8 +36,12 @@ class MatchingService:
         if not job:
             raise ValueError(f"Job with ID {job_id} not found.")
             
-        job_context = job.description + " " + " ".join(job.required_skills)
+        # --- Start: Align Query Embedding ---
+        # To match the candidate's skill-based vector, the job's query vector
+        # should also be based on its core competencies, not the full description.
+        job_context = job.title + " " + " ".join(job.required_skills)
         job_embedding = self.embedding_service.generate_embedding(job_context)
+        # --- End: Align Query Embedding ---
         
         faiss_results = self.vector_store.search_similar_candidates(job_embedding)
         if not faiss_results:
