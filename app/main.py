@@ -4,6 +4,7 @@ from loguru import logger
 
 from app.core.logger.logging_config import setup_logger
 from app.database.mongodb.connection import mongo_db
+from app.api.router import api_router
 
 setup_logger()
 
@@ -28,6 +29,8 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+app.include_router(api_router, prefix="/api/v1")
 
 
 @app.get("/", tags=["Root"])
