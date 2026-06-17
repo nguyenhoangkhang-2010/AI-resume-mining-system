@@ -13,13 +13,21 @@ from app.matching.ranking.ranking_engine import RankingEngine
 
 class MatchingService:    
     def __init__(self):
-        self.db = mongo_db.get_db()
-        self.jobs_col = self.db["jobs"]
-        self.candidates_col = self.db["candidates"]
-        
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
         self.ranking_engine = RankingEngine()
+
+    @property
+    def db(self):
+        return mongo_db.get_db()
+        
+    @property
+    def jobs_col(self):
+        return self.db["jobs"]
+        
+    @property
+    def candidates_col(self):
+        return self.db["candidates"]
 
     def match_candidates_for_job(self, job_id: str) -> MatchResponse:
         logger.info(f"Orchestrating matching process for Job ID: {job_id}")

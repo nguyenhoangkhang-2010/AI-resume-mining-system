@@ -9,8 +9,15 @@ from app.schemas.job_schema import JobCreateRequest, JobResponse
 
 class JobService:    
     def __init__(self):
-        self.db = mongo_db.get_db()
-        self.jobs_col = self.db["jobs"]
+        pass
+
+    @property
+    def db(self):
+        return mongo_db.get_db()
+        
+    @property
+    def jobs_col(self):
+        return self.db["jobs"]
 
     def create_job(self, request: JobCreateRequest) -> JobResponse:
         logger.info(f"Orchestrating job creation for: '{request.title}'")

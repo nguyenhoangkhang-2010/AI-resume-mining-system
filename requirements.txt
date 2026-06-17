@@ -22,3 +22,4 @@ python-docx
 pdfplumber
 matplotlib
 jupyter
+pydantic-settings

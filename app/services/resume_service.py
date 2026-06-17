@@ -14,13 +14,21 @@ from app.vector_store.vector_store import VectorStore
 class ResumeService:
     
     def __init__(self):
-        self.db = mongo_db.get_db()
-        self.resumes_col = self.db["resumes"]
-        self.candidates_col = self.db["candidates"]
-        
         self.resume_pipeline = ResumePipeline()
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
+
+    @property
+    def db(self):
+        return mongo_db.get_db()
+        
+    @property
+    def resumes_col(self):
+        return self.db["resumes"]
+        
+    @property
+    def candidates_col(self):
+        return self.db["candidates"]
 
     def process_uploaded_resume(self, file_path: str, filename: str) -> ResumeResponse:
         logger.info(f"Orchestrating processing for resume: {filename}")
