@@ -39,10 +39,15 @@ class ResumeService:
         try:
             cleaned_text = self.resume_pipeline.process_pdf(file_path)
             
+            # TODO: Replace this mock with a real call to the ExtractionEngine
             skills = ["Python", "Data Science", "Machine Learning"]
             personal_info = {"name": "Candidate Doe", "email": "doe@example.com"}
             
-            embedding = self.embedding_service.generate_embedding(cleaned_text)
+            # --- Start: Optimize Embedding Content ---
+            # Instead of embedding the entire raw text, embed only the extracted skills.
+            embedding_text = " ".join(skills)
+            embedding = self.embedding_service.generate_embedding(embedding_text)
+            # --- End: Optimize Embedding Content ---
             
             faiss_id = self._generate_faiss_id()
             self.vector_store.add_candidate_embedding(faiss_id=faiss_id, embedding=embedding)
