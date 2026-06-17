@@ -5,7 +5,6 @@ from loguru import logger
 
 from app.embeddings.models.embedding_model import EmbeddingModelSingleton
 
-
 class EmbeddingService:
     
     def __init__(self):
@@ -17,7 +16,6 @@ class EmbeddingService:
         start_time = time.time()
         
         try:
-            # Normalizing embeddings is crucial for cosine similarity
             embedding = self.model.encode(text, convert_to_numpy=True, normalize_embeddings=True)
             elapsed_time = time.time() - start_time
             logger.debug(f"Successfully generated single embedding in {elapsed_time:.3f}s")
