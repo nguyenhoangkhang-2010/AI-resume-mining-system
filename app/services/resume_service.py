@@ -46,10 +46,9 @@ class ResumeService:
             education = self.extraction_engine.extract_education(cleaned_text)
             experience = self.extraction_engine.extract_experience(cleaned_text)
             
-            # Parse list of dicts back to string context for embedding generation
-            edu_text = " ".join([f"{e.get('degree', '')} {e.get('school', '')}" for e in education])
-            exp_text = " ".join([f"{e.get('role', '')} {e.get('company', '')}" for e in experience])
-            embedding_text = " ".join(skills) + " " + edu_text + " " + exp_text
+            # STRICT MATCHING: Remove noisy experience text completely.
+            # Build a pure "Skill Vector" to ensure precise matching with the Job's required skills.
+            embedding_text = " ".join(skills)
             
             embedding = self.embedding_service.generate_embedding(embedding_text)
             

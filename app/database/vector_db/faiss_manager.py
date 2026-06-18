@@ -51,6 +51,7 @@ class FaissManager:
 
     def add_vector(self, faiss_id: int, embedding: np.ndarray):
         vector = np.array([embedding], dtype=np.float32)
+        faiss.normalize_L2(vector)  # Normalize vector for exact Cosine Similarity
         ids = np.array([faiss_id], dtype=np.int64)
         
         try:
@@ -67,6 +68,7 @@ class FaissManager:
             return np.array([]), np.array([])
             
         vector = np.array([query_vector], dtype=np.float32)
+        faiss.normalize_L2(vector)  # Normalize query for exact Cosine Similarity
         try:
             distances, indices = self._index.search(vector, top_k)
             return distances[0], indices[0]
