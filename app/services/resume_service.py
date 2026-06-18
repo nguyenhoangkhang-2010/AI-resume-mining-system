@@ -46,8 +46,11 @@ class ResumeService:
             education = self.extraction_engine.extract_education(cleaned_text)
             experience = self.extraction_engine.extract_experience(cleaned_text)
             
-            # Generate a richer semantic embedding using context from skills, education, and experience
-            embedding_text = " ".join(skills) + " " + " ".join(education) + " " + " ".join(experience)
+            # Parse list of dicts back to string context for embedding generation
+            edu_text = " ".join([f"{e.get('degree', '')} {e.get('school', '')}" for e in education])
+            exp_text = " ".join([f"{e.get('role', '')} {e.get('company', '')}" for e in experience])
+            embedding_text = " ".join(skills) + " " + edu_text + " " + exp_text
+            
             embedding = self.embedding_service.generate_embedding(embedding_text)
             
             faiss_id = self._generate_faiss_id()
