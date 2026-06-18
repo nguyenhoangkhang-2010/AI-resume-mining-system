@@ -37,9 +37,8 @@ class MatchingService:
             raise ValueError(f"Job with ID {job_id} not found.")
             
         # --- Start: Align Query Embedding ---
-        # To match the candidate's skill-based vector, the job's query vector
-        # should also be based on its core competencies, not the full description.
-        job_context = job.title + " " + " ".join(job.required_skills)
+        # STRICT MATCHING: Focus query solely on required skills to align perfectly with Candidate's Skill Vector.
+        job_context = " ".join(job.required_skills)
         job_embedding = self.embedding_service.generate_embedding(job_context)
         # --- End: Align Query Embedding ---
         
@@ -50,6 +49,10 @@ class MatchingService:
             
         faiss_ids = [int(res["faiss_id"]) for res in faiss_results]
         candidates = self._get_candidates_by_faiss_ids(faiss_ids)
+        
+        if faiss_ids and not candidates:
+            logger.warning(f"FAISS returned IDs {faiss_ids}, but NO candidates were found in MongoDB! "
+                           "Your FAISS index might contain stale/zombie IDs. Consider deleting the .index file.")
         
         match_response = self.ranking_engine.rank_candidates(
             job=job,
