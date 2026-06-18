@@ -9,6 +9,7 @@ from app.schemas.resume_schema import ResumeResponse
 from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
 from app.embeddings.services.embedding_service import EmbeddingService
 from app.vector_store.vector_store import VectorStore
+from app.extraction.extraction_engine import ExtractionEngine
 
 
 class ResumeService:
@@ -17,6 +18,7 @@ class ResumeService:
         self.resume_pipeline = ResumePipeline()
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
+        self.extraction_engine = ExtractionEngine()
 
     @property
     def db(self):
@@ -39,15 +41,14 @@ class ResumeService:
         try:
             cleaned_text = self.resume_pipeline.process_pdf(file_path)
             
-            # TODO: Replace this mock with a real call to the ExtractionEngine
-            skills = ["Python", "Data Science", "Machine Learning"]
-            personal_info = {"name": "Candidate Doe", "email": "doe@example.com"}
+            skills = self.extraction_engine.extract_skills(cleaned_text)
+            personal_info = self.extraction_engine.extract_personal_info(cleaned_text)
+            education = self.extraction_engine.extract_education(cleaned_text)
+            experience = self.extraction_engine.extract_experience(cleaned_text)
             
-            # --- Start: Optimize Embedding Content ---
-            # Instead of embedding the entire raw text, embed only the extracted skills.
-            embedding_text = " ".join(skills)
+            # Generate a richer semantic embedding using context from skills, education, and experience
+            embedding_text = " ".join(skills) + " " + " ".join(education) + " " + " ".join(experience)
             embedding = self.embedding_service.generate_embedding(embedding_text)
-            # --- End: Optimize Embedding Content ---
             
             faiss_id = self._generate_faiss_id()
             self.vector_store.add_candidate_embedding(faiss_id=faiss_id, embedding=embedding)
@@ -56,6 +57,8 @@ class ResumeService:
                 resume_id=resume.id,
                 personal_info=personal_info,
                 skills=skills,
+                education=education,
+                experience=experience,
                 faiss_id=faiss_id
             )
             self._insert_candidate(candidate)

@@ -48,7 +48,7 @@ class MatchingService:
             logger.warning("No suitable candidates found in Vector Store.")
             return MatchResponse(job_id=job_id, results=[])
             
-        faiss_ids = [res["faiss_id"] for res in faiss_results]
+        faiss_ids = [int(res["faiss_id"]) for res in faiss_results]
         candidates = self._get_candidates_by_faiss_ids(faiss_ids)
         
         match_response = self.ranking_engine.rank_candidates(
