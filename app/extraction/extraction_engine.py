@@ -1,5 +1,5 @@
 import re
-from typing import Dict, List
+from typing import Dict, List, Any
 
 class ExtractionEngine:
     def __init__(self):
@@ -26,24 +26,26 @@ class ExtractionEngine:
 
         return {"name": name, "email": email}
 
-    def extract_education(self, text: str) -> List[str]:
+    def extract_education(self, text: str) -> List[Dict[str, str]]:
         """Extract education context blocks using heuristic keyword matching."""
         lines = text.split('\n')
         education = []
         for line in lines:
             if any(keyword in line.lower() for keyword in self.edu_keywords):
                 if len(line.strip()) > 10:  # Ignore pure headers
-                    education.append(line.strip())
+                    # Wrap the extracted string into the expected schema object
+                    education.append({"school": line.strip(), "degree": "Unknown"})
         return education[:3]  # Return top matches
 
-    def extract_experience(self, text: str) -> List[str]:
+    def extract_experience(self, text: str) -> List[Dict[str, str]]:
         """Extract experience context blocks using heuristic keyword matching."""
         lines = text.split('\n')
         experience = []
         for line in lines:
             if any(keyword in line.lower() for keyword in self.exp_keywords):
                 if len(line.strip()) > 10:  # Ignore pure headers
-                    experience.append(line.strip())
+                    # Wrap the extracted string into the expected schema object
+                    experience.append({"company": "Unknown", "role": line.strip()})
         return experience[:5]  # Return top matches
 
     def extract_skills(self, text: str) -> List[str]:
