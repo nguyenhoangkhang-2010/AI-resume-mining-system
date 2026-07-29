@@ -42,7 +42,10 @@ class MatchingService:
         job_embedding = self.embedding_service.generate_embedding(job_context)
         # --- End: Align Query Embedding ---
         
-        faiss_results = self.vector_store.search_similar_candidates(job_embedding)
+        faiss_results = self.vector_store.search_similar_candidates(
+            job_embedding,
+            top_k=10
+        )
         if not faiss_results:
             logger.warning("No suitable candidates found in Vector Store.")
             return MatchResponse(job_id=job_id, results=[])
