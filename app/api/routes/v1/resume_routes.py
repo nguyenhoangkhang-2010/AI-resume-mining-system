@@ -1,4 +1,5 @@
 import shutil
+import uuid
 from pathlib import Path
 from fastapi import APIRouter, UploadFile, File, HTTPException, status
 from loguru import logger
@@ -25,7 +26,9 @@ async def upload_resume(file: UploadFile = File(...)):
             detail=f"Invalid file type. Allowed extensions: {ALLOWED_EXTENSIONS}"
         )
 
-    file_path = UPLOAD_DIR / file.filename
+    # Generate a unique filename to prevent overwrites and path traversal issues
+    unique_filename = f"{uuid.uuid4()}{file_ext}"
+    file_path = UPLOAD_DIR / unique_filename
     try:
         with file_path.open("wb") as buffer:
             shutil.copyfileobj(file.file, buffer)
