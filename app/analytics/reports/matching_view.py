@@ -69,6 +69,47 @@ def render_matching_page():
                         column_config={"Match Score": st.column_config.ProgressColumn("Match Score (%)", format="%.2f", min_value=0, max_value=100)},
                         hide_index=True, use_container_width=True
                     )
+                    
+                    st.markdown("### Candidate Details")
+
+                    selected_candidate = st.selectbox(
+                        "View candidate profile",
+                        options=range(len(results)),
+                        format_func=lambda x: results[x].candidate_profile.personal_info.get(
+                            "name",
+                            "Unknown Candidate"
+                        )
+                    )
+
+                    candidate = results[selected_candidate]
+                    profile = candidate.candidate_profile
+
+                    st.write("### Personal Information")
+
+                    st.write(
+                        {
+                            "Name": profile.personal_info.get("name"),
+                            "Email": profile.personal_info.get("email")
+                        }
+                    )
+
+                    st.write("### Skills")
+
+                    st.write(profile.skills)
+
+                    st.write("### Skill Gap")
+
+                    if candidate.skill_gaps:
+                        st.warning(candidate.skill_gaps)
+                    else:
+                        st.success("Perfect Match")
+
+                    st.write("### Match Score")
+
+                    st.metric(
+                        "Similarity Score",
+                        f"{candidate.similarity_score:.2f}%"
+                    )
             except Exception as e:
                 logger.error(f"Error during Streamlit matching process: {e}")
                 st.error(f"An error occurred: {str(e)}")
