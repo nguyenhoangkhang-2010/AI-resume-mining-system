@@ -107,3 +107,8 @@ dump/
 # Streamlit Secrets
 # =========================
 .streamlit/secrets.toml
+
+# =========================
+# Upload
+# =========================
+/data/uploads
