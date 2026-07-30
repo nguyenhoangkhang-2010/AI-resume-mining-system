@@ -100,6 +100,61 @@ class ExtractionEngine:
         
         return True
         
+    def _is_valid_school(self, line: str) -> bool:
+
+        line = line.strip()
+
+        if not line:
+            return False
+
+        if len(line) < 5:
+            return False
+        
+        if "@" in line:
+            return False
+        
+        if "http" in line.lower():
+            return False
+        
+        invalid_titles = [
+            "education",
+            "academic background",
+            "education background",
+            "qualification",
+            "qualifications"
+        ]
+
+        if line.lower() in invalid_titles:
+            return False
+        
+        degree_keywords = [
+            "bachelor",
+            "master",
+            "phd",
+            "associate",
+            "engineer",
+            "mba"
+        ]
+
+        if any(keyword in line.lower() for keyword in degree_keywords):
+            return False
+        
+        school_keywords = [
+            "university",
+            "college",
+            "institute",
+            "academy",
+            "school",
+            "đại học",
+            "cao đẳng",
+            "học viện"
+        ]
+        
+        if not any(keyword in line.lower() for keyword in school_keywords):
+            return False
+                
+        return True
+        
     def _name_score(self, line: str) -> int:
         score = 0
 
@@ -148,7 +203,11 @@ class ExtractionEngine:
             if any(keyword in line.lower() for keyword in self.edu_keywords):
                 if len(line.strip()) > 10:  # Ignore pure headers
                     # Wrap the extracted string into the expected schema object
-                    education.append({"school": line.strip(), "degree": "Unknown"})
+                    if self._is_valid_school(line):
+                        education.append({
+                            "school": line.strip(),
+                            "degree": "Unknown"
+                        })
         return education[:3]  # Return top matches
 
     def extract_experience(self, text: str) -> List[Dict[str, str]]:
