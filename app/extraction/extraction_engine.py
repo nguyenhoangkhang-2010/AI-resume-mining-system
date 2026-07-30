@@ -9,11 +9,12 @@ class ExtractionEngine:
         
         # Basic keywords to identify context blocks
         self.edu_keywords = ["education", "university", "college", "degree", "bachelor", "master", "phd", "academic"]
-        self.exp_keywords = ["experience", "work", "employment", "history", "project", "role"]
 
     def _is_valid_name(self, line: str) -> bool:
         
         line = line.strip()
+        
+        line_lower = line.casefold()
         
         if not line:
             return False
@@ -27,13 +28,13 @@ class ExtractionEngine:
         if "@" in line:
             return False
         
-        if "http" in line.lower():
+        if "http" in line_lower:
             return False
         
-        if "linkedin" in line.lower():
+        if "linkedin" in line_lower:
             return False
         
-        if "github" in line.lower():
+        if "github" in line_lower:
             return False
         
         invalid_titles = [
@@ -72,15 +73,10 @@ class ExtractionEngine:
             "leader"
         ]
         
-        if line.lower() in invalid_titles:
+        if line_lower in invalid_titles:
             return False
-        
-        line_lower = line.lower()
 
         if any(title in line_lower for title in job_titles):
-            return False
-        
-        if not any(char.isalpha() for char in line):
             return False
         
         words = line.split()
@@ -93,16 +89,13 @@ class ExtractionEngine:
         if len(digits) >= 9:
             return False
         
-        words = line.split()
-
-        if len(words) > 6:
-            return False
-        
         return True
         
     def _is_valid_school(self, line: str) -> bool:
 
         line = line.strip()
+        
+        line_lower = line.casefold()
 
         if not line:
             return False
@@ -113,7 +106,7 @@ class ExtractionEngine:
         if "@" in line:
             return False
         
-        if "http" in line.lower():
+        if "http" in line_lower:
             return False
         
         invalid_titles = [
@@ -124,7 +117,7 @@ class ExtractionEngine:
             "qualifications"
         ]
 
-        if line.lower() in invalid_titles:
+        if line_lower in invalid_titles:
             return False
         
         degree_keywords = [
@@ -136,7 +129,7 @@ class ExtractionEngine:
             "mba"
         ]
 
-        if any(keyword in line.lower() for keyword in degree_keywords):
+        if any(keyword in line_lower for keyword in degree_keywords):
             return False
         
         school_keywords = [
@@ -150,9 +143,30 @@ class ExtractionEngine:
             "học viện"
         ]
         
-        if not any(keyword in line.lower() for keyword in school_keywords):
+        if not any(keyword in line_lower for keyword in school_keywords):
             return False
-                
+        
+        achievement_keywords = [
+            "runner-up",
+            "award",
+            "competition",
+            "contest",
+            "certificate",
+            "scholarship",
+            "prize",
+            "achievement",
+            "honor"
+        ]
+        
+        if any(keyword in line_lower for keyword in achievement_keywords):
+            return False
+
+        if "organized by" in line_lower:
+            return False
+
+        if "hosted by" in line_lower:
+            return False
+        
         return True
         
     def _name_score(self, line: str) -> int:
@@ -200,7 +214,8 @@ class ExtractionEngine:
         lines = text.split('\n')
         education = []
         for line in lines:
-            if any(keyword in line.lower() for keyword in self.edu_keywords):
+            line_lower = line.casefold()
+            if any(keyword in line_lower for keyword in self.edu_keywords):
                 if len(line.strip()) > 10:  # Ignore pure headers
                     # Wrap the extracted string into the expected schema object
                     if self._is_valid_school(line):
@@ -210,15 +225,177 @@ class ExtractionEngine:
                         })
         return education[:3]  # Return top matches
 
+    def _is_valid_role(self, line: str) -> bool:
+
+        line = line.strip()
+        
+        line_lower = line.casefold()
+        
+        if not line:
+            return False
+        
+        invalid_titles = [
+            "experience",
+            "work experience",
+            "professional experience",
+            "employment",
+            "employment history",
+            "career history",
+            "work history",
+            "career",
+            "career objective",
+            "objective",
+            "summary",
+            "profile",
+            "education",
+            "skills",
+            "projects",
+            "activities",
+            "certificates",
+            "awards",
+            "references",
+            "languages",
+            "interests",
+            "responsibilities",
+            "responsibility",
+            "duties",
+            "overview",
+            "academic projects",
+            "project",
+            "projects"
+        ]
+        
+        school_keywords = [
+            "university",
+            "college",
+            "academy",
+            "institute",
+            "school",
+            "đại học",
+            "cao đẳng",
+            "học viện"
+        ]
+        
+        months = [
+            "jan", "feb", "mar", "apr", "may", "jun",
+            "jul", "aug", "sep", "oct", "nov", "dec",
+            "present"
+        ]
+        
+        if "@" in line:
+            return False
+        
+        if "http" in line_lower:
+            return False
+
+        if "linkedin" in line_lower:
+            return False
+
+        if "github" in line_lower:
+            return False
+        
+        if "score" in line_lower:
+            return False
+
+        if "gpa" in line_lower:
+            return False
+        
+        digits = re.sub(r"\D", "", line)
+
+        if len(digits) >= 9:
+            return False
+        
+        if not any(char.isalpha() for char in line):
+            return False
+
+        if re.fullmatch(r"[\d\s\-/]+", line):
+            return False
+
+        if line_lower in invalid_titles:
+            return False
+
+        if len(line) < 3:
+            return False
+        
+        words = line.split()
+
+        if len(words) > 10:
+            return False
+        
+        if any(keyword in line_lower for keyword in school_keywords):
+            return False
+
+        if any(month in line_lower for month in months):
+            return False
+
+        if "graduation" in line_lower:
+            return False
+
+        if "expected" in line_lower:
+            return False
+        
+        return True
+
     def extract_experience(self, text: str) -> List[Dict[str, str]]:
         """Extract experience context blocks using heuristic keyword matching."""
-        lines = text.split('\n')
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+        
         experience = []
+        
+        inside_experience = False
+        
+        section_headers = [
+            "education",
+            "skills",
+            "projects",
+            "activities",
+            "certificates",
+            "awards",
+            "references",
+            "languages",
+            "interests",
+            "summary",
+            "profile",
+            "objective",
+            "career objective",
+            "academic",
+            "publications",
+            "honors",
+            "achievements",
+            "volunteer",
+            "leadership",
+            "academic projects",
+            "projects",
+            "project",
+            "education",
+            "certifications",
+            "academic achievements"
+        ]
+        
+        experience_headers = [
+            "experience",
+            "work experience",
+            "professional experience",
+            "employment history"
+        ]
+        
         for line in lines:
-            if any(keyword in line.lower() for keyword in self.exp_keywords):
-                if len(line.strip()) > 10:  # Ignore pure headers
-                    # Wrap the extracted string into the expected schema object
-                    experience.append({"company": "Unknown", "role": line.strip()})
+            line_lower = line.casefold()
+            
+            if line_lower in experience_headers:
+                inside_experience = True
+                continue
+            
+            if line_lower in section_headers:
+                inside_experience = False
+                continue
+            
+            if inside_experience and self._is_valid_role(line):
+                experience.append({
+                    "company": "Unknown",
+                    "role": line.strip()
+                })
+            
         return experience[:5]  # Return top matches
 
     def extract_skills(self, text: str) -> List[str]:
