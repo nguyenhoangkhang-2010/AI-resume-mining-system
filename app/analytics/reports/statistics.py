@@ -6,8 +6,50 @@ from collections import Counter
 from app.database.mongodb.connection import mongo_db
 
 
+INVALID_SCHOOL_KEYWORDS = {
+    "achievement",
+    "achievements",
+    "award",
+    "awards",
+    "gpa",
+    "cgpa",
+    "cumulative",
+    "coursework",
+    "projects",
+    "skills",
+    "summary",
+    "profile",
+    "experience",
+    "internship",
+    "certification",
+    "certificate",
+    "scholarship",
+    "dean",
+    "honor",
+    "honours",
+}
+
+
+def normalize_school_name(name: str) -> str | None:
+    if not name:
+        return None
+
+    school = name.strip()
+
+    lower = school.lower()
+
+    if any(keyword in lower for keyword in INVALID_SCHOOL_KEYWORDS):
+        return None
+
+    return school
+
 def render_statistics_page():
     st.title("Recruitment Analytics & Statistics")
+    
+    st.caption(
+        "Interactive analytics generated from processed resumes and job descriptions."
+    )
+    
     overview_tab, skills_tab, education_tab = st.tabs(
         [
             "Overview",
@@ -15,11 +57,13 @@ def render_statistics_page():
             "Education"
         ]
     )
-    db = mongo_db.get_db()
-    
-    total_jobs = db["jobs"].count_documents({})
-    total_candidates = db["candidates"].count_documents({})
-    total_resumes = db["resumes"].count_documents({})
+    with st.spinner("Loading recruitment analytics..."):
+
+        db = mongo_db.get_db()
+
+        total_jobs = db["jobs"].count_documents({})
+        total_candidates = db["candidates"].count_documents({})
+        total_resumes = db["resumes"].count_documents({})
     
     with overview_tab:
 
@@ -60,7 +104,7 @@ def render_statistics_page():
             f"{avg_skills:.1f}"
         )
     
-        st.markdown("---")
+        st.divider()
     
     with skills_tab:
         st.subheader("Top Skills Distribution in Talent Pool")
@@ -76,7 +120,7 @@ def render_statistics_page():
             fig = px.bar(df_skills, x="Count", y="Skill", orientation='h', color="Count", color_continuous_scale="Blues")
             st.plotly_chart(fig, use_container_width=True)
         else:
-            st.info("Not enough skill data to display distribution. Please upload more resumes.")
+            st.warning("No candidate skills available yet. Upload resumes to generate analytics.")
             
         st.subheader("Top Required Skills")
         
@@ -119,7 +163,7 @@ def render_statistics_page():
             )
 
         else:
-            st.info("No required skills data available.")
+            st.warning("No job skills available. Create a job description first.")
 
     with education_tab:
 
@@ -127,14 +171,39 @@ def render_statistics_page():
 
         education_list = []
 
+        parsed_count = 0
+        unknown_count = 0
+
         for candidate in db["candidates"].find({}, {"education": 1}):
 
             for edu in candidate.get("education", []):
 
-                school = edu.get("school")
+                school = normalize_school_name(
+                    edu.get("school")
+                )
 
                 if school:
+                    parsed_count += 1
                     education_list.append(school)
+                else:
+                    unknown_count += 1
+
+        col1, col2 = st.columns(2)
+
+        col1.metric(
+            "Valid Schools",
+            parsed_count
+        )
+
+        col2.metric(
+            "Filtered Entries",
+            unknown_count
+        )
+
+        st.caption(
+            "Education statistics after filtering noisy extraction results."
+        )
+
 
         if education_list:
 
@@ -163,4 +232,4 @@ def render_statistics_page():
             )
 
         else:
-            st.info("No education statistics available.")
+            st.warning("No education data available. Upload more resumes to generate insights.")

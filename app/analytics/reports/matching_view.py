@@ -15,6 +15,10 @@ def get_matching_service():
 def render_matching_page():
     st.title("AI Candidate Matching Engine")
     
+    st.caption(
+        "Semantic candidate ranking powered by Sentence Transformers and FAISS vector search."
+    )
+    
     db = mongo_db.get_db()
     jobs = list(db["jobs"].find({}, {"title": 1, "_id": 1}).sort("created_at", -1))
     
@@ -32,7 +36,7 @@ def render_matching_page():
     )
     
     if st.button("Find Best Candidates", type="primary"):
-        with st.spinner("Analyzing semantics, calculating vector distances and analyzing skill gaps..."):
+        with st.spinner("Finding the best matching candidates..."):
             try:
                 matching_svc = get_matching_service()
                 match_response = matching_svc.match_candidates_for_job(selected_job_id)
