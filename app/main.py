@@ -9,12 +9,12 @@ from app.api.router import api_router
 from app.core.auth.huggingface import login_huggingface
 
 setup_logger()
-login_huggingface()
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Starting up AI Resume Mining System API...")
+    login_huggingface()
     try:
         mongo_db.connect()
     except Exception as e:
