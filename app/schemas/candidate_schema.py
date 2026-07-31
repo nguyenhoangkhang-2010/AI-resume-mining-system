@@ -1,9 +1,12 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
 
 
 class CandidateResponse(BaseModel):
-    id: str = Field(..., description="Unique identifier of the candidate document")
+    id: Optional[str] = Field(
+        default=None,
+        description="Unique identifier of the candidate document"
+    )
     resume_id: str = Field(..., description="Reference ID to the original resume")
     personal_info: Dict[str, Any] = Field(default_factory=dict, description="Extracted personal details")
     education: List[Dict[str, Any]] = Field(default_factory=list, description="List of educational backgrounds")
