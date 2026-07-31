@@ -1,7 +1,9 @@
-import re
-from typing import List
-from loguru import logger
 from app.extraction.skills.repository import SkillRepository
+from app.extraction.skills.matchers.exact_matcher import ExactMatcher
+from app.extraction.skills.matchers.alias_matcher import AliasMatcher
+from app.extraction.skills.matchers.semantic_matcher import SemanticSkillMatcher
+
+from loguru import logger
 
 
 class SkillExtractor:
@@ -10,42 +12,34 @@ class SkillExtractor:
 
         self.skill_repository = SkillRepository()
 
-        self.skills = (
+        self.exact_matcher = ExactMatcher(
             self.skill_repository
-            .get_all_skills()
         )
 
-        logger.info(
-            f"SkillExtractor initialized with {len(self.skills)} skills."
+        self.alias_matcher = AliasMatcher(
+            self.skill_repository
         )
+
+        self.semantic_matcher = SemanticSkillMatcher()
+
+        logger.info("SkillExtractor initialized.")
         
-    def _build_pattern(self, skill: str):
-        escaped = re.escape(skill)
-
-        escaped = escaped.replace(
-            r"\ ",
-            r"\s+"
-        )
-
-        return escaped
-
-    def extract(self, text: str) -> List[str]:
+    def extract(self, text: str):
         if not text:
             logger.warning("Empty text provided to SkillExtractor.")
             return []
-            
-        logger.debug("Starting skill extraction process.")
-        extracted_skills = set()
         
-        for skill in self.skills:
-            pattern = self._build_pattern(skill)
+        logger.debug("Starting skill extraction process.")
+        
+        exact_skills = self.exact_matcher.match(text)
+        
+        alias_skills = self.alias_matcher.match(text)
+        
+        skills = exact_skills | alias_skills
 
-            if re.search(
-                pattern,
-                text,
-                re.IGNORECASE
-            ):
-                extracted_skills.add(skill)
-                
-        logger.debug(f"Extracted {len(extracted_skills)} skills.")
-        return sorted(list(extracted_skills))
+        if not skills:
+            semantic_skills = (
+                self.semantic_matcher.match(text)
+            )
+            skills |= semantic_skills
+        return sorted(skills)

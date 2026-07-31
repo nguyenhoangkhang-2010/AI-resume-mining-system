@@ -6,7 +6,10 @@ from app.core.logger.logging_config import setup_logger
 from app.database.mongodb.connection import mongo_db
 from app.api.router import api_router
 
+from app.core.auth.huggingface import login_huggingface
+
 setup_logger()
+login_huggingface()
 
 
 @asynccontextmanager

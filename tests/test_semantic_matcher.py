@@ -1,4 +1,4 @@
-from app.extraction.skills.semantic_matcher import SemanticSkillMatcher
+from app.extraction.skills.matchers.semantic_matcher import SemanticSkillMatcher
 
 
 matcher = SemanticSkillMatcher()

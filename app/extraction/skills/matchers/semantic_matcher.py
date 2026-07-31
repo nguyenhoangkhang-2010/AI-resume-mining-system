@@ -63,6 +63,28 @@ class SemanticSkillMatcher:
             float(score)
         )
         
+    def match(
+        self,
+        text: str,
+        threshold: float = 0.70
+    ):
+        extracted = set()
+
+        words = text.split()
+
+        for word in words:
+
+            result = self.find_best_match(
+                word,
+                threshold
+            )
+
+            if result:
+                skill, _ = result
+                extracted.add(skill)
+
+        return extracted
+        
     def _build_document(self, skill):
         parts = [
             skill["name"],

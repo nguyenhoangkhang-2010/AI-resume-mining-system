@@ -1,4 +1,5 @@
 from pydantic_settings import BaseSettings
+from typing import Optional
 
 
 class Settings(BaseSettings):
@@ -9,6 +10,8 @@ class Settings(BaseSettings):
     FAISS_INDEX_PATH: str = "faiss_index/candidate.index"
     
     LOG_LEVEL: str = "INFO"
+    
+    hf_token: Optional[str] = None
 
     class Config:
         env_file = ".env"
