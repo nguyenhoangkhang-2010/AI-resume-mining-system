@@ -7,8 +7,8 @@ class ExtractionEngine:
     def __init__(self):
         self.skill_extractor = SkillExtractor()
         
-        # Basic keywords to identify context blocks
-        self.edu_keywords = ["education", "university", "college", "degree", "bachelor", "master", "phd", "academic"]
+    def _normalize_header(self, text: str) -> str:
+        return text.casefold().strip().rstrip(":")
 
     def _is_valid_name(self, line: str) -> bool:
         
@@ -169,6 +169,63 @@ class ExtractionEngine:
         
         return True
         
+    def _is_valid_company(self, line: str) -> bool:
+        line = line.strip()
+
+        if not line:
+            return False
+
+        line_lower = line.casefold()
+
+        company_keywords = [
+            "company",
+            "corporation",
+            "corp",
+            "inc",
+            "ltd",
+            "limited",
+            "group",
+            "technology",
+            "tech",
+            "software",
+            "solution",
+            "solutions",
+            "bank",
+            "hospital",
+            "factory",
+            "vietnam",
+            "việt nam"
+        ]
+
+        if any(keyword in line_lower for keyword in company_keywords):
+            return True
+
+        if line.isupper() and len(line.split()) >= 2:
+            return True
+
+        return False
+    
+    def _is_date_line(self, line: str) -> bool:
+        pattern = re.compile(
+            r"""
+            ^
+            (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)
+            \s+
+            \d{4}
+            \s*-\s*
+            (
+                Present
+                |
+                (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)
+                \s+\d{4}
+            )
+            $
+            """,
+            re.I | re.X,
+        )
+
+        return bool(pattern.match(line.strip()))
+    
     def _name_score(self, line: str) -> int:
         score = 0
 
@@ -209,21 +266,103 @@ class ExtractionEngine:
             
         return {"name": name, "email": email}
 
+    def _extract_section(self, text: str, headers: List[str]) -> List[str]:
+        print("HEADERS =", headers)
+        lines = [line.strip() for line in text.split("\n") if line.strip()]
+
+        section_lines = []
+        inside_section = False
+
+        common_headers: List[str] = [
+            "education",
+            "experience",
+            "work experience",
+            "professional experience",
+            "skills",
+            "projects",
+            "activities",
+            "awards",
+            "references",
+            "languages",
+            "interests",
+            "summary",
+            "profile",
+            "objective",
+            "certifications",
+            "volunteer",
+            "leadership",
+            "academic projects",
+            "projects",
+            "education background",
+            "academic background",
+        ]
+        
+        headers = {
+            self._normalize_header(h)
+            for h in headers
+        }
+
+        common_headers = {
+            self._normalize_header(h)
+            for h in common_headers
+        }
+
+        for i, line in enumerate(lines):
+
+            normalized = self._normalize_header(line)
+
+            print(
+                i,
+                normalized,
+                "inside=",
+                inside_section
+            )
+
+            if normalized in headers:
+                inside_section = True
+                continue
+
+            if inside_section and normalized in common_headers:
+                break
+
+            if inside_section:
+                section_lines.append(line)
+
+        return section_lines
+
     def extract_education(self, text: str) -> List[Dict[str, str]]:
-        """Extract education context blocks using heuristic keyword matching."""
-        lines = text.split('\n')
         education = []
-        for line in lines:
-            line_lower = line.casefold()
-            if any(keyword in line_lower for keyword in self.edu_keywords):
-                if len(line.strip()) > 10:  # Ignore pure headers
-                    # Wrap the extracted string into the expected schema object
-                    if self._is_valid_school(line):
-                        education.append({
-                            "school": line.strip(),
-                            "degree": "Unknown"
-                        })
-        return education[:3]  # Return top matches
+        
+        education_lines = self._extract_section(
+            text,
+            ["education", "academic background"]
+        )
+        
+        school = None
+        degree = None
+        duration = None
+
+        for line in education_lines:
+            if self._is_valid_school(line):
+                school = line
+                continue
+
+            if "bachelor" in line.casefold():
+                degree = line
+                continue
+
+            if self._is_date_line(line):
+                duration = line
+                continue
+            
+        if school:
+            education.append({
+                "school": school,
+                "degree": degree or "Unknown",
+                "duration": duration
+            })
+
+        return education[:3]
 
     def _is_valid_role(self, line: str) -> bool:
 
@@ -282,6 +421,27 @@ class ExtractionEngine:
             "present"
         ]
         
+        achievement_keywords = [
+            "runner-up",
+            "award",
+            "competition",
+            "contest",
+            "certificate",
+            "scholarship",
+            "prize",
+            "achievement",
+            "honor"
+        ]
+
+        if any(keyword in line_lower for keyword in achievement_keywords):
+            return False
+
+        if "organized by" in line_lower:
+            return False
+
+        if "hosted by" in line_lower:
+            return False
+        
         if "@" in line:
             return False
         
@@ -337,66 +497,56 @@ class ExtractionEngine:
         return True
 
     def extract_experience(self, text: str) -> List[Dict[str, str]]:
-        """Extract experience context blocks using heuristic keyword matching."""
-        lines = [line.strip() for line in text.split("\n") if line.strip()]
-        
         experience = []
+
+        experience_lines = self._extract_section(
+            text,
+            [
+                "experience",
+                "work experience",
+                "professional experience",
+                "employment history"
+            ]
+        )
         
-        inside_experience = False
-        
-        section_headers = [
-            "education",
-            "skills",
-            "projects",
-            "activities",
-            "certificates",
-            "awards",
-            "references",
-            "languages",
-            "interests",
-            "summary",
-            "profile",
-            "objective",
-            "career objective",
-            "academic",
-            "publications",
-            "honors",
-            "achievements",
-            "volunteer",
-            "leadership",
-            "academic projects",
-            "projects",
-            "project",
-            "education",
-            "certifications",
-            "academic achievements"
-        ]
-        
-        experience_headers = [
-            "experience",
-            "work experience",
-            "professional experience",
-            "employment history"
-        ]
-        
-        for line in lines:
-            line_lower = line.casefold()
-            
-            if line_lower in experience_headers:
-                inside_experience = True
+        company = None
+        role = None
+        duration = None
+
+        for line in experience_lines:
+            print("LINE:", line)
+            # Company
+            if self._is_valid_company(line):
+                print("COMPANY:", line)
+                company = line
+                role = None
                 continue
-            
-            if line_lower in section_headers:
-                inside_experience = False
+
+            # Date
+            if self._is_date_line(line):
+                duration = line
                 continue
-            
-            if inside_experience and self._is_valid_role(line):
+
+            # Bullet
+            if line.startswith("-"):
+                continue
+
+            # Role
+            if (
+                company
+                and role is None
+                and self._is_valid_role(line)
+            ):
+                print("ROLE:", line)
+                role = line
+
                 experience.append({
-                    "company": "Unknown",
-                    "role": line.strip()
+                    "company": company,
+                    "role": role,
+                    "duration": duration
                 })
-            
-        return experience[:5]  # Return top matches
+
+        return experience[:5]
 
     def extract_skills(self, text: str) -> List[str]:
         skills = self.skill_extractor.extract(text)
