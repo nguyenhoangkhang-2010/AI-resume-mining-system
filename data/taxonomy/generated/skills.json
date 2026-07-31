@@ -1,0 +1,127 @@
+[
+    {
+        "name": "Python",
+        "domain": "Information Technology",
+        "category": "Programming Languages",
+        "aliases": [
+            "python3",
+            "python programming"
+        ]
+    },
+    {
+        "name": "Java",
+        "domain": "Information Technology",
+        "category": "Programming Languages",
+        "aliases": [
+            "java programming",
+            "jdk"
+        ]
+    },
+    {
+        "name": "C++",
+        "domain": "Information Technology",
+        "category": "Programming Languages",
+        "aliases": [
+            "cpp",
+            "c plus plus"
+        ]
+    },
+    {
+        "name": "FastAPI",
+        "domain": "Information Technology",
+        "category": "Frameworks",
+        "aliases": [
+            "fast api"
+        ]
+    },
+    {
+        "name": "React",
+        "domain": "Information Technology",
+        "category": "Frameworks",
+        "aliases": [
+            "reactjs",
+            "react.js"
+        ]
+    },
+    {
+        "name": "PostgreSQL",
+        "domain": "Information Technology",
+        "category": "Database",
+        "aliases": [
+            "postgres",
+            "postgres db"
+        ]
+    },
+    {
+        "name": "Docker",
+        "domain": "Information Technology",
+        "category": "DevOps",
+        "aliases": [
+            "docker container"
+        ]
+    },
+    {
+        "name": "Kubernetes",
+        "domain": "Information Technology",
+        "category": "DevOps",
+        "aliases": [
+            "k8s"
+        ]
+    },
+    {
+        "name": "Machine Learning",
+        "domain": "Data & AI",
+        "category": "Machine Learning",
+        "aliases": [
+            "ml"
+        ]
+    },
+    {
+        "name": "Deep Learning",
+        "domain": "Data & AI",
+        "category": "Machine Learning",
+        "aliases": [
+            "dl"
+        ]
+    },
+    {
+        "name": "PyTorch",
+        "domain": "Data & AI",
+        "category": "Libraries",
+        "aliases": [
+            "torch"
+        ]
+    },
+    {
+        "name": "TensorFlow",
+        "domain": "Data & AI",
+        "category": "Libraries",
+        "aliases": [
+            "tensorflow framework"
+        ]
+    },
+    {
+        "name": "SQL",
+        "domain": "Information Technology",
+        "category": "Database",
+        "aliases": [
+            "structured query language"
+        ]
+    },
+    {
+        "name": "AWS",
+        "domain": "Information Technology",
+        "category": "Cloud",
+        "aliases": [
+            "amazon web services"
+        ]
+    },
+    {
+        "name": "Git",
+        "domain": "Information Technology",
+        "category": "Tools",
+        "aliases": [
+            "git scm"
+        ]
+    }
+]

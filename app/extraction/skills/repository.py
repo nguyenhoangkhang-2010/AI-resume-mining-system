@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import List
+from typing import List, Dict
 from loguru import logger
 
 
@@ -12,66 +12,35 @@ class SkillRepository:
             .parents[3]
             / "data"
             / "taxonomy"
+            / "generated"
             / "skills.json"
         )
+        self.skill_objects = self._load()
 
-        self.skills = self._load()
 
-
-    def _load(self) -> List[str]:
-
+    def _load(self):
         if not self.taxonomy_path.exists():
             raise FileNotFoundError(
                 f"Skill taxonomy not found: {self.taxonomy_path}"
             )
-
         with open(
             self.taxonomy_path,
             "r",
             encoding="utf-8"
         ) as file:
             data = json.load(file)
-
-
-        skills = self._flatten(data)
-
         logger.info(
-            f"Loaded {len(skills)} skills from taxonomy."
+            f"Loaded {len(data)} skills from taxonomy."
         )
-
-        return skills
-
+        return data
 
 
-    def _flatten(self, data) -> List[str]:
-
-        skills = []
-
-
-        if isinstance(data, dict):
-
-            for value in data.values():
-                skills.extend(
-                    self._flatten(value)
-                )
+    def get_all_skills(self) -> List[str]:
+        return [
+            skill["name"]
+            for skill in self.skill_objects
+        ]
 
 
-        elif isinstance(data, list):
-
-            for item in data:
-
-                if isinstance(item, str):
-                    skills.append(item)
-
-                elif isinstance(item, (dict, list)):
-                    skills.extend(
-                        self._flatten(item)
-                    )
-
-
-        return skills
-
-
-
-    def get_all_skills(self):
-        return self.skills
+    def get_all_skill_objects(self) -> List[Dict]:
+        return self.skill_objects
