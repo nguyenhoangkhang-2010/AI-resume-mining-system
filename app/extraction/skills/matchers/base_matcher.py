@@ -1,24 +1,28 @@
 from abc import ABC, abstractmethod
 
+from app.models.skill_match import SkillMatch
+
 from loguru import logger
 
 
 class BaseMatcher(ABC):
 
     def match(self, text: str):
-
-        if not text:
-            logger.warning(
-                "Empty text provided."
-            )
-            return set()
-
+        
         logger.debug(
             f"Running {self.__class__.__name__}."
         )
+        
+        matches = self.match_with_confidence(text)
 
-        return self._match(text)
+        return {
+            item.skill
+            for item in matches
+        }
 
     @abstractmethod
-    def _match(self, text: str):
+    def match_with_confidence(
+        self,
+        text: str,
+    ) -> list[SkillMatch]:
         pass

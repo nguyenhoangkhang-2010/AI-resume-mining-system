@@ -19,3 +19,9 @@ class SkillExtractionPipeline:
         )
 
         return self.strategy.extract(text)
+    
+    def extract_with_confidence(
+        self,
+        text: str,
+    ):
+        return self.strategy.extract_with_confidence(text)

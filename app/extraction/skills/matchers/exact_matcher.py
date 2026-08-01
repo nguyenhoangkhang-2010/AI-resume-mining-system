@@ -1,6 +1,7 @@
 from flashtext import KeywordProcessor
 from loguru import logger
 from app.extraction.skills.matchers.base_matcher import BaseMatcher
+from app.models.skill_match import SkillMatch
 
 
 class ExactMatcher(BaseMatcher):
@@ -18,7 +19,14 @@ class ExactMatcher(BaseMatcher):
                 skill
             )
 
-    def _match(self, text):
+    def match_with_confidence(self, text: str,):
         matches = self.keyword_processor.extract_keywords(text)
 
-        return set(matches)
+        return [
+            SkillMatch(
+                skill=skill,
+                confidence=1.0,
+                source="exact",
+            )
+            for skill in set(matches)
+        ]
