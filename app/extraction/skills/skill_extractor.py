@@ -13,10 +13,18 @@ class SkillExtractor:
 
         repository = SkillRepository()
 
+        self.exact_matcher = ExactMatcher(repository)
+
+        self.alias_matcher = AliasMatcher(repository)
+
+        self.semantic_matcher = SemanticSkillMatcher()
+        
         self.pipeline = SkillExtractionPipeline(
-            exact_matcher=ExactMatcher(repository),
-            alias_matcher=AliasMatcher(repository),
-            semantic_matcher=SemanticSkillMatcher(),
+            matchers=[
+                self.exact_matcher,
+                self.alias_matcher,
+                self.semantic_matcher,
+            ]
         )
 
         logger.info("SkillExtractor initialized.")
