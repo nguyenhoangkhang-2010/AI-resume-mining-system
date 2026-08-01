@@ -22,4 +22,8 @@ class SkillExtractor:
         logger.info("SkillExtractor initialized.")
         
     def extract(self, text: str):
+        if not text:
+            logger.warning("Empty text provided to SkillExtractor.")
+            return []
+
         return self.pipeline.extract(text)

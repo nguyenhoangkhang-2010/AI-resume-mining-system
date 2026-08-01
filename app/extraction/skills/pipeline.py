@@ -20,15 +20,20 @@ class SkillExtractionPipeline:
     def extract(self, text):
         logger.debug("Starting skill extraction pipeline.")
 
-        skills = set()
+        exact_skills = self.exact_matcher.match(text)
 
-        skills.update(
-            self.exact_matcher.match(text)
-        )
+        alias_skills = self.alias_matcher.match(text)
 
-        skills.update(
-            self.alias_matcher.match(text)
-        )
+        skills = exact_skills | alias_skills
+
+        if not skills:
+            logger.debug(
+                "No exact or alias matches found. Falling back to semantic matcher."
+            )
+
+            semantic_skills = self.semantic_matcher.match(text)
+
+            skills |= semantic_skills
 
         logger.debug(
             f"Pipeline extracted {len(skills)} skills."
