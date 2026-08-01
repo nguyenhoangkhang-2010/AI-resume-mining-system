@@ -6,6 +6,7 @@ from app.extraction.skills.pipeline import SkillExtractionPipeline
 from app.extraction.skills.strategies.sequential_strategy import (
     SequentialStrategy,
 )
+from app.extraction.skills.registry.matcher_registry import MatcherRegistry
 
 from loguru import logger
 
@@ -22,12 +23,14 @@ class SkillExtractor:
 
         self.semantic_matcher = SemanticSkillMatcher()
         
+        self.registry = MatcherRegistry()
+        
+        self.registry.register(self.exact_matcher)
+        self.registry.register(self.alias_matcher)
+        self.registry.register(self.semantic_matcher)
+        
         strategy = SequentialStrategy(
-            [
-                self.exact_matcher,
-                self.alias_matcher,
-                self.semantic_matcher,
-            ]
+            self.registry.get_matchers()
         )
 
         self.pipeline = SkillExtractionPipeline(
