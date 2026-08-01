@@ -1,9 +1,15 @@
 from loguru import logger
+from app.extraction.skills.strategies.matching_strategy import (
+    MatchingStrategy,
+)
 
 
 class SkillExtractionPipeline:
 
-    def __init__(self, strategy):
+    def __init__(
+        self, 
+        strategy: MatchingStrategy
+    ):
         self.strategy = strategy
 
     def extract(self, text):
