@@ -3,6 +3,9 @@ from app.extraction.skills.matchers.exact_matcher import ExactMatcher
 from app.extraction.skills.matchers.alias_matcher import AliasMatcher
 from app.extraction.skills.matchers.semantic_matcher import SemanticSkillMatcher
 from app.extraction.skills.pipeline import SkillExtractionPipeline
+from app.extraction.skills.strategies.sequential_strategy import (
+    SequentialStrategy,
+)
 
 from loguru import logger
 
@@ -19,12 +22,16 @@ class SkillExtractor:
 
         self.semantic_matcher = SemanticSkillMatcher()
         
-        self.pipeline = SkillExtractionPipeline(
-            matchers=[
+        strategy = SequentialStrategy(
+            [
                 self.exact_matcher,
                 self.alias_matcher,
                 self.semantic_matcher,
             ]
+        )
+
+        self.pipeline = SkillExtractionPipeline(
+            strategy
         )
 
         logger.info("SkillExtractor initialized.")
