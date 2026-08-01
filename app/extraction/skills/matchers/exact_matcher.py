@@ -1,5 +1,4 @@
-import re
-
+from flashtext import KeywordProcessor
 from loguru import logger
 
 
@@ -7,28 +6,22 @@ class ExactMatcher:
 
     def __init__(self, repository):
         self.repository = repository
-        self.skills = repository.get_all_skills()
 
-    def _build_pattern(self, skill: str):
-        escaped = re.escape(skill)
-        escaped = escaped.replace(r"\ ", r"\s+")
-        return rf"\b{escaped}\b"
+        self.keyword_processor = KeywordProcessor(
+            case_sensitive=False
+        )
+
+        for skill in repository.get_all_skills():
+            self.keyword_processor.add_keyword(
+                skill,
+                skill
+            )
 
     def match(self, text):
         if not text:
             logger.warning("Empty text provided.")
             return set()
 
-        extracted = set()
+        matches = self.keyword_processor.extract_keywords(text)
 
-        for skill in self.skills:
-            pattern = self._build_pattern(skill)
-
-            if re.search(
-                pattern,
-                text,
-                re.IGNORECASE
-            ):
-                extracted.add(skill)
-
-        return extracted
+        return set(matches)

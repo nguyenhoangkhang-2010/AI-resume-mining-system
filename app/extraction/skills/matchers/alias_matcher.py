@@ -1,5 +1,4 @@
-import re
-
+from flashtext import KeywordProcessor
 from loguru import logger
 
 
@@ -7,28 +6,22 @@ class AliasMatcher:
 
     def __init__(self, repository):
         self.repository = repository
-        self.alias_map = repository.get_alias_map()
 
-    def _build_pattern(self, skill: str):
-        escaped = re.escape(skill)
-        escaped = escaped.replace(r"\ ", r"\s+")
-        return rf"\b{escaped}\b"
+        self.keyword_processor = KeywordProcessor(
+            case_sensitive=False
+        )
+
+        for alias, canonical in repository.get_alias_map().items():
+            self.keyword_processor.add_keyword(
+                alias,
+                canonical
+            )
 
     def match(self, text):
         if not text:
             logger.warning("Empty text provided.")
             return set()
 
-        extracted = set()
+        matches = self.keyword_processor.extract_keywords(text)
 
-        for alias, canonical in self.alias_map.items():
-            pattern = self._build_pattern(alias)
-
-            if re.search(
-                pattern,
-                text,
-                re.IGNORECASE
-            ):
-                extracted.add(canonical)
-
-        return extracted
+        return set(matches)
