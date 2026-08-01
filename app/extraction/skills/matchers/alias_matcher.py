@@ -1,8 +1,9 @@
 from flashtext import KeywordProcessor
 from loguru import logger
+from app.extraction.skills.matchers.base_matcher import BaseMatcher
 
 
-class AliasMatcher:
+class AliasMatcher(BaseMatcher):
 
     def __init__(self, repository):
         self.repository = repository
@@ -17,11 +18,7 @@ class AliasMatcher:
                 canonical
             )
 
-    def match(self, text):
-        if not text:
-            logger.warning("Empty text provided.")
-            return set()
-
+    def _match(self, text):
         matches = self.keyword_processor.extract_keywords(text)
 
         return set(matches)
