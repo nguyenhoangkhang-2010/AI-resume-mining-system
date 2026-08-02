@@ -25,13 +25,26 @@ class JobPipeline:
         file_path: str | Path,
     ) -> dict[str, Any]:
 
+        if file_path is None:
+            raise ValueError(
+                "file_path cannot be None."
+            )
+
         logger.info(
             f"Starting job pipeline: {file_path}"
         )
 
-        text = self.parser.parse(file_path)
+        try:
+            text = self.parser.parse(
+                file_path
+            )
+        except Exception as exc:
+            logger.exception(
+                f"Failed to parse job description: {exc}"
+            )
+            raise
 
-        if not text.strip():
+        if not text or not text.strip():
             logger.warning(
                 "Empty job description detected."
             )
@@ -46,6 +59,10 @@ class JobPipeline:
         )
 
         result = self.extractor.extract(text)
+
+        logger.info(
+            "Job extraction finished successfully."
+        )
 
         logger.success(
             "Job processing completed."
