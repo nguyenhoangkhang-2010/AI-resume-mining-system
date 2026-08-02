@@ -24,13 +24,8 @@ class SkillExtractionPipeline:
 
         matches = self.strategy.extract(text)
 
-        aggregated = self.aggregator.aggregate(
+        return self.aggregator.aggregate(
             matches
-        )
-
-        return sorted(
-            item.skill
-            for item in aggregated
         )
     
     def extract_with_confidence(
