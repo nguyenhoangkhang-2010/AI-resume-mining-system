@@ -60,10 +60,6 @@ class JobPipeline:
 
         result = self.extractor.extract(text)
 
-        logger.info(
-            "Job extraction finished successfully."
-        )
-
         logger.success(
             "Job processing completed."
         )
