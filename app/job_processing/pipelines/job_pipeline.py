@@ -35,23 +35,43 @@ class JobPipeline:
             f"Starting job pipeline: {file_path}"
         )
 
-        text = self.parser.parse(
-            file_path
+        text = self.parser.parse(file_path)
+
+        if not text.strip():
+            logger.warning("Empty job description detected.")
+            return {
+                "requirements": None,
+                "responsibilities": None,
+                "skills": [],
+            }
+
+        logger.info(
+            "Extracting job requirements..."
+        )
+        requirements = RequirementExtractor.extract(
+            text
+        )
+
+        logger.info(
+            "Extracting responsibilities..."
+        )
+        responsibilities = ResponsibilityExtractor.extract(
+            text
+        )
+
+        logger.info(
+            "Extracting required skills..."
+        )
+        skills = self.skill_extractor.extract(
+            text
+        )
+
+        logger.success(
+            "Job processing completed."
         )
 
         return {
-            "requirements":
-                RequirementExtractor.extract(
-                    text
-                ),
-
-            "responsibilities":
-                ResponsibilityExtractor.extract(
-                    text
-                ),
-
-            "skills":
-                self.skill_extractor.extract(
-                    text
-                ),
+            "requirements": requirements,
+            "responsibilities": responsibilities,
+            "skills": skills,
         }
