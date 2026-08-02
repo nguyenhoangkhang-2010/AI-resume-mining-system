@@ -1,11 +1,11 @@
 from sentence_transformers import SentenceTransformer
 from sklearn.metrics.pairwise import cosine_similarity
 
-from app.extraction.skills.repository import SkillRepository
-
 import numpy as np
 
+from app.extraction.skills.repository import SkillRepository
 from app.extraction.skills.matchers.base_matcher import BaseMatcher
+from app.extraction.skills.config.matching_config import MatchingConfig
 from app.models.skill_match import SkillMatch
 
 
@@ -16,24 +16,26 @@ class SemanticSkillMatcher(BaseMatcher):
         self.skill_objects = (
             self.repository.get_all_skill_objects()
         )
+
         self.model = SentenceTransformer(
             "all-MiniLM-L6-v2"
         )
+
         self.corpus = [
             self._build_document(skill)
             for skill in self.skill_objects
         ]
+
         self.skill_embeddings = self.model.encode(
             self.corpus,
             convert_to_numpy=True,
             show_progress_bar=True
         )
-        
-        
+
     def find_best_match(
         self,
         query: str,
-        threshold: float = 0.60
+        threshold: float = MatchingConfig.SEMANTIC_MIN_SCORE,
     ):
 
         query_embedding = self.model.encode(
@@ -65,11 +67,11 @@ class SemanticSkillMatcher(BaseMatcher):
             best_skill["name"],
             float(score)
         )
-        
+
     def match_with_confidence(
         self,
         text: str,
-        threshold: float = 0.70,
+        threshold: float = MatchingConfig.SEMANTIC_DEFAULT_THRESHOLD,
     ) -> list[SkillMatch]:
 
         extracted = {}
@@ -98,7 +100,7 @@ class SemanticSkillMatcher(BaseMatcher):
                     )
 
         return list(extracted.values())
-        
+
     def _build_document(self, skill):
         parts = [
             skill["name"],

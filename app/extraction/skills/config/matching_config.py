@@ -1,0 +1,9 @@
+class MatchingConfig:
+
+    EXACT_CONFIDENCE = 1.0
+
+    ALIAS_CONFIDENCE = 0.95
+
+    SEMANTIC_DEFAULT_THRESHOLD = 0.70
+
+    SEMANTIC_MIN_SCORE = 0.60
