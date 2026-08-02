@@ -1,29 +1,66 @@
 import re
 from typing import List, Dict, Any
+
 from loguru import logger
 
 
 class ExperienceExtractor:
-    YEARS_OF_EXP_PATTERN = r"(\d+)\+?\s*(?:years|yrs)\s*(?:of)?\s*(?:experience|exp)"
-    
+
+    YEARS_PATTERN = (
+        r"(\d+)"
+        r"\+?\s*"
+        r"(years|yrs)"
+        r"\s*(of)?"
+        r"\s*(experience|exp)"
+    )
+
+
+    RANGE_PATTERN = (
+        r"(\d{4})"
+        r"\s*-\s*"
+        r"(\d{4}|present)"
+    )
+
+
     @staticmethod
-    def extract(text: str) -> List[Dict[str, Any]]:
+    def extract(
+        text: str
+    ) -> List[Dict[str, Any]]:
         if not text:
             return []
-            
-        logger.debug("Starting experience extraction.")
+        logger.debug(
+            "Starting experience extraction."
+        )
         text_lower = text.lower()
-        experience_info = []
-        
-        years_matches = re.findall(ExperienceExtractor.YEARS_OF_EXP_PATTERN, text_lower)
-        total_years = 0
-        
+        result = {
+            "total_years_extracted": 0,
+            "experience_periods": []
+        }
+        # Extract explicit years experience
+        years_matches = re.findall(
+            ExperienceExtractor.YEARS_PATTERN,
+            text_lower
+        )
         if years_matches:
-            total_years = max([int(y) for y in years_matches])
-            
-        experience_info.append({
-            "total_years_extracted": total_years
-        })
-        
-        logger.debug(f"Extracted {total_years} years of experience.")
-        return experience_info
+            result["total_years_extracted"] = max(
+                int(year[0])
+                for year in years_matches
+            )
+        # Extract working periods
+        periods = re.findall(
+            ExperienceExtractor.RANGE_PATTERN,
+            text_lower
+        )
+        for start, end in periods:
+            result["experience_periods"].append(
+                {
+                    "start": start,
+                    "end": end
+                }
+            )
+        logger.debug(
+            f"Experience extracted: {result}"
+        )
+        return [
+            result
+        ]
