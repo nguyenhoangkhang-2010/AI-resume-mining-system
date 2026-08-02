@@ -16,13 +16,15 @@ class SequentialStrategy(MatchingStrategy):
             "Running SequentialStrategy."
         )
 
-        skills = set()
+        matches = []
 
         for matcher in self.matchers:
 
-            result = matcher.match(text)
+            result = matcher.match_with_confidence(
+                text
+            )
 
             if result:
-                skills.update(result)
+                matches.extend(result)
 
-        return sorted(skills)
+        return matches

@@ -5,8 +5,11 @@ from app.extraction.skills.repository import SkillRepository
 
 import numpy as np
 
+from app.extraction.skills.matchers.base_matcher import BaseMatcher
+from app.models.skill_match import SkillMatch
 
-class SemanticSkillMatcher:
+
+class SemanticSkillMatcher(BaseMatcher):
 
     def __init__(self):
         self.repository = SkillRepository()
@@ -63,12 +66,13 @@ class SemanticSkillMatcher:
             float(score)
         )
         
-    def match(
+    def match_with_confidence(
         self,
         text: str,
-        threshold: float = 0.70
-    ):
-        extracted = set()
+        threshold: float = 0.70,
+    ) -> list[SkillMatch]:
+
+        extracted = {}
 
         words = text.split()
 
@@ -76,14 +80,24 @@ class SemanticSkillMatcher:
 
             result = self.find_best_match(
                 word,
-                threshold
+                threshold,
             )
 
             if result:
-                skill, _ = result
-                extracted.add(skill)
 
-        return extracted
+                skill, score = result
+
+                if (
+                    skill not in extracted
+                    or score > extracted[skill].confidence
+                ):
+                    extracted[skill] = SkillMatch(
+                        skill=skill,
+                        confidence=score,
+                        source="semantic",
+                    )
+
+        return list(extracted.values())
         
     def _build_document(self, skill):
         parts = [
