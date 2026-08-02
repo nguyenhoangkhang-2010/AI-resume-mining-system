@@ -5,6 +5,9 @@ from app.extraction.skills.strategies.matching_strategy import (
 from app.extraction.skills.aggregation.result_aggregator import (
     ResultAggregator,
 )
+from app.extraction.skills.filters.confidence_filter import (
+    ConfidenceFilter,
+)
 
 
 class SkillExtractionPipeline:
@@ -15,6 +18,7 @@ class SkillExtractionPipeline:
     ):
         self.strategy = strategy
         self.aggregator = ResultAggregator()
+        self.filter = ConfidenceFilter()
 
     def extract(self, text):
 
@@ -24,9 +28,15 @@ class SkillExtractionPipeline:
 
         matches = self.strategy.extract(text)
 
-        return self.aggregator.aggregate(
+        filtered = self.filter.filter(
             matches
         )
+
+        aggregated = self.aggregator.aggregate(
+            filtered
+        )
+
+        return aggregated
     
     def extract_with_confidence(
         self,
