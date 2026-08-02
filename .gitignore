@@ -112,3 +112,8 @@ dump/
 # Upload
 # =========================
 /data/uploads
+# =========================
+# ESCO raw dataset
+# =========================
+*.zip
+data/esco/raw/

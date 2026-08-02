@@ -44,3 +44,16 @@ class SkillRepository:
 
     def get_all_skill_objects(self) -> List[Dict]:
         return self.skill_objects
+    
+    def get_alias_map(self) -> dict[str, str]:
+        alias_map = {}
+
+        for skill in self.skill_objects:
+            canonical = skill["name"]
+
+            alias_map[canonical.lower()] = canonical
+
+            for alias in skill.get("aliases", []):
+                alias_map[alias.lower()] = canonical
+
+        return alias_map

@@ -24,3 +24,5 @@ matplotlib
 jupyter
 pydantic-settings
 torchvision
+huggingface_hub
+flashtext

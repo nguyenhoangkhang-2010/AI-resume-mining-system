@@ -1,51 +1,50 @@
-import re
-from typing import List
-from loguru import logger
 from app.extraction.skills.repository import SkillRepository
+from app.extraction.skills.pipeline import SkillExtractionPipeline
+from app.extraction.skills.factory.matcher_factory import MatcherFactory
+from app.extraction.skills.formatters.skill_formatter import (
+    SkillFormatter,
+)
+
+from loguru import logger
 
 
 class SkillExtractor:
 
     def __init__(self):
 
-        self.skill_repository = SkillRepository()
+        repository = SkillRepository()
 
-        self.skills = (
-            self.skill_repository
-            .get_all_skills()
+        factory = MatcherFactory(
+            repository
         )
 
-        logger.info(
-            f"SkillExtractor initialized with {len(self.skills)} skills."
+        strategy = factory.build_strategy()
+
+        self.pipeline = SkillExtractionPipeline(
+            strategy
         )
+
+        logger.info("SkillExtractor initialized.")
         
-    def _build_pattern(self, skill: str):
-        escaped = re.escape(skill)
-
-        escaped = escaped.replace(
-            r"\ ",
-            r"\s+"
-        )
-
-        return escaped
-
-    def extract(self, text: str) -> List[str]:
+    def extract(self, text: str):
         if not text:
             logger.warning("Empty text provided to SkillExtractor.")
             return []
-            
-        logger.debug("Starting skill extraction process.")
-        extracted_skills = set()
-        
-        for skill in self.skills:
-            pattern = self._build_pattern(skill)
 
-            if re.search(
-                pattern,
-                text,
-                re.IGNORECASE
-            ):
-                extracted_skills.add(skill)
-                
-        logger.debug(f"Extracted {len(extracted_skills)} skills.")
-        return sorted(list(extracted_skills))
+        matches = self.pipeline.extract(text)
+
+        return SkillFormatter.to_skill_names(
+            matches
+        )
+        
+    def extract_many(
+        self,
+        texts: list[str],
+    ) -> list[list[str]]:
+
+        return [
+            self.extract(text)
+            for text in texts
+        ]
+    # TODO:
+    # Optimize using batch semantic embedding.
