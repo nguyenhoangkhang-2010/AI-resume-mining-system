@@ -30,36 +30,35 @@ class ContactExtractor:
     )
 
 
+    @staticmethod
     def extract(
-        self,
         text: str
     ) -> Dict[str, str | None]:
 
         return {
-            "email": self._extract_first(
-                self.EMAIL_PATTERN,
+            "email": ContactExtractor._extract_first(
+                ContactExtractor.EMAIL_PATTERN,
                 text
             ),
 
-            "phone": self._extract_first(
-                self.PHONE_PATTERN,
+            "phone": ContactExtractor._extract_first(
+                ContactExtractor.PHONE_PATTERN,
                 text
             ),
 
-            "linkedin": self._extract_first(
-                self.LINKEDIN_PATTERN,
+            "linkedin": ContactExtractor._extract_first(
+                ContactExtractor.LINKEDIN_PATTERN,
                 text
             ),
 
-            "github": self._extract_first(
-                self.GITHUB_PATTERN,
+            "github": ContactExtractor._extract_first(
+                ContactExtractor.GITHUB_PATTERN,
                 text
             ),
         }
 
-
+    @staticmethod
     def _extract_first(
-        self,
         pattern,
         text: str
     ):

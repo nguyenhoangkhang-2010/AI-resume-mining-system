@@ -14,8 +14,8 @@ class SummaryExtractor:
     ]
 
 
+    @staticmethod
     def extract(
-        self,
         text: str
     ) -> str | None:
 
@@ -30,7 +30,7 @@ class SummaryExtractor:
         pattern = (
             r"("
             + "|".join(
-                self.SECTION_HEADERS
+                SummaryExtractor.SECTION_HEADERS
             )
             + r")"
             r"\s*[:\-]?\s*\n"
