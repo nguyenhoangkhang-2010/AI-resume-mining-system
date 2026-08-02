@@ -7,14 +7,8 @@ from app.job_processing.parsers.job_parser import (
     JobDescriptionParser,
 )
 
-from app.extraction.job.requirement_extractor import (
-    RequirementExtractor,
-)
-from app.extraction.job.responsibility_extractor import (
-    ResponsibilityExtractor,
-)
-from app.extraction.job.job_skill_extractor import (
-    JobSkillExtractor,
+from app.extraction.job.job_extractor import (
+    JobExtractor,
 )
 
 
@@ -24,7 +18,7 @@ class JobPipeline:
 
         self.parser = JobDescriptionParser()
 
-        self.skill_extractor = JobSkillExtractor()
+        self.extractor = JobExtractor()
 
     def process(
         self,
@@ -38,7 +32,9 @@ class JobPipeline:
         text = self.parser.parse(file_path)
 
         if not text.strip():
-            logger.warning("Empty job description detected.")
+            logger.warning(
+                "Empty job description detected."
+            )
             return {
                 "requirements": None,
                 "responsibilities": None,
@@ -46,32 +42,13 @@ class JobPipeline:
             }
 
         logger.info(
-            "Extracting job requirements..."
-        )
-        requirements = RequirementExtractor.extract(
-            text
+            "Extracting job information..."
         )
 
-        logger.info(
-            "Extracting responsibilities..."
-        )
-        responsibilities = ResponsibilityExtractor.extract(
-            text
-        )
-
-        logger.info(
-            "Extracting required skills..."
-        )
-        skills = self.skill_extractor.extract(
-            text
-        )
+        result = self.extractor.extract(text)
 
         logger.success(
             "Job processing completed."
         )
 
-        return {
-            "requirements": requirements,
-            "responsibilities": responsibilities,
-            "skills": skills,
-        }
+        return result

@@ -9,7 +9,7 @@ def test_job_pipeline():
 
     pipeline = JobPipeline()
 
-    pipeline.parser.extract_text = Mock(
+    pipeline.parser.parse = Mock(
         return_value="""
 Software Engineer
 
@@ -30,6 +30,26 @@ Write tests
         "job.txt"
     )
 
-    assert "requirements" in result
-    assert "responsibilities" in result
-    assert "skills" in result
+    assert "Python" in result["requirements"]
+
+    assert "Develop APIs" in result["responsibilities"]
+
+    assert isinstance(
+        result["skills"],
+        list,
+    )
+    
+def test_empty_job_description():
+    pipeline = JobPipeline()
+    
+    pipeline.parser.parse = Mock(
+        return_value=""
+    )
+    
+    result = pipeline.process("job.txt")
+
+    assert result == {
+        "requirements": None,
+        "responsibilities": None,
+        "skills": [],
+    }
