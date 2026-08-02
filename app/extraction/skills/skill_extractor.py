@@ -36,3 +36,15 @@ class SkillExtractor:
         return SkillFormatter.to_skill_names(
             matches
         )
+        
+    def extract_many(
+        self,
+        texts: list[str],
+    ) -> list[list[str]]:
+
+        return [
+            self.extract(text)
+            for text in texts
+        ]
+    # TODO:
+    # Optimize using batch semantic embedding.
