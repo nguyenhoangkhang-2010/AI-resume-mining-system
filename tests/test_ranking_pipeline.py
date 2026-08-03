@@ -146,6 +146,7 @@ class MockRankingScorer:
 
     def calculate(
         self,
-        normalized_score,
-    ):
-        return normalized_score
+        similarity_score: float,
+        skill_gaps: list[str],
+    ) -> float:
+        return similarity_score

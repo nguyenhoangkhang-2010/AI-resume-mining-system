@@ -73,17 +73,16 @@ class RankingPipeline:
                 )
             )
 
-            ranking_score = (
-                self.ranking_scorer.calculate(
-                    normalized_score
-                )
-            )
-
             skill_gaps = (
                 self.recommendation_engine.analyze_skill_gaps(
                     required_skills=job.required_skills,
                     candidate_skills=candidate.skills,
                 )
+            )
+
+            ranking_score = self.ranking_scorer.calculate(
+                similarity_score=normalized_score,
+                skill_gaps=skill_gaps,
             )
 
             ranked_candidate = self.ranking_builder.build(
