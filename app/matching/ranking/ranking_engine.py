@@ -15,6 +15,9 @@ from app.matching.ranking.ranking_sorter import RankingSorter
 from app.matching.ranking.ranking_filter import (
     RankingFilter,
 )
+from app.matching.ranking.ranking_builder import (
+    RankingBuilder,
+)
 
 
 class RankingEngine:
@@ -27,6 +30,7 @@ class RankingEngine:
         config=None,
         ranking_sorter=None,
         ranking_filter=None,
+        ranking_builder=None,
     ):
         self.similarity_engine = (
             similarity_engine
@@ -56,6 +60,11 @@ class RankingEngine:
         self.ranking_filter = (
             ranking_filter
             or RankingFilter(self.config)
+        )
+        
+        self.ranking_builder = (
+            ranking_builder
+            or RankingBuilder()
         )
 
     def rank_candidates(
@@ -91,12 +100,15 @@ class RankingEngine:
                 candidate_skills=candidate.skills
             )
             
-            ranked_candidate = RankedCandidate(
+            ranked_candidate = self.ranking_builder.build(
+                candidate=candidate,
                 similarity_score=normalized_score,
                 skill_gaps=skill_gaps,
-                candidate_profile=CandidateResponse.model_validate(candidate)
             )
-            ranked_list.append(ranked_candidate)
+
+            ranked_list.append(
+                ranked_candidate
+            )
         
         ranked_list = self.ranking_sorter.sort(
             ranked_list
