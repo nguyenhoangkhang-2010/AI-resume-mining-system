@@ -7,6 +7,9 @@ from app.models.matching_weights import MatchingWeights
 from app.matching.confidence.confidence_calculator import (
     ConfidenceCalculator,
 )
+from app.matching.explanation.explanation_engine import (
+    ExplanationEngine,
+)
 
 class MatchingPipeline:
     """
@@ -22,6 +25,7 @@ class MatchingPipeline:
         self.confidence_calculator = (
             ConfidenceCalculator()
         )
+        self.explanation_engine = ExplanationEngine()
 
     def process(
         self,
@@ -42,6 +46,12 @@ class MatchingPipeline:
                 semantic_score,
             )
         )
+        
+        explanation = self.explanation_engine.generate(
+            skill_score=skill_score,
+            semantic_score=semantic_score,
+            overall_score=overall_score,
+        )
 
         return MatchingScore(
             candidate_id=candidate_id,
@@ -50,4 +60,5 @@ class MatchingPipeline:
             semantic_score=semantic_score,
             overall_score=overall_score,
             confidence_score=confidence_score,
+            explanation=explanation,
         )
