@@ -1,7 +1,13 @@
+from typing import List, Dict
+
+from app.models.job import JobModel
+from app.models.candidate import CandidateModel
+
 from app.matching.ranking.ranking_filter import RankingFilter
 from app.matching.ranking.ranking_builder import RankingBuilder
 from app.matching.similarity.similarity_engine import SimilarityEngine
 from app.matching.recommendation.recommendation_engine import RecommendationEngine
+from app.schemas.ranking_result import RankingResult
 
 
 class RankingPipeline:
@@ -35,10 +41,10 @@ class RankingPipeline:
 
     def process(
         self,
-        job,
-        candidates,
-        score_map,
-    ):
+        job: JobModel,
+        candidates: List[CandidateModel],
+        score_map: Dict[str, float],
+    ) -> RankingResult:
 
         ranked_list = []
         filtered_candidates = 0
@@ -77,9 +83,9 @@ class RankingPipeline:
                 ranked_candidate
             )
 
-        return {
-            "results": ranked_list,
-            "metadata": {
+        return RankingResult(
+            results=ranked_list,
+            metadata={
                 "total_candidates": len(candidates),
                 "ranked_candidates": len(ranked_list),
                 "filtered_candidates": filtered_candidates,
@@ -87,4 +93,4 @@ class RankingPipeline:
                     self.ranking_filter.config.similarity_threshold
                 ),
             }
-        }
+        )

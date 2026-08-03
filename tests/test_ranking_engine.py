@@ -3,6 +3,8 @@ from app.schemas.candidate_schema import CandidateResponse
 
 from app.matching.ranking.ranking_engine import RankingEngine
 
+from unittest.mock import Mock
+
 
 class MockSimilarityEngine:
 
@@ -66,13 +68,16 @@ def test_sort_candidates():
     
 def test_ranking_engine_dependency_injection():
 
-    similarity_engine = MockSimilarityEngine()
-    recommendation_engine = MockRecommendationEngine()
+    ranking_adapter = Mock()
+    ranking_sorter = Mock()
+    ranking_pipeline = Mock()
 
     engine = RankingEngine(
-        similarity_engine=similarity_engine,
-        recommendation_engine=recommendation_engine,
+        ranking_adapter=ranking_adapter,
+        ranking_sorter=ranking_sorter,
+        ranking_pipeline=ranking_pipeline,
     )
 
-    assert engine.similarity_engine == similarity_engine
-    assert engine.recommendation_engine == recommendation_engine
+    assert engine.ranking_adapter is ranking_adapter
+    assert engine.ranking_sorter is ranking_sorter
+    assert engine.ranking_pipeline is ranking_pipeline
