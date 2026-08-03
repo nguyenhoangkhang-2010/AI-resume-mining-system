@@ -9,9 +9,13 @@ from app.matching.filters.score_threshold_filter import (
 
 class MatchingPipeline:
 
-    def __init__(self):
-        self.strategy = HybridMatchingStrategy()
-        self.filter = ScoreThresholdFilter()
+    def __init__(
+        self,
+        strategy: HybridMatchingStrategy | None = None,
+        score_filter: ScoreThresholdFilter | None = None,
+    ):
+        self.strategy = strategy or HybridMatchingStrategy()
+        self.filter = score_filter or ScoreThresholdFilter()
 
     def process(
         self,
