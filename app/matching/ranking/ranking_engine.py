@@ -8,6 +8,7 @@ from app.schemas.candidate_schema import CandidateResponse
 from app.schemas.matching_schema import RankedCandidate, MatchResponse
 from app.matching.similarity.similarity_engine import SimilarityEngine
 from app.matching.recommendation.recommendation_engine import RecommendationEngine
+from app.matching.ranking.ranking_adapter import RankingAdapter
 
 
 class RankingEngine:
@@ -16,6 +17,7 @@ class RankingEngine:
         self,
         similarity_engine=None,
         recommendation_engine=None,
+        ranking_adapter=None,
     ):
         self.similarity_engine = (
             similarity_engine
@@ -25,6 +27,11 @@ class RankingEngine:
         self.recommendation_engine = (
             recommendation_engine
             or RecommendationEngine()
+        )
+        
+        self.ranking_adapter = (
+            ranking_adapter
+            or RankingAdapter()
         )
 
     def sort_candidates(
@@ -49,7 +56,9 @@ class RankingEngine:
     ) -> MatchResponse:
         logger.info(f"Ranking {len(candidates)} candidates for job '{job.title}' (ID: {job.id})")
         
-        score_map = {result["faiss_id"]: result["similarity_score"] for result in faiss_results}
+        score_map = self.ranking_adapter.build_score_map(
+            faiss_results
+        )
         
         ranked_list: List[RankedCandidate] = []
         
