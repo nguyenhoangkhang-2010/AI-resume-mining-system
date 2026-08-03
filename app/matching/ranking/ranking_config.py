@@ -14,3 +14,5 @@ class RankingConfig:
 
     similarity_threshold: float = SIMILARITY_THRESHOLD
     top_k: int = DEFAULT_TOP_K
+    
+    semantic_weight: float = 1.0

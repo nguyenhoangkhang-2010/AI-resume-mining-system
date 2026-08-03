@@ -8,6 +8,7 @@ from app.matching.ranking.ranking_builder import RankingBuilder
 from app.matching.similarity.similarity_engine import SimilarityEngine
 from app.matching.recommendation.recommendation_engine import RecommendationEngine
 from app.schemas.ranking_result import RankingResult
+from app.matching.ranking.ranking_scorer import RankingScorer
 
 
 class RankingPipeline:
@@ -17,6 +18,7 @@ class RankingPipeline:
         similarity_engine=None,
         recommendation_engine=None,
         ranking_filter=None,
+        ranking_scorer=None,
         ranking_builder=None,
     ):
         self.similarity_engine = (
@@ -37,6 +39,11 @@ class RankingPipeline:
         self.ranking_builder = (
             ranking_builder
             or RankingBuilder()
+        )
+        
+        self.ranking_scorer = (
+            ranking_scorer
+            or RankingScorer()
         )
 
     def process(
@@ -66,6 +73,12 @@ class RankingPipeline:
                 )
             )
 
+            ranking_score = (
+                self.ranking_scorer.calculate(
+                    normalized_score
+                )
+            )
+
             skill_gaps = (
                 self.recommendation_engine.analyze_skill_gaps(
                     required_skills=job.required_skills,
@@ -75,7 +88,7 @@ class RankingPipeline:
 
             ranked_candidate = self.ranking_builder.build(
                 candidate=candidate,
-                similarity_score=normalized_score,
+                similarity_score=ranking_score,
                 skill_gaps=skill_gaps,
             )
 

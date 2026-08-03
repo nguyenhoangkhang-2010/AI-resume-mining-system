@@ -78,6 +78,7 @@ def test_ranking_pipeline_process():
         similarity_engine=MockSimilarityEngine(),
         recommendation_engine=MockRecommendationEngine(),
         ranking_filter=MockRankingFilter(),
+        ranking_scorer=MockRankingScorer(),
         ranking_builder=MockRankingBuilder(),
     )
 
@@ -140,3 +141,11 @@ def test_ranking_pipeline_process():
     assert result.metadata.filtered_candidates == 1
 
     assert result.metadata.similarity_threshold == 0.7
+    
+class MockRankingScorer:
+
+    def calculate(
+        self,
+        normalized_score,
+    ):
+        return normalized_score
