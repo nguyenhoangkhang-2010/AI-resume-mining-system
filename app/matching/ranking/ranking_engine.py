@@ -12,6 +12,9 @@ from app.matching.similarity.similarity_engine import SimilarityEngine
 from app.matching.recommendation.recommendation_engine import RecommendationEngine
 from app.matching.ranking.ranking_adapter import RankingAdapter
 from app.matching.ranking.ranking_sorter import RankingSorter
+from app.matching.ranking.ranking_filter import (
+    RankingFilter,
+)
 
 
 class RankingEngine:
@@ -23,6 +26,7 @@ class RankingEngine:
         ranking_adapter=None,
         config=None,
         ranking_sorter=None,
+        ranking_filter=None,
     ):
         self.similarity_engine = (
             similarity_engine
@@ -48,6 +52,11 @@ class RankingEngine:
             ranking_sorter
             or RankingSorter()
         )
+        
+        self.ranking_filter = (
+            ranking_filter
+            or RankingFilter(self.config)
+        )
 
     def rank_candidates(
         self, 
@@ -69,8 +78,10 @@ class RankingEngine:
                 
             raw_score = score_map[candidate.faiss_id]
             
-            if raw_score < self.config.similarity_threshold:
-                logger.debug(f"Candidate {candidate.id} rejected. Score {raw_score:.3f} < threshold {self.config.similarity_threshold}")
+            if not self.ranking_filter.accept(raw_score):
+                logger.debug(
+                    f"Candidate {candidate.id} rejected."
+                )
                 continue
                 
             normalized_score = self.similarity_engine.normalize_score(raw_score)
