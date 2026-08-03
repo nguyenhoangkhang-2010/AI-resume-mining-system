@@ -1,64 +1,23 @@
-from app.models.matching_score import MatchingScore
+from app.matching.strategies.hybrid_matching_strategy import (
+    HybridMatchingStrategy,
+)
 
-from app.matching.scoring.weighted_scorer import (
-    WeightedScorer,
-)
-from app.models.matching_weights import MatchingWeights
-from app.matching.confidence.confidence_calculator import (
-    ConfidenceCalculator,
-)
-from app.matching.explanation.explanation_engine import (
-    ExplanationEngine,
-)
 
 class MatchingPipeline:
-    """
-    Combines matching components into
-    a single matching result.
-    """
 
-    def __init__(
-        self,
-        weights: MatchingWeights | None = None,
-    ):
-        self.scorer = WeightedScorer(weights)
-        self.confidence_calculator = (
-            ConfidenceCalculator()
-        )
-        self.explanation_engine = ExplanationEngine()
+    def __init__(self):
+        self.strategy = HybridMatchingStrategy()
 
     def process(
         self,
-        candidate_id: str,
-        job_id: str,
-        skill_score: float,
-        semantic_score: float,
-    ) -> MatchingScore:
-
-        overall_score = self.scorer.calculate(
-            skill_score=skill_score,
-            semantic_score=semantic_score,
-        )
-        
-        confidence_score = (
-            self.confidence_calculator.calculate(
-                skill_score,
-                semantic_score,
-            )
-        )
-        
-        explanation = self.explanation_engine.generate(
-            skill_score=skill_score,
-            semantic_score=semantic_score,
-            overall_score=overall_score,
-        )
-
-        return MatchingScore(
-            candidate_id=candidate_id,
-            job_id=job_id,
-            skill_score=skill_score,
-            semantic_score=semantic_score,
-            overall_score=overall_score,
-            confidence_score=confidence_score,
-            explanation=explanation,
+        candidate_id,
+        job_id,
+        skill_score,
+        semantic_score,
+    ):
+        return self.strategy.match(
+            candidate_id,
+            job_id,
+            skill_score,
+            semantic_score,
         )
