@@ -66,7 +66,49 @@ class RankingEngine:
             ranking_builder
             or RankingBuilder()
         )
+    
+    def _build_score_map(
+        self,
+        faiss_results,
+    ):
+        return self.ranking_adapter.build_score_map(
+            faiss_results
+        )
+        
+    def _is_candidate_valid(
+        self,
+        candidate,
+        score_map,
+    ):
+        return (
+            candidate.faiss_id in score_map
+        )
+        
+    def _build_ranked_candidate(
+        self,
+        job,
+        candidate,
+        raw_score,
+    ):
+        normalized_score = (
+            self.similarity_engine.normalize_score(
+                raw_score
+            )
+        )
 
+        skill_gaps = (
+            self.recommendation_engine.analyze_skill_gaps(
+                required_skills=job.required_skills,
+                candidate_skills=candidate.skills,
+            )
+        )
+
+        return self.ranking_builder.build(
+            candidate=candidate,
+            similarity_score=normalized_score,
+            skill_gaps=skill_gaps,
+        )
+        
     def rank_candidates(
         self, 
         job: JobModel, 
@@ -75,14 +117,17 @@ class RankingEngine:
     ) -> MatchResponse:
         logger.info(f"Ranking {len(candidates)} candidates for job '{job.title}' (ID: {job.id})")
         
-        score_map = self.ranking_adapter.build_score_map(
+        score_map = self._build_score_map(
             faiss_results
         )
         
         ranked_list: List[RankedCandidate] = []
         
         for candidate in candidates:
-            if candidate.faiss_id not in score_map:
+            if not self._is_candidate_valid(
+                candidate,
+                score_map,
+            ):
                 continue
                 
             raw_score = score_map[candidate.faiss_id]
@@ -93,17 +138,12 @@ class RankingEngine:
                 )
                 continue
                 
-            normalized_score = self.similarity_engine.normalize_score(raw_score)
-            
-            skill_gaps = self.recommendation_engine.analyze_skill_gaps(
-                required_skills=job.required_skills,
-                candidate_skills=candidate.skills
-            )
-            
-            ranked_candidate = self.ranking_builder.build(
-                candidate=candidate,
-                similarity_score=normalized_score,
-                skill_gaps=skill_gaps,
+            ranked_candidate = (
+                self._build_ranked_candidate(
+                    job,
+                    candidate,
+                    raw_score,
+                )
             )
 
             ranked_list.append(
