@@ -9,6 +9,7 @@ from app.matching.similarity.similarity_engine import SimilarityEngine
 from app.matching.recommendation.recommendation_engine import RecommendationEngine
 from app.schemas.ranking_result import RankingResult
 from app.matching.ranking.ranking_scorer import RankingScorer
+from app.matching.ranking.ranking_sorter import RankingSorter
 
 
 class RankingPipeline:
@@ -20,6 +21,7 @@ class RankingPipeline:
         ranking_filter=None,
         ranking_scorer=None,
         ranking_builder=None,
+        ranking_sorter=None,
     ):
         self.similarity_engine = (
             similarity_engine
@@ -44,6 +46,11 @@ class RankingPipeline:
         self.ranking_scorer = (
             ranking_scorer
             or RankingScorer()
+        )
+        
+        self.ranking_sorter = (
+            ranking_sorter
+            or RankingSorter()
         )
 
     def process(
@@ -94,6 +101,10 @@ class RankingPipeline:
             ranked_list.append(
                 ranked_candidate
             )
+            
+        ranked_list = self.ranking_sorter.sort(
+            ranked_list
+        )
 
         return RankingResult(
             results=ranked_list,

@@ -2,6 +2,8 @@ from unittest.mock import Mock
 
 from app.matching.ranking.ranking_pipeline import RankingPipeline
 from app.schemas.ranking_result import RankingResult
+from app.schemas.matching_schema import RankedCandidate
+from app.schemas.candidate_schema import CandidateResponse
 
 
 class MockCandidate:
@@ -62,15 +64,27 @@ class MockRankingBuilder:
         similarity_score,
         skill_gaps,
     ):
-        return {
-            "similarity_score": similarity_score,
-            "skill_gaps": skill_gaps,
-            "candidate_profile": {
-                "resume_id": candidate.faiss_id,
-                "skills": candidate.skills,
-            },
-        }
+        return RankedCandidate(
+            similarity_score=similarity_score,
+            skill_gaps=skill_gaps,
+            candidate_profile=CandidateResponse(
+                resume_id=candidate.faiss_id,
+                skills=candidate.skills,
+            ),
+        )
 
+
+class MockRankingSorter:
+
+    def sort(
+        self,
+        candidates,
+    ):
+        return sorted(
+            candidates,
+            key=lambda candidate: candidate.similarity_score,
+            reverse=True,
+        )
 
 def test_ranking_pipeline_process():
 
@@ -80,6 +94,7 @@ def test_ranking_pipeline_process():
         ranking_filter=MockRankingFilter(),
         ranking_scorer=MockRankingScorer(),
         ranking_builder=MockRankingBuilder(),
+        ranking_sorter=MockRankingSorter(),
     )
 
     job = MockJob(
@@ -132,7 +147,11 @@ def test_ranking_pipeline_process():
 
 
     assert len(result.results) == 2
-
+    
+    assert (
+        result.results[0].similarity_score
+        >= result.results[1].similarity_score
+    )
 
     assert result.metadata.total_candidates == 3
 
@@ -150,3 +169,4 @@ class MockRankingScorer:
         skill_gaps: list[str],
     ) -> float:
         return similarity_score
+    
