@@ -41,6 +41,7 @@ class RankingPipeline:
     ):
 
         ranked_list = []
+        filtered_candidates = 0
 
         for candidate in candidates:
 
@@ -50,6 +51,7 @@ class RankingPipeline:
             raw_score = score_map[candidate.faiss_id]
 
             if not self.ranking_filter.accept(raw_score):
+                filtered_candidates += 1
                 continue
 
             normalized_score = (
@@ -75,4 +77,14 @@ class RankingPipeline:
                 ranked_candidate
             )
 
-        return ranked_list
+        return {
+            "results": ranked_list,
+            "metadata": {
+                "total_candidates": len(candidates),
+                "ranked_candidates": len(ranked_list),
+                "filtered_candidates": filtered_candidates,
+                "similarity_threshold": (
+                    self.ranking_filter.config.similarity_threshold
+                ),
+            }
+        }

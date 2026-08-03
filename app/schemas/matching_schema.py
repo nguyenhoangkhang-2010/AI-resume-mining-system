@@ -1,5 +1,6 @@
 from pydantic import BaseModel, Field
 from typing import List
+from app.schemas.ranking_schema import RankingMetadata
 from app.schemas.candidate_schema import CandidateResponse
 
 
@@ -10,8 +11,9 @@ class RankedCandidate(BaseModel):
 
 
 class MatchResponse(BaseModel):
-    job_id: str = Field(..., description="The ID of the job being matched")
-    results: List[RankedCandidate] = Field(default_factory=list, description="Ranked list of candidates")
+    job_id: str = Field(...)
+    results: List[RankedCandidate] = Field(default_factory=list)
+    metadata: RankingMetadata
 
     class Config:
         from_attributes = True

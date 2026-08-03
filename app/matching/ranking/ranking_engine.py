@@ -98,11 +98,15 @@ class RankingEngine:
             faiss_results
         )
 
-        ranked_list = self.ranking_pipeline.process(
+        ranking_result = self.ranking_pipeline.process(
             job=job,
             candidates=candidates,
             score_map=score_map,
         )
+
+        ranked_list = ranking_result["results"]
+
+        metadata = ranking_result["metadata"]
 
         ranked_list = self.ranking_sorter.sort(
             ranked_list
@@ -110,4 +114,8 @@ class RankingEngine:
         
         logger.success(f"Successfully ranked {len(ranked_list)} qualified candidates.")
         
-        return MatchResponse(job_id=str(job.id), results=ranked_list)
+        return MatchResponse(
+            job_id=str(job.id),
+            results=ranked_list,
+            metadata=metadata,
+        )
