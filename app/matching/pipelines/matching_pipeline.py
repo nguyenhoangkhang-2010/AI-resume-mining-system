@@ -4,7 +4,9 @@ from app.matching.scoring.weighted_scorer import (
     WeightedScorer,
 )
 from app.models.matching_weights import MatchingWeights
-
+from app.matching.confidence.confidence_calculator import (
+    ConfidenceCalculator,
+)
 
 class MatchingPipeline:
     """
@@ -17,6 +19,9 @@ class MatchingPipeline:
         weights: MatchingWeights | None = None,
     ):
         self.scorer = WeightedScorer(weights)
+        self.confidence_calculator = (
+            ConfidenceCalculator()
+        )
 
     def process(
         self,
@@ -30,6 +35,13 @@ class MatchingPipeline:
             skill_score=skill_score,
             semantic_score=semantic_score,
         )
+        
+        confidence_score = (
+            self.confidence_calculator.calculate(
+                skill_score,
+                semantic_score,
+            )
+        )
 
         return MatchingScore(
             candidate_id=candidate_id,
@@ -37,4 +49,5 @@ class MatchingPipeline:
             skill_score=skill_score,
             semantic_score=semantic_score,
             overall_score=overall_score,
+            confidence_score=confidence_score,
         )

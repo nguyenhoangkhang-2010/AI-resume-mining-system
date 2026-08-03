@@ -15,8 +15,10 @@ class MatchingScore:
     job_id: str
 
     overall_score: float
+    confidence_score: float
 
     skill_score: Optional[float] = None
     semantic_score: Optional[float] = None
 
     explanation: Optional[Dict[str, str]] = None
+    confidence_score: float
