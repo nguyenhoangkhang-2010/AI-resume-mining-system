@@ -1,7 +1,9 @@
 from typing import List, Dict, Any
 from loguru import logger
 
-from app.core.constants.app_constants import SIMILARITY_THRESHOLD
+from app.matching.ranking.ranking_config import (
+    RankingConfig,
+)
 from app.models.candidate import CandidateModel
 from app.models.job import JobModel
 from app.schemas.candidate_schema import CandidateResponse
@@ -18,6 +20,7 @@ class RankingEngine:
         similarity_engine=None,
         recommendation_engine=None,
         ranking_adapter=None,
+        config=None,
     ):
         self.similarity_engine = (
             similarity_engine
@@ -32,6 +35,11 @@ class RankingEngine:
         self.ranking_adapter = (
             ranking_adapter
             or RankingAdapter()
+        )
+        
+        self.config = (
+            config
+            or RankingConfig()
         )
 
     def sort_candidates(
@@ -68,8 +76,8 @@ class RankingEngine:
                 
             raw_score = score_map[candidate.faiss_id]
             
-            if raw_score < SIMILARITY_THRESHOLD:
-                logger.debug(f"Candidate {candidate.id} rejected. Score {raw_score:.3f} < threshold {SIMILARITY_THRESHOLD}")
+            if raw_score < self.config.similarity_threshold:
+                logger.debug(f"Candidate {candidate.id} rejected. Score {raw_score:.3f} < threshold {self.config.similarity_threshold}")
                 continue
                 
             normalized_score = self.similarity_engine.normalize_score(raw_score)
