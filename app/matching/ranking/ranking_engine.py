@@ -16,6 +16,20 @@ class RankingEngine:
         self.similarity_engine = SimilarityEngine()
         self.recommendation_engine = RecommendationEngine()
 
+    def sort_candidates(
+        self,
+        candidates: List[RankedCandidate],
+    ) -> List[RankedCandidate]:
+        """
+        Sort candidates by similarity score descending.
+        """
+
+        return sorted(
+            candidates,
+            key=lambda x: x.similarity_score,
+            reverse=True,
+        )
+
     def rank_candidates(
         self, 
         job: JobModel, 
@@ -52,7 +66,9 @@ class RankingEngine:
             )
             ranked_list.append(ranked_candidate)
         
-        ranked_list.sort(key=lambda x: x.similarity_score, reverse=True)
+        ranked_list = self.sort_candidates(
+            ranked_list
+        )
         logger.success(f"Successfully ranked {len(ranked_list)} qualified candidates.")
         
         return MatchResponse(job_id=str(job.id), results=ranked_list)
