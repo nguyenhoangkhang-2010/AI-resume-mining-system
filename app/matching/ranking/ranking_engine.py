@@ -12,9 +12,20 @@ from app.matching.recommendation.recommendation_engine import RecommendationEngi
 
 class RankingEngine:
     
-    def __init__(self):
-        self.similarity_engine = SimilarityEngine()
-        self.recommendation_engine = RecommendationEngine()
+    def __init__(
+        self,
+        similarity_engine=None,
+        recommendation_engine=None,
+    ):
+        self.similarity_engine = (
+            similarity_engine
+            or SimilarityEngine()
+        )
+
+        self.recommendation_engine = (
+            recommendation_engine
+            or RecommendationEngine()
+        )
 
     def sort_candidates(
         self,
