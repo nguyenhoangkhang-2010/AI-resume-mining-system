@@ -3,6 +3,7 @@ from app.models.matching_score import MatchingScore
 from app.matching.scoring.weighted_scorer import (
     WeightedScorer,
 )
+from app.models.matching_weights import MatchingWeights
 
 
 class MatchingPipeline:
@@ -11,9 +12,11 @@ class MatchingPipeline:
     a single matching result.
     """
 
-    def __init__(self):
-
-        self.scorer = WeightedScorer()
+    def __init__(
+        self,
+        weights: MatchingWeights | None = None,
+    ):
+        self.scorer = WeightedScorer(weights)
 
     def process(
         self,

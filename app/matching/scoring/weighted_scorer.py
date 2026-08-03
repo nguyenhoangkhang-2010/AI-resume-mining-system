@@ -1,14 +1,4 @@
-from dataclasses import dataclass
-
-
-@dataclass(frozen=True)
-class ScoringWeights:
-    """
-    Defines weights for different matching components.
-    """
-
-    skill_weight: float = 0.6
-    semantic_weight: float = 0.4
+from app.models.matching_weights import MatchingWeights
 
 
 class WeightedScorer:
@@ -19,11 +9,11 @@ class WeightedScorer:
 
     def __init__(
         self,
-        weights: ScoringWeights | None = None,
+        weights: MatchingWeights | None = None,
     ):
         self.weights = (
             weights
-            or ScoringWeights()
+            or MatchingWeights()
         )
 
     def calculate(
@@ -35,12 +25,8 @@ class WeightedScorer:
         score = (
             skill_score
             * self.weights.skill_weight
-            +
-            semantic_score
+            + semantic_score
             * self.weights.semantic_weight
         )
 
-        return round(
-            score,
-            2
-        )
+        return round(score, 2)
