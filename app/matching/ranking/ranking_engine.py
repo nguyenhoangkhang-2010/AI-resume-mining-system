@@ -11,6 +11,7 @@ from app.schemas.matching_schema import RankedCandidate, MatchResponse
 from app.matching.similarity.similarity_engine import SimilarityEngine
 from app.matching.recommendation.recommendation_engine import RecommendationEngine
 from app.matching.ranking.ranking_adapter import RankingAdapter
+from app.matching.ranking.ranking_sorter import RankingSorter
 
 
 class RankingEngine:
@@ -21,6 +22,7 @@ class RankingEngine:
         recommendation_engine=None,
         ranking_adapter=None,
         config=None,
+        ranking_sorter=None,
     ):
         self.similarity_engine = (
             similarity_engine
@@ -41,19 +43,10 @@ class RankingEngine:
             config
             or RankingConfig()
         )
-
-    def sort_candidates(
-        self,
-        candidates: List[RankedCandidate],
-    ) -> List[RankedCandidate]:
-        """
-        Sort candidates by similarity score descending.
-        """
-
-        return sorted(
-            candidates,
-            key=lambda x: x.similarity_score,
-            reverse=True,
+        
+        self.ranking_sorter = (
+            ranking_sorter
+            or RankingSorter()
         )
 
     def rank_candidates(
@@ -94,9 +87,10 @@ class RankingEngine:
             )
             ranked_list.append(ranked_candidate)
         
-        ranked_list = self.sort_candidates(
+        ranked_list = self.ranking_sorter.sort(
             ranked_list
         )
+        
         logger.success(f"Successfully ranked {len(ranked_list)} qualified candidates.")
         
         return MatchResponse(job_id=str(job.id), results=ranked_list)
