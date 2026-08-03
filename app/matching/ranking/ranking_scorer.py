@@ -11,7 +11,9 @@ class RankingScorer:
         similarity_score: float,
     ) -> float:
 
-        return (
+        final_score = (
             similarity_score
             * self.config.semantic_weight
         )
+
+        return final_score
