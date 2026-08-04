@@ -20,6 +20,9 @@ from app.matching.skills.normalization.case_rule import (
 from app.matching.skills.normalization.trim_whitespace_rule import (
     TrimWhitespaceRule,
 )
+from app.matching.skills.normalization.punctuation_rule import (
+    PunctuationNormalizationRule,
+)
 
 
 def build_skill_normalizer() -> SkillNormalizer:
@@ -31,6 +34,7 @@ def build_skill_normalizer() -> SkillNormalizer:
     registry = NormalizationRuleRegistry(
         rules=[
             TrimWhitespaceRule(),
+            PunctuationNormalizationRule(),
             CaseNormalizationRule(),
             AliasNormalizationRule(repository),
         ]

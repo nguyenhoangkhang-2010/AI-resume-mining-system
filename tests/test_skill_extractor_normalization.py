@@ -49,3 +49,14 @@ def test_trim_and_case():
     )
 
     assert "python" in skills
+    
+def test_punctuation_normalization():
+
+    extractor = SkillExtractor()
+
+    skills = extractor.extract(
+        "Experienced in Python, FastAPI."
+    )
+
+    assert "python" in skills
+    assert "fastapi" in skills
