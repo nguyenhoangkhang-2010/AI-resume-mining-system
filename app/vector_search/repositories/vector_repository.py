@@ -1,19 +1,26 @@
 from abc import ABC, abstractmethod
 from typing import List
 
-from app.vector_search.models.vector_record import VectorRecord
+from app.vector_search.models.vector_record import (
+    VectorRecord,
+)
+
+from app.vector_search.models.vector_search_result import (
+    VectorSearchResult,
+)
 
 
 class VectorRepository(ABC):
     """
     Abstract vector storage contract.
-    
+
     Implementations:
     - FAISS
     - Milvus
     - Qdrant
     - Pinecone
     """
+
 
     @abstractmethod
     def add(
@@ -26,9 +33,9 @@ class VectorRepository(ABC):
     @abstractmethod
     def search(
         self,
-        vector,
+        query_vector,
         top_k: int = 5,
-    ) -> List[VectorRecord]:
+    ) -> List[VectorSearchResult]:
         pass
 
 
