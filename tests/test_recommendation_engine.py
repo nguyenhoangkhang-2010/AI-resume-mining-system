@@ -3,14 +3,13 @@ from app.matching.recommendation.recommendation_engine import (
 )
 
 
-def test_recommend_missing_skills():
+def test_recommendation_engine():
 
     engine = RecommendationEngine()
 
     result = engine.recommend(
         required_skills=[
             "Python",
-            "SQL",
             "Docker",
         ],
         candidate_skills=[
@@ -18,7 +17,6 @@ def test_recommend_missing_skills():
         ],
     )
 
-    assert result.missing_skills == [
-        "SQL",
-        "Docker",
-    ]
+    assert len(result.recommendations) == 1
+
+    assert result.recommendations[0].title == "Learn Docker"

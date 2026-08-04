@@ -1,26 +1,25 @@
-from app.matching.recommendation.missing_skill_analyzer import MissingSkillAnalyzer
-from app.matching.recommendation.recommendation_builder import RecommendationBuilder
+from app.matching.recommendation.bootstrap import (
+    create_default_pipeline,
+)
+from app.matching.recommendation.pipelines.recommendation_pipeline import (
+    RecommendationPipeline,
+)
 
 
 class RecommendationEngine:
+
     def __init__(
         self,
-        analyzer: MissingSkillAnalyzer | None = None,
-        builder: RecommendationBuilder | None = None,
+        pipeline: RecommendationPipeline | None = None,
     ):
-        self.analyzer = analyzer or MissingSkillAnalyzer()
-        self.builder = builder or RecommendationBuilder()
+        self.pipeline = pipeline or create_default_pipeline()
 
     def recommend(
         self,
         required_skills: list[str],
         candidate_skills: list[str],
     ):
-        missing = self.analyzer.analyze(
-            required_skills,
-            candidate_skills,
-        )
-
-        return self.builder.build(
-            missing_skills=missing,
+        return self.pipeline.process(
+            required_skills=required_skills,
+            candidate_skills=candidate_skills,
         )
