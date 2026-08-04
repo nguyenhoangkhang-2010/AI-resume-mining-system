@@ -14,6 +14,9 @@ from app.matching.skills.normalization.skill_normalizer import (
 from app.matching.skills.normalization.registry import (
     NormalizationRuleRegistry,
 )
+from app.matching.skills.normalization.case_rule import (
+    CaseNormalizationRule,
+)
 
 
 def build_skill_normalizer() -> SkillNormalizer:
@@ -24,7 +27,8 @@ def build_skill_normalizer() -> SkillNormalizer:
 
     registry = NormalizationRuleRegistry(
         rules=[
-            AliasNormalizationRule(repository)
+            CaseNormalizationRule(),
+            AliasNormalizationRule(repository),
         ]
     )
 

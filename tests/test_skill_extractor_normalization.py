@@ -2,6 +2,8 @@ from app.matching.skills.normalization.skill_normalizer import SkillNormalizer
 
 from app.matching.skills.normalization.alias_rule import AliasNormalizationRule
 
+from app.extraction.skills.skill_extractor import SkillExtractor
+
 
 class FakeRepository:
 
@@ -27,3 +29,13 @@ def test_alias_rule():
     assert normalizer.normalize("python3") == "python"
 
     assert normalizer.normalize("fastapi") == "fastapi"
+    
+def test_uppercase_alias():
+
+    extractor = SkillExtractor()
+
+    skills = extractor.extract(
+        "Experienced in PYTHON3."
+    )
+
+    assert "python" in skills
