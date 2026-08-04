@@ -1,7 +1,9 @@
-import json
+from app.repositories.skill_alias_repository import (
+    SkillAliasRepository,
+)
 
 from app.matching.skills.normalization.normalization_rule import (
-    NormalizationRule
+    NormalizationRule,
 )
 
 
@@ -11,19 +13,19 @@ class AliasNormalizationRule(
 
     def __init__(
         self,
-        path: str
+        repository: SkillAliasRepository
     ):
-        with open(
-            path,
-            encoding="utf-8"
-        ) as file:
-
-            self.aliases = json.load(file)
+        self.repository = repository
 
 
     def apply(
         self,
         skill: str
-    ) -> str | None:
+    ) -> str:
 
-        return self.aliases.get(skill)
+        alias = self.repository.get_alias(skill)
+
+        if alias:
+            return alias
+
+        return skill

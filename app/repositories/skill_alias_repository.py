@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
 
 
-class NormalizationRule(ABC):
+class SkillAliasRepository(ABC):
 
     @abstractmethod
-    def apply(
+    def get_alias(
         self,
         skill: str
-    ) -> str:
+    ) -> str | None:
         pass

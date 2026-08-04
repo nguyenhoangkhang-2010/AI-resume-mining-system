@@ -1,11 +1,27 @@
-from abc import ABC, abstractmethod
+from app.matching.skills.normalization.normalization_rule import (
+    NormalizationRule,
+)
 
 
-class SkillNormalizer(ABC):
+class SkillNormalizer:
 
-    @abstractmethod
+    def __init__(
+        self,
+        rules: list[NormalizationRule]
+    ):
+        self.rules = rules
+
+
     def normalize(
         self,
         skill: str
     ) -> str:
-        pass
+
+        normalized = skill
+
+        for rule in self.rules:
+            normalized = rule.apply(
+                normalized
+            )
+
+        return normalized

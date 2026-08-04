@@ -1,33 +1,20 @@
-from app.matching.skills.normalization.normalization_rule import (
-    NormalizationRule
+from app.matching.skills.normalization.skill_normalizer import (
+    SkillNormalizer,
 )
 
 
-class NormalizerRegistry:
+class SkillNormalizerRegistry:
 
     def __init__(
         self,
-        rules: list[NormalizationRule]
+        normalizer: SkillNormalizer
     ):
-        self.rules = rules
+        self.normalizer = normalizer
 
 
     def normalize(
         self,
         skill: str
-    ) -> str:
+    ):
 
-        normalized = skill.lower().strip()
-
-
-        for rule in self.rules:
-
-            result = rule.apply(
-                normalized
-            )
-
-            if result:
-                return result
-
-
-        return normalized
+        return self.normalizer.normalize(skill)
