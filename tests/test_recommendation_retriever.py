@@ -1,4 +1,4 @@
-from app.matching.recommendation.retrievers.static_recommendation_retriever import (
+from app.matching.recommendation.retrievers.recommendation_retriever_impl import (
     StaticRecommendationRetriever,
 )
 

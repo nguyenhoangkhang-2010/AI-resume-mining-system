@@ -21,6 +21,7 @@ class StaticRecommendationProvider(
                 type="course",
                 title="Learn Docker",
                 priority="medium",
+                source="STATIC",
             )
         ],
     }

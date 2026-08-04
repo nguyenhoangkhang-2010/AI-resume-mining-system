@@ -6,6 +6,7 @@ class RecommendationItem(BaseModel):
     type: str
     title: str
     priority: str
+    source: str | None = None
 
 
 class RecommendationResponse(BaseModel):
