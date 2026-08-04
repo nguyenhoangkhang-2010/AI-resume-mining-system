@@ -4,6 +4,9 @@ from app.extraction.skills.factory.matcher_factory import MatcherFactory
 from app.extraction.skills.formatters.skill_formatter import (
     SkillFormatter,
 )
+from app.extraction.skills.bootstrap import (
+    build_skill_normalizer,
+)
 
 from loguru import logger
 
@@ -24,6 +27,8 @@ class SkillExtractor:
             strategy
         )
 
+        self.normalizer = build_skill_normalizer()
+
         logger.info("SkillExtractor initialized.")
         
     def extract(self, text: str):
@@ -33,9 +38,14 @@ class SkillExtractor:
 
         matches = self.pipeline.extract(text)
 
-        return SkillFormatter.to_skill_names(
+        skills = SkillFormatter.to_skill_names(
             matches
         )
+
+        return [
+            self.normalizer.normalize(skill)
+            for skill in skills
+        ]
         
     def extract_many(
         self,
