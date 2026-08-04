@@ -23,8 +23,8 @@ PostgreSQL
 
     assert isinstance(result, list)
 
-    assert "Python" in result
-    assert "FastAPI" in result
-    assert "Docker" in result
-    assert "Git" in result
-    assert "PostgreSQL" in result
+    assert "python" in result
+    assert "fastapi" in result
+    assert "docker" in result
+    assert "git" in result
+    assert "postgresql" in result
