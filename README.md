@@ -131,6 +131,20 @@ AI_ResumeMining_CandidateMatchingSystem
 
 ---
 
+## Documentation
+
+### Architecture
+
+The project documentation is organized under the `docs/` directory.
+
+Current documentation:
+
+- `docs/architecture/skill_normalization.md` — Skill Normalization Layer architecture, normalization pipeline, repository pattern, and extension guide.
+
+More architecture documents will be added as the project evolves.
+
+---
+
 ## Tech Stack
 
 ### Backend

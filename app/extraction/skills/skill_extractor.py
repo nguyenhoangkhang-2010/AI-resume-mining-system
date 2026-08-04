@@ -1,9 +1,6 @@
 from app.extraction.skills.repository import SkillRepository
 from app.extraction.skills.pipeline import SkillExtractionPipeline
 from app.extraction.skills.factory.matcher_factory import MatcherFactory
-from app.extraction.skills.formatters.skill_formatter import (
-    SkillFormatter,
-)
 
 from loguru import logger
 
@@ -31,11 +28,7 @@ class SkillExtractor:
             logger.warning("Empty text provided to SkillExtractor.")
             return []
 
-        matches = self.pipeline.extract(text)
-
-        return SkillFormatter.to_skill_names(
-            matches
-        )
+        return self.pipeline.extract(text)
         
     def extract_many(
         self,

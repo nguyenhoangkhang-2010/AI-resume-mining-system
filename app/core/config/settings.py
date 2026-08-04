@@ -12,6 +12,10 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "INFO"
     
     hf_token: Optional[str] = None
+    
+    skill_alias_path: str = (
+        "data/dictionaries/skill_aliases.json"
+    )
 
     class Config:
         env_file = ".env"

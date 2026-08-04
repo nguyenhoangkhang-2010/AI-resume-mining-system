@@ -25,7 +25,7 @@ def test_semantic_fallback():
         "Worked with Torch."
     )
 
-    assert "PyTorch" in skills
+    assert "pytorch" in skills
     
 def test_unknown_skill():
 
