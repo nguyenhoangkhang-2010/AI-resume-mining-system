@@ -2,8 +2,16 @@ from app.matching.recommendation.retrievers.static_recommendation_retriever impo
     StaticRecommendationRetriever,
 )
 
+from tests.fakes.fake_recommendation_provider import (
+    FakeRecommendationProvider,
+)
+
+
 def test_static_recommendation_retriever():
-    retriever = StaticRecommendationRetriever()
+
+    retriever = StaticRecommendationRetriever(
+        provider=FakeRecommendationProvider(),
+    )
 
     result = retriever.retrieve(
         [
