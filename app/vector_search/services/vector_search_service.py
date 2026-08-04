@@ -7,6 +7,9 @@ from app.vector_search.repositories.vector_repository import (
 from app.vector_search.models.vector_search_result import (
     VectorSearchResult
 )
+from app.vector_search.filters.similarity_filter import (
+    SimilarityFilter,
+)
 
 
 class VectorSearchService:
@@ -15,8 +18,10 @@ class VectorSearchService:
     def __init__(
         self,
         repository: VectorRepository,
+        similarity_filter: SimilarityFilter | None = None,
     ):
         self.repository = repository
+        self.filter = similarity_filter or SimilarityFilter()
 
 
 
@@ -33,7 +38,7 @@ class VectorSearchService:
             query_vector,
             top_k
         )
-        return [
+        results = [
             VectorSearchResult(
                 id=record.id,
                 score=record.metadata.get(
@@ -45,3 +50,6 @@ class VectorSearchService:
             )
             for record in records
         ]
+
+
+        return self.filter.filter(results)
