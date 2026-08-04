@@ -60,3 +60,16 @@ def test_punctuation_normalization():
 
     assert "python" in skills
     assert "fastapi" in skills
+
+def test_unicode_pipeline():
+
+    extractor = SkillExtractor()
+
+    skills = extractor.extract(
+        "Experienced in Pytho\u0301n."
+    )
+
+    assert isinstance(
+        skills,
+        list,
+    )
