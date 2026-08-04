@@ -4,8 +4,8 @@ from app.vector_search.services.vector_search_service import (
     VectorSearchService,
 )
 
-from app.vector_search.models.vector_search_result import (
-    VectorSearchResult,
+from app.vector_search.models.vector_record import (
+    VectorRecord,
 )
 
 
@@ -19,11 +19,13 @@ class FakeRepository:
     ):
 
         return [
-            VectorSearchResult(
+            VectorRecord(
                 id="candidate_1",
-                score=0.92,
+                vector=None,
                 entity_type="candidate",
-                metadata={}
+                metadata={
+                    "similarity_score": 0.92
+                }
             )
         ]
 
@@ -35,6 +37,7 @@ def test_vector_search_service():
         FakeRepository()
     )
 
+
     results = service.search(
         np.array([0.1]),
         top_k=5
@@ -44,3 +47,5 @@ def test_vector_search_service():
     assert len(results) == 1
 
     assert results[0].score == 0.92
+
+    assert results[0].entity_type == "candidate"
