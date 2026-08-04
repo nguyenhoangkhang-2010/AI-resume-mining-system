@@ -11,6 +11,9 @@ from app.matching.skills.normalization.alias_rule import (
 from app.matching.skills.normalization.skill_normalizer import (
     SkillNormalizer,
 )
+from app.matching.skills.normalization.registry import (
+    NormalizationRuleRegistry,
+)
 
 
 def build_skill_normalizer() -> SkillNormalizer:
@@ -19,8 +22,12 @@ def build_skill_normalizer() -> SkillNormalizer:
         settings.skill_alias_path
     )
 
-    return SkillNormalizer(
+    registry = NormalizationRuleRegistry(
         rules=[
             AliasNormalizationRule(repository)
         ]
+    )
+
+    return SkillNormalizer(
+        registry.get_rules()
     )
