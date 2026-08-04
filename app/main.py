@@ -8,6 +8,8 @@ from app.api.router import api_router
 
 from app.core.auth.huggingface import login_huggingface
 
+from app.api.exceptions import register_exception_handlers
+
 setup_logger()
 
 
@@ -32,6 +34,8 @@ app = FastAPI(
     version="1.0.0",
     lifespan=lifespan
 )
+
+register_exception_handlers(app)
 
 app.include_router(api_router, prefix="/api/v1")
 
