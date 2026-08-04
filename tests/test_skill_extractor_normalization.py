@@ -39,3 +39,13 @@ def test_uppercase_alias():
     )
 
     assert "python" in skills
+    
+def test_trim_and_case():
+
+    extractor = SkillExtractor()
+
+    skills = extractor.extract(
+        "Experienced in   PYTHON3   ."
+    )
+
+    assert "python" in skills

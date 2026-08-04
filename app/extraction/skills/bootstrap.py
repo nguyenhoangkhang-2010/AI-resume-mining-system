@@ -17,6 +17,9 @@ from app.matching.skills.normalization.registry import (
 from app.matching.skills.normalization.case_rule import (
     CaseNormalizationRule,
 )
+from app.matching.skills.normalization.trim_whitespace_rule import (
+    TrimWhitespaceRule,
+)
 
 
 def build_skill_normalizer() -> SkillNormalizer:
@@ -27,6 +30,7 @@ def build_skill_normalizer() -> SkillNormalizer:
 
     registry = NormalizationRuleRegistry(
         rules=[
+            TrimWhitespaceRule(),
             CaseNormalizationRule(),
             AliasNormalizationRule(repository),
         ]
