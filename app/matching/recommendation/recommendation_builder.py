@@ -1,11 +1,15 @@
-from app.schemas.recommendation_schema import RecommendationResponse
+from app.schemas.recommendation_schema import (
+    RecommendationItem,
+    RecommendationResponse,
+)
 
 
 class RecommendationBuilder:
     @staticmethod
     def build(
-        missing_skills: list[str],
+        recommendations: list[RecommendationItem],
     ) -> RecommendationResponse:
+
         return RecommendationResponse(
-            missing_skills=missing_skills,
+            recommendations=recommendations,
         )

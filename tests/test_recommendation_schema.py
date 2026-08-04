@@ -1,6 +1,6 @@
 from app.schemas.recommendation_schema import (
     RecommendationItem,
-    RecommendationResult,
+    RecommendationResponse,
 )
 
 
@@ -12,7 +12,7 @@ def test_recommendation_schema():
         priority="high",
     )
 
-    result = RecommendationResult(
+    result = RecommendationResponse(
         recommendations=[item]
     )
 
