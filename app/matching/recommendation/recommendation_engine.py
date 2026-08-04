@@ -7,6 +7,9 @@ from app.matching.recommendation.pipelines.recommendation_pipeline import (
 from app.matching.recommendation.missing_skill_analyzer import (
     MissingSkillAnalyzer,
 )
+from app.schemas.recommendation_schema import (
+    RecommendationResponse,
+)
 
 
 class RecommendationEngine:
@@ -16,13 +19,12 @@ class RecommendationEngine:
         pipeline: RecommendationPipeline | None = None,
     ):
         self.pipeline = pipeline or create_default_pipeline()
-        self.analyzer = MissingSkillAnalyzer()
 
     def recommend(
         self,
         required_skills: list[str],
         candidate_skills: list[str],
-    ):
+    ) -> RecommendationResponse:
         return self.pipeline.process(
             required_skills=required_skills,
             candidate_skills=candidate_skills,
