@@ -1,6 +1,6 @@
 from app.core.config.settings import settings
 
-from app.repositories.skill_alias_repository import (
+from app.infrastructure.repositories.json_skill_alias_repository import (
     JsonSkillAliasRepository,
 )
 

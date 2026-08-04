@@ -8,6 +8,13 @@ from app.extraction.skills.aggregation.result_aggregator import (
 from app.extraction.skills.filters.confidence_filter import (
     ConfidenceFilter,
 )
+from app.extraction.skills.formatters.skill_formatter import (
+    SkillFormatter,
+)
+
+from app.extraction.skills.bootstrap import (
+    build_skill_normalizer,
+)
 
 
 class SkillExtractionPipeline:
@@ -19,6 +26,7 @@ class SkillExtractionPipeline:
         self.strategy = strategy
         self.aggregator = ResultAggregator()
         self.filter = ConfidenceFilter()
+        self.normalizer = build_skill_normalizer()
 
     def extract(self, text):
 
@@ -36,7 +44,16 @@ class SkillExtractionPipeline:
             filtered
         )
 
-        return aggregated
+        skills = SkillFormatter.to_skill_names(
+            aggregated
+        )
+
+        normalized = [
+            self.normalizer.normalize(skill)
+            for skill in skills
+        ]
+
+        return normalized
     
     def extract_with_confidence(
         self,
