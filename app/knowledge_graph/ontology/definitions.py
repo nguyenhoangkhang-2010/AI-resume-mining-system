@@ -26,3 +26,4 @@ class RelationshipTypes:
     REQUIRES_SKILL = "requires_skill"
     RELATED_TO = "related_to"
     BELONGS_TO = "belongs_to"
+    PARENT_OF = "parent_of"
