@@ -1,15 +1,44 @@
-from app.knowledge_base.providers.mock_provider import MockTaxonomyProvider
-from app.knowledge_base.repositories.taxonomy_repository import TaxonomyRepository
+from app.knowledge_base.repositories.taxonomy_repository import (
+    TaxonomyRepository,
+)
+
+from app.knowledge_base.models.taxonomy_entry import (
+    TaxonomyEntry,
+)
 
 
-def test_repository_loads_registered_provider():
+class FakeProvider:
+
+    def load(self):
+        return [
+            TaxonomyEntry(
+                id="1",
+                name="Python",
+                category="skill",
+                aliases=[],
+            ),
+            TaxonomyEntry(
+                id="2",
+                name="SQL",
+                category="skill",
+                aliases=[],
+            ),
+        ]
+
+
+def test_find_by_name():
+
     repository = TaxonomyRepository()
 
     repository.register_provider(
-        MockTaxonomyProvider(),
+        FakeProvider()
     )
 
-    entries = repository.load_all()
+    repository.load_all()
 
-    assert len(entries) == 2
-    assert entries[0].name == "Python"
+    result = repository.find_by_name(
+        " python "
+    )
+
+    assert len(result) == 1
+    assert result[0].name == "Python"
