@@ -12,23 +12,40 @@ class ONETProvider(BaseTaxonomyProvider):
     Currently supports loading software skills only.
     """
 
-    def __init__(self, csv_path: str | Path | None = None):
-        if csv_path is None:
-            csv_path = (
+    def __init__(
+        self,
+        csv_paths: dict[str, str | Path] | None = None,
+    ):
+        if csv_paths is None:
+            root = (
                 Path(__file__).resolve().parents[3]
                 / "data"
                 / "onet"
                 / "raw"
-                / "essential_skills.csv"
             )
 
-        self.csv_path = Path(csv_path)
+            csv_paths = {
+                "essential_skill": root / "essential_skills.csv",
+                "software_skill": root / "software_skills.csv",
+            }
+
+        self.csv_paths = {
+            category: Path(path)
+            for category, path in csv_paths.items()
+        }
 
     def load(self) -> list[TaxonomyEntry]:
-        return self._load_entries(
-            self.csv_path,
-            "essential_skill",
-        )
+        entries: list[TaxonomyEntry] = []
+
+        for category, path in self.csv_paths.items():
+            entries.extend(
+                self._load_entries(
+                    path,
+                    category,
+                )
+            )
+
+        return entries
         
     def _load_entries(
         self,
@@ -46,10 +63,15 @@ class ONETProvider(BaseTaxonomyProvider):
             reader = csv.DictReader(file)
 
             for row in reader:
+                if category == "software_skill":
+                    name = row["Workplace Example"]
+                else:
+                    name = row["Element Name"]
+
                 entries.append(
                     TaxonomyEntry(
                         id=row["Element ID"],
-                        name=row["Element Name"],
+                        name=name,
                         category=category,
                         aliases=[],
                     )
