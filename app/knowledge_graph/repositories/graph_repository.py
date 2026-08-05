@@ -5,15 +5,6 @@ from app.knowledge_graph.models.edge import Edge
 
 
 class GraphRepository(ABC):
-    """
-    Abstract graph storage interface.
-
-    Future implementations:
-    - In-memory graph
-    - Neo4j
-    - PostgreSQL graph extension
-    - RDF store
-    """
 
     @abstractmethod
     def add_node(
@@ -35,4 +26,13 @@ class GraphRepository(ABC):
     def get_edges(
         self,
     ) -> list[Edge]:
+        pass
+
+
+    @abstractmethod
+    def get_nodes_by_relation(
+        self,
+        node_id: str,
+        relation: str,
+    ) -> list[Node]:
         pass

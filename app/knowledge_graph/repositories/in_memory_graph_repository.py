@@ -60,3 +60,26 @@ class InMemoryGraphRepository(GraphRepository):
     ) -> list[Edge]:
 
         return self._edges
+    
+    def get_nodes_by_relation(
+        self,
+        node_id: str,
+        relation: str,
+    ) -> list[Node]:
+
+        result = []
+
+        for edge in self._edges:
+
+            if (
+                edge.source == node_id
+                and edge.relation == relation
+            ):
+                target = self._nodes.get(
+                    edge.target
+                )
+
+                if target:
+                    result.append(target)
+
+        return result
