@@ -25,9 +25,19 @@ class ONETProvider(BaseTaxonomyProvider):
         self.csv_path = Path(csv_path)
 
     def load(self) -> list[TaxonomyEntry]:
-        skills: list[TaxonomyEntry] = []
+        return self._load_entries(
+            self.csv_path,
+            "essential_skill",
+        )
+        
+    def _load_entries(
+        self,
+        csv_path: Path,
+        category: str,
+    ) -> list[TaxonomyEntry]:
+        entries: list[TaxonomyEntry] = []
 
-        with self.csv_path.open(
+        with csv_path.open(
             "r",
             encoding="utf-8-sig",
             newline=""
@@ -36,13 +46,13 @@ class ONETProvider(BaseTaxonomyProvider):
             reader = csv.DictReader(file)
 
             for row in reader:
-                skills.append(
+                entries.append(
                     TaxonomyEntry(
                         id=row["Element ID"],
                         name=row["Element Name"],
-                        category="essential_skill",
-                        aliases=[]
+                        category=category,
+                        aliases=[],
                     )
                 )
 
-        return skills
+        return entries

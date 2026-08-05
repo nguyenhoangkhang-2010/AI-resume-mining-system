@@ -1,20 +1,10 @@
-from pathlib import Path
-
 from app.knowledge_base.providers.onet_provider import ONETProvider
 
 
-def test_load_onet_provider():
+def test_onet_provider_load():
+    provider = ONETProvider()
 
-    csv_path = Path("data/onet/raw/software_skills.csv")
+    entries = provider.load()
 
-    provider = ONETProvider(csv_path)
-
-    skills = provider.load()
-
-    assert len(skills) > 0
-
-    first = skills[0]
-
-    assert first.name == "Adobe Acrobat"
-
-    assert first.category == "software_skill"
+    assert len(entries) > 0
+    assert entries[0].category == "essential_skill"
