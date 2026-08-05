@@ -5,14 +5,14 @@ from app.knowledge_graph.models.node import Node
 
 class GraphEnricher(ABC):
     """
-    Abstract graph enrichment interface.
+    Base interface for graph enrichment.
 
-    Implementations can enrich nodes using:
+    Implementations may use:
     - rules
-    - external knowledge sources
+    - external knowledge
     - LLM
+    - embedding models
     """
-
 
     @abstractmethod
     def enrich(
