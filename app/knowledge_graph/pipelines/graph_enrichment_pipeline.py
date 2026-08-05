@@ -7,11 +7,9 @@ from app.knowledge_graph.services.enrichment_service import (
 
 class GraphEnrichmentPipeline:
     """
-    Executes graph node enrichment workflow.
-
-    Keeps enrichment workflow separated
-    from ingestion logic.
+    Pipeline responsible for graph node enrichment.
     """
+
 
     def __init__(
         self,
@@ -20,7 +18,7 @@ class GraphEnrichmentPipeline:
         self.enrichment_service = enrichment_service
 
 
-    def process(
+    def run(
         self,
         node: Node,
     ) -> Node:

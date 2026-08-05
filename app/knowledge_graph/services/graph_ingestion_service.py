@@ -21,6 +21,7 @@ class GraphIngestionService:
     into graph storage.
     """
 
+
     def __init__(
         self,
         repository: GraphRepository,
@@ -37,13 +38,14 @@ class GraphIngestionService:
         entries: list[TaxonomyEntry],
     ) -> None:
 
+
         for entry in entries:
 
             node = self.factory.create_from_taxonomy(
                 entry
             )
 
-            node = self.enrichment_pipeline.process(
+            node = self.enrichment_pipeline.run(
                 node
             )
 

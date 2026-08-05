@@ -7,6 +7,9 @@ class Settings(BaseSettings):
     DB_NAME: str = "resume_mining_db"
     
     MODEL_NAME: str = "sentence-transformers/all-MiniLM-L6-v2"
+    LLM_MODEL_NAME: str = (
+        "mistralai/Mistral-7B-Instruct-v0.2"
+    )
     FAISS_INDEX_PATH: str = "faiss_index/candidate.index"
     
     LOG_LEVEL: str = "INFO"
