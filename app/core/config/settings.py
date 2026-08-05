@@ -1,18 +1,35 @@
-from pydantic_settings import BaseSettings
 from typing import Optional
+
+from pydantic_settings import BaseSettings
 
 
 class Settings(BaseSettings):
     MONGO_URI: str = "mongodb://localhost:27017"
+
     DB_NAME: str = "resume_mining_db"
-    
-    MODEL_NAME: str = "sentence-transformers/all-MiniLM-L6-v2"
-    FAISS_INDEX_PATH: str = "faiss_index/candidate.index"
-    
+
+    MODEL_NAME: str = (
+        "sentence-transformers/all-MiniLM-L6-v2"
+    )
+
+    LLM_MODEL_NAME: str = (
+        "Qwen/Qwen2.5-1.5B-Instruct"
+    )
+
+    LLM_PROVIDER: str = (
+        "huggingface"
+    )
+
+    MAX_NEW_TOKENS: int = 256
+
+    FAISS_INDEX_PATH: str = (
+        "faiss_index/candidate.index"
+    )
+
     LOG_LEVEL: str = "INFO"
-    
+
     hf_token: Optional[str] = None
-    
+
     skill_alias_path: str = (
         "data/dictionaries/skill_aliases.json"
     )
@@ -20,5 +37,6 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         env_file_encoding = "utf-8"
+
 
 settings = Settings()

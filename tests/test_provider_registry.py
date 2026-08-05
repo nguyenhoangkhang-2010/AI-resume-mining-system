@@ -1,44 +1,35 @@
-from app.matching.recommendation.providers.provider_registry import (
-    RecommendationProviderRegistry,
+from app.knowledge_graph.enrichment.registry.provider_registry import (
+    ProviderRegistry,
 )
 
-from app.matching.recommendation.providers.recommendation_provider import (
-    RecommendationProvider,
-)
 
-from app.schemas.recommendation_schema import RecommendationItem
+class FakeProvider:
 
+    def enrich(self, node):
+        return node
 
-class FakeProvider(
-    RecommendationProvider,
-):
-
-    def get_recommendations(
-        self,
-        skill: str,
-    ) -> list[RecommendationItem]:
-
-        return [
-            RecommendationItem(
-                type="skill",
-                title=f"{skill} recommendation",
-                priority="medium",
-            )
-        ]
 
 
 def test_provider_registry():
 
-    registry = RecommendationProviderRegistry(
-        providers=[
-            FakeProvider(),
-            FakeProvider(),
-        ]
+    registry = ProviderRegistry()
+
+
+    provider = FakeProvider()
+
+
+    registry.register(
+        "fake",
+        provider,
     )
 
-    result = registry.get_recommendations(
-        "Docker"
+
+    result = registry.get(
+        "fake"
     )
 
 
-    assert len(result) == 2
+    assert result is provider
+
+
+    assert "fake" in registry.available()
