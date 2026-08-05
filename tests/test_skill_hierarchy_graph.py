@@ -2,42 +2,28 @@ from app.knowledge_graph.repositories.in_memory_graph_repository import (
     InMemoryGraphRepository,
 )
 
-from app.knowledge_graph.builders.skill_graph_builder import (
-    SkillGraphBuilder,
+from app.knowledge_graph.services.hierarchy_service import (
+    HierarchyService,
 )
 
 
-def test_create_skill_hierarchy():
+def test_create_generic_parent_relation():
 
     repo = InMemoryGraphRepository()
 
-    builder = SkillGraphBuilder(repo)
+    service = HierarchyService(repo)
 
-
-    builder.add_skill(
-        "ai",
-        "Artificial Intelligence"
+    service.add_parent_relation(
+        "entity_parent",
+        "entity_child",
     )
 
+    edges = repo.get_edges()
 
-    builder.add_skill(
-        "ml",
-        "Machine Learning"
-    )
+    assert len(edges) == 1
 
+    edge = edges[0]
 
-    builder.link_parent_skill(
-        "ai",
-        "ml"
-    )
-
-
-    assert len(repo.get_all_nodes()) == 2
-
-    assert len(repo._edges) == 1
-
-    edge = repo._edges[0]
-
-    assert edge.source == "ai"
-    assert edge.target == "ml"
+    assert edge.source == "entity_parent"
+    assert edge.target == "entity_child"
     assert edge.relation == "parent_of"

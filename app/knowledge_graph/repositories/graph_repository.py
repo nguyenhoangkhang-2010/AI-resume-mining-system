@@ -29,3 +29,10 @@ class GraphRepository(ABC):
         edge: Edge
     ) -> None:
         pass
+
+
+    @abstractmethod
+    def get_edges(
+        self,
+    ) -> list[Edge]:
+        pass

@@ -54,3 +54,9 @@ class InMemoryGraphRepository(GraphRepository):
         return list(
             self._nodes.values()
         )
+        
+    def get_edges(
+        self,
+    ) -> list[Edge]:
+
+        return self._edges
