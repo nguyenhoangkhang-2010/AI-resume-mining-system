@@ -63,3 +63,18 @@ def test_load_abilities():
     assert len(abilities) > 0
     assert abilities[0].id
     assert abilities[0].name
+    
+def test_load_work_activities():
+    provider = ONETProvider()
+
+    entries = provider.load()
+
+    activities = [
+        entry
+        for entry in entries
+        if entry.category == "work_activity"
+    ]
+
+    assert len(activities) > 0
+    assert activities[0].id
+    assert activities[0].name
