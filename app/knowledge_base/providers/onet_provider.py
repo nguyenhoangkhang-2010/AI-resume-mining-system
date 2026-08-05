@@ -12,7 +12,16 @@ class ONETProvider(BaseTaxonomyProvider):
     Currently supports loading software skills only.
     """
 
-    def __init__(self, csv_path: str | Path):
+    def __init__(self, csv_path: str | Path | None = None):
+        if csv_path is None:
+            csv_path = (
+                Path(__file__).resolve().parents[3]
+                / "data"
+                / "onet"
+                / "raw"
+                / "essential_skills.csv"
+            )
+
         self.csv_path = Path(csv_path)
 
     def load(self) -> list[TaxonomyEntry]:
@@ -30,8 +39,8 @@ class ONETProvider(BaseTaxonomyProvider):
                 skills.append(
                     TaxonomyEntry(
                         id=row["Element ID"],
-                        name=row["Workplace Example"],
-                        category="software_skill",
+                        name=row["Element Name"],
+                        category="essential_skill",
                         aliases=[]
                     )
                 )
