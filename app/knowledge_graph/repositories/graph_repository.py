@@ -23,6 +23,14 @@ class GraphRepository(ABC):
 
 
     @abstractmethod
+    def get_node(
+        self,
+        node_id: str,
+    ) -> Node | None:
+        pass
+
+
+    @abstractmethod
     def get_edges(
         self,
     ) -> list[Edge]:
@@ -36,7 +44,8 @@ class GraphRepository(ABC):
         relation: str,
     ) -> list[Node]:
         pass
-    
+
+
     @abstractmethod
     def get_outgoing_edges(
         self,

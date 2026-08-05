@@ -10,6 +10,7 @@ from app.knowledge_graph.services.graph_traversal_service import (
 )
 
 
+
 def test_graph_traversal_depth():
 
     repo = InMemoryGraphRepository()
@@ -23,6 +24,7 @@ def test_graph_traversal_depth():
         )
     )
 
+
     repo.add_node(
         Node(
             id="b",
@@ -30,6 +32,7 @@ def test_graph_traversal_depth():
             type="entity",
         )
     )
+
 
     repo.add_node(
         Node(
@@ -58,7 +61,9 @@ def test_graph_traversal_depth():
     )
 
 
-    service = GraphTraversalService(repo)
+    service = GraphTraversalService(
+        repo
+    )
 
 
     result = service.traverse(
