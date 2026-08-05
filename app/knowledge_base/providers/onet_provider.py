@@ -34,6 +34,7 @@ class ONETProvider(BaseTaxonomyProvider):
                 "knowledge": root / "knowledge.csv",
                 "ability": root / "abilities.csv",
                 "work_activity": root / "work_activities.csv",
+                "work_style": root / "work_styles.csv",
             }
 
         self.csv_paths = {

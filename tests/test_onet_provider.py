@@ -78,3 +78,19 @@ def test_load_work_activities():
     assert len(activities) > 0
     assert activities[0].id
     assert activities[0].name
+    
+    
+def test_load_work_styles():
+    provider = ONETProvider()
+
+    entries = provider.load()
+
+    styles = [
+        entry
+        for entry in entries
+        if entry.category == "work_style"
+    ]
+
+    assert len(styles) > 0
+    assert styles[0].id
+    assert styles[0].name
