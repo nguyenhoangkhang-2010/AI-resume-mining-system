@@ -14,6 +14,14 @@ from app.knowledge_graph.services.graph_ingestion_service import (
     GraphIngestionService,
 )
 
+from app.knowledge_graph.services.enrichment_service import (
+    GraphEnrichmentService,
+)
+
+from tests.fakes.fake_graph_enricher import (
+    FakeGraphEnricher,
+)
+
 
 def test_ingest_taxonomy_entries():
 
@@ -21,9 +29,15 @@ def test_ingest_taxonomy_entries():
 
     factory = GraphNodeFactory()
 
+    enrichment_service = GraphEnrichmentService(
+        FakeGraphEnricher()
+    )
+
+
     service = GraphIngestionService(
         repo,
         factory,
+        enrichment_service,
     )
 
 
@@ -37,7 +51,9 @@ def test_ingest_taxonomy_entries():
     ]
 
 
-    service.ingest(entries)
+    service.ingest(
+        entries
+    )
 
 
     node = repo.get_node(
@@ -50,3 +66,7 @@ def test_ingest_taxonomy_entries():
     assert node.name == "Entity One"
 
     assert node.type == "knowledge"
+
+    assert node.properties[
+        "tested"
+    ] is True

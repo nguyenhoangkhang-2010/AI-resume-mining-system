@@ -10,6 +10,10 @@ from app.knowledge_graph.services.node_factory import (
     GraphNodeFactory,
 )
 
+from app.knowledge_graph.services.enrichment_service import (
+    GraphEnrichmentService,
+)
+
 
 class GraphIngestionService:
     """
@@ -21,9 +25,11 @@ class GraphIngestionService:
         self,
         repository: GraphRepository,
         factory: GraphNodeFactory,
+        enrichment_service: GraphEnrichmentService,
     ):
         self.repository = repository
         self.factory = factory
+        self.enrichment_service = enrichment_service
 
 
     def ingest(
@@ -35,6 +41,10 @@ class GraphIngestionService:
 
             node = self.factory.create_from_taxonomy(
                 entry
+            )
+
+            node = self.enrichment_service.enrich(
+                node
             )
 
             self.repository.add_node(
