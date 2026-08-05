@@ -1,5 +1,3 @@
-from app.knowledge_base.providers.onet_provider import ONETProvider
-
 from pathlib import Path
 
 from app.knowledge_base.providers.onet_provider import ONETProvider
@@ -11,16 +9,6 @@ def test_onet_provider_load():
     entries = provider.load()
 
     assert len(entries) > 0
-    assert entries[0].category == "essential_skill"
-
-
-def test_load_essential_skills():
-    provider = ONETProvider()
-
-    entries = provider.load()
-
-    assert len(entries) > 0
-    assert entries[0].category == "essential_skill"
 
 
 def test_load_software_skills():
@@ -45,7 +33,7 @@ def test_load_software_skills():
 
     assert len(entries) > 0
     assert entries[0].category == "software_skill"
-    
+
 
 def test_load_knowledge():
     provider = ONETProvider()
@@ -59,3 +47,19 @@ def test_load_knowledge():
     ]
 
     assert len(knowledge) > 0
+
+
+def test_load_abilities():
+    provider = ONETProvider()
+
+    entries = provider.load()
+
+    abilities = [
+        entry
+        for entry in entries
+        if entry.category == "ability"
+    ]
+
+    assert len(abilities) > 0
+    assert abilities[0].id
+    assert abilities[0].name

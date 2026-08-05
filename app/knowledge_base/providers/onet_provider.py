@@ -9,7 +9,11 @@ class ONETProvider(BaseTaxonomyProvider):
     """
     Provider for loading O*NET taxonomy data.
 
-    Currently supports loading software skills only.
+    Supports:
+    - essential skills
+    - software skills
+    - knowledge
+    - abilities
     """
 
     def __init__(
@@ -28,6 +32,7 @@ class ONETProvider(BaseTaxonomyProvider):
                 "essential_skill": root / "essential_skills.csv",
                 "software_skill": root / "software_skills.csv",
                 "knowledge": root / "knowledge.csv",
+                "ability": root / "abilities.csv",
             }
 
         self.csv_paths = {
@@ -47,12 +52,13 @@ class ONETProvider(BaseTaxonomyProvider):
             )
 
         return entries
-        
+
     def _load_entries(
         self,
         csv_path: Path,
         category: str,
     ) -> list[TaxonomyEntry]:
+
         entries: list[TaxonomyEntry] = []
 
         with csv_path.open(
@@ -64,10 +70,9 @@ class ONETProvider(BaseTaxonomyProvider):
             reader = csv.DictReader(file)
 
             for row in reader:
+
                 if category == "software_skill":
                     name = row["Workplace Example"]
-                elif category == "knowledge":
-                    name = row["Element Name"]
                 else:
                     name = row["Element Name"]
 
