@@ -1,31 +1,37 @@
 from app.knowledge_graph.models.node import Node
-from app.knowledge_graph.models.edge import Edge
-from app.knowledge_graph.repositories.graph_repository import GraphRepository
+
+from app.knowledge_graph.repositories.graph_repository import (
+    GraphRepository,
+)
 
 
 class GraphService:
     """
-    Application service for graph operations.
+    Service layer for graph node operations.
     """
 
     def __init__(
         self,
-        repository: GraphRepository
+        repository: GraphRepository,
     ):
         self.repository = repository
 
 
-    def create_node(
+    def add_node(
         self,
-        node: Node
+        node: Node,
     ) -> None:
 
-        self.repository.add_node(node)
+        self.repository.add_node(
+            node
+        )
 
 
-    def create_edge(
+    def get_node(
         self,
-        edge: Edge
-    ) -> None:
+        node_id: str,
+    ) -> Node | None:
 
-        self.repository.add_edge(edge)
+        return self.repository.get_node(
+            node_id
+        )
