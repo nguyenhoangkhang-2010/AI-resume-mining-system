@@ -83,3 +83,14 @@ class InMemoryGraphRepository(GraphRepository):
                     result.append(target)
 
         return result
+    
+    def get_outgoing_edges(
+        self,
+        node_id: str,
+    ) -> list[Edge]:
+
+        return [
+            edge
+            for edge in self._edges
+            if edge.source == node_id
+        ]

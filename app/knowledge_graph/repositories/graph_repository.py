@@ -36,3 +36,10 @@ class GraphRepository(ABC):
         relation: str,
     ) -> list[Node]:
         pass
+    
+    @abstractmethod
+    def get_outgoing_edges(
+        self,
+        node_id: str,
+    ) -> list[Edge]:
+        pass
