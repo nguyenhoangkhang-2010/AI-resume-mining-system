@@ -4,7 +4,6 @@
     "build": "tsc -b && vite build",
     "preview": "vite preview"
   },
-
   "dependencies": {
     "@hookform/resolvers": "^5.7.1",
     "@tailwindcss/vite": "^4.3.3",
@@ -27,8 +26,8 @@
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },
-
   "devDependencies": {
+    "@types/node": "^26.1.2",
     "@types/react": "^19.2.18",
     "@types/react-dom": "^19.2.4",
     "@vitejs/plugin-react": "^6.0.5",
