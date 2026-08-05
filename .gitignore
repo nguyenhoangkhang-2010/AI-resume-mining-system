@@ -118,6 +118,7 @@ dump/
 *.zip
 data/esco/raw/
 # =========================
-# job data
+# Data
 # =========================
 data/jobs/
+data/onet/
