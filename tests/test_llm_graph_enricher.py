@@ -4,6 +4,9 @@ from app.knowledge_graph.enrichment.providers.llm_enricher import (
 
 from app.knowledge_graph.models.node import Node
 
+from app.knowledge_graph.enrichment.prompt_builder import (
+    PromptBuilder,
+)
 
 
 class FakeLLM:
@@ -19,7 +22,8 @@ class FakeLLM:
 def test_llm_enrichment():
 
     enricher = LLMGraphEnricher(
-        FakeLLM()
+        provider=FakeLLM(),
+        prompt_builder=PromptBuilder(),
     )
 
 

@@ -1,24 +1,27 @@
 from transformers import pipeline
 
+from app.core.config.settings import settings
+
 from app.knowledge_graph.enrichment.providers.llm_provider import (
     LLMProvider,
 )
 
 
 class HuggingFaceLLMProvider(
-    LLMProvider
+    LLMProvider,
 ):
 
     def __init__(
         self,
-        model_name: str,
+        model_name: str | None = None,
     ):
 
         self.generator = pipeline(
-            "text-generation",
-            model=model_name,
+            task="text-generation",
+            model=model_name
+            or settings.LLM_MODEL_NAME,
+            token=settings.hf_token,
         )
-
 
     def generate(
         self,
@@ -27,8 +30,8 @@ class HuggingFaceLLMProvider(
 
         result = self.generator(
             prompt,
-            max_new_tokens=128,
+            max_new_tokens=settings.MAX_NEW_TOKENS,
+            do_sample=False,
         )
-
 
         return result[0]["generated_text"]

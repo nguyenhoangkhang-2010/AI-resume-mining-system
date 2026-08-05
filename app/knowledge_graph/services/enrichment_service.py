@@ -1,6 +1,7 @@
 from app.knowledge_graph.models.node import Node
-from app.knowledge_graph.enrichment.providers.base_provider import (
-    GraphEnrichmentProvider,
+
+from app.knowledge_graph.enrichment.base_enricher import (
+    GraphEnricher,
 )
 
 
@@ -8,9 +9,9 @@ class GraphEnrichmentService:
 
     def __init__(
         self,
-        provider: GraphEnrichmentProvider,
+        enricher: GraphEnricher,
     ):
-        self.provider = provider
+        self.enricher = enricher
 
 
     def enrich(
@@ -18,4 +19,6 @@ class GraphEnrichmentService:
         node: Node,
     ) -> Node:
 
-        return self.provider.enrich(node)
+        return self.enricher.enrich(
+            node
+        )

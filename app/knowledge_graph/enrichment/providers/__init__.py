@@ -10,9 +10,14 @@ from app.knowledge_graph.enrichment.providers.huggingface_provider import (
     HuggingFaceLLMProvider,
 )
 
+from app.knowledge_graph.enrichment.providers.llm_enricher import (
+    LLMGraphEnricher,
+)
+
 
 __all__ = [
     "GraphEnrichmentProvider",
     "LLMProvider",
     "HuggingFaceLLMProvider",
+    "LLMGraphEnricher",
 ]
