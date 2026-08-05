@@ -10,8 +10,8 @@ from app.knowledge_graph.services.node_factory import (
     GraphNodeFactory,
 )
 
-from app.knowledge_graph.services.enrichment_service import (
-    GraphEnrichmentService,
+from app.knowledge_graph.pipelines.graph_enrichment_pipeline import (
+    GraphEnrichmentPipeline,
 )
 
 
@@ -25,11 +25,11 @@ class GraphIngestionService:
         self,
         repository: GraphRepository,
         factory: GraphNodeFactory,
-        enrichment_service: GraphEnrichmentService,
+        enrichment_pipeline: GraphEnrichmentPipeline,
     ):
         self.repository = repository
         self.factory = factory
-        self.enrichment_service = enrichment_service
+        self.enrichment_pipeline = enrichment_pipeline
 
 
     def ingest(
@@ -43,7 +43,7 @@ class GraphIngestionService:
                 entry
             )
 
-            node = self.enrichment_service.enrich(
+            node = self.enrichment_pipeline.process(
                 node
             )
 

@@ -18,6 +18,10 @@ from app.knowledge_graph.services.enrichment_service import (
     GraphEnrichmentService,
 )
 
+from app.knowledge_graph.pipelines.graph_enrichment_pipeline import (
+    GraphEnrichmentPipeline,
+)
+
 from tests.fakes.fake_graph_enricher import (
     FakeGraphEnricher,
 )
@@ -29,15 +33,21 @@ def test_ingest_taxonomy_entries():
 
     factory = GraphNodeFactory()
 
+
     enrichment_service = GraphEnrichmentService(
         FakeGraphEnricher()
+    )
+
+
+    enrichment_pipeline = GraphEnrichmentPipeline(
+        enrichment_service,
     )
 
 
     service = GraphIngestionService(
         repo,
         factory,
-        enrichment_service,
+        enrichment_pipeline,
     )
 
 
