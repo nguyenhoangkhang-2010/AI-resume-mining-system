@@ -21,3 +21,8 @@ class OntologyDefinition(BaseModel):
     properties: dict[str, Any] = Field(
         default_factory=dict
     )
+    
+class RelationshipTypes:
+    REQUIRES_SKILL = "requires_skill"
+    RELATED_TO = "related_to"
+    BELONGS_TO = "belongs_to"
