@@ -45,3 +45,17 @@ def test_load_software_skills():
 
     assert len(entries) > 0
     assert entries[0].category == "software_skill"
+    
+
+def test_load_knowledge():
+    provider = ONETProvider()
+
+    entries = provider.load()
+
+    knowledge = [
+        entry
+        for entry in entries
+        if entry.category == "knowledge"
+    ]
+
+    assert len(knowledge) > 0

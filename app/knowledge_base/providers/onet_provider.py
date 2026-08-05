@@ -27,6 +27,7 @@ class ONETProvider(BaseTaxonomyProvider):
             csv_paths = {
                 "essential_skill": root / "essential_skills.csv",
                 "software_skill": root / "software_skills.csv",
+                "knowledge": root / "knowledge.csv",
             }
 
         self.csv_paths = {
@@ -65,6 +66,8 @@ class ONETProvider(BaseTaxonomyProvider):
             for row in reader:
                 if category == "software_skill":
                     name = row["Workplace Example"]
+                elif category == "knowledge":
+                    name = row["Element Name"]
                 else:
                     name = row["Element Name"]
 
