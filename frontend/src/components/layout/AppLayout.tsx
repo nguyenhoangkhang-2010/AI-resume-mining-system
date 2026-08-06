@@ -5,7 +5,7 @@ import Topbar from "./Topbar";
 import PageContainer from "./PageContainer";
 
 export interface AppLayoutProps {
-  children: ReactNode;
+  children?: ReactNode;
 }
 
 export default function AppLayout({
