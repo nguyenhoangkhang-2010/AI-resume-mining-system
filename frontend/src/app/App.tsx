@@ -1,13 +1,51 @@
+import { useState } from "react";
+
 import AppLayout from "@/components/layout/AppLayout";
+import Button from "@/components/ui/Button";
+
+import {
+  ErrorState,
+  Loading,
+  PageContainer,
+  PageHeader,
+  SearchBar,
+} from "@/components/common";
 
 export default function App() {
+  const [search, setSearch] = useState("Resume");
+
   return (
     <AppLayout>
-      <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-slate-300 bg-white">
-        <span className="text-slate-400">
-          Dashboard page coming soon...
-        </span>
-      </div>
+      <PageContainer>
+        <PageHeader
+          title="Dashboard"
+          description="Overview of AI Resume Mining & Candidate Matching System"
+          actions={
+            <Button>
+              Add Resume
+            </Button>
+          }
+        />
+
+        <SearchBar
+          value={search}
+          placeholder="Search resumes..."
+          onChange={(e) => setSearch(e.target.value)}
+          onClear={() => setSearch("")}
+        />
+
+        <Loading message="Loading dashboard..." />
+
+        <ErrorState
+          title="Unable to load data"
+          description="Please check your connection and try again."
+          action={
+            <Button>
+              Retry
+            </Button>
+          }
+        />
+      </PageContainer>
     </AppLayout>
   );
 }
