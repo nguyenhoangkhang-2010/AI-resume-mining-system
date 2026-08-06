@@ -1,21 +1,63 @@
-import type { HTMLAttributes, ReactNode } from "react";
+import { GraphEdge } from "./GraphEdge";
+import { GraphNode } from "./GraphNode";
 
-export interface GraphCanvasProps
-  extends HTMLAttributes<HTMLDivElement> {
-  children?: ReactNode;
+
+interface GraphNodeData {
+  id: string;
+  label: string;
+  type: string;
+  position: {
+    x: string;
+    y: string;
+  };
 }
 
-export default function GraphCanvas({
-  children,
-  className = "",
-  ...props
+
+interface GraphEdgeData {
+  id: string;
+  from: string;
+  to: string;
+}
+
+
+interface GraphCanvasProps {
+  nodes: GraphNodeData[];
+  edges: GraphEdgeData[];
+}
+
+
+export function GraphCanvas({
+  nodes,
+  edges,
 }: GraphCanvasProps) {
   return (
     <div
-      className={`relative h-full w-full overflow-hidden bg-slate-50 ${className}`}
-      {...props}
+      className="
+        relative
+        h-full
+        min-h-[500px]
+        overflow-hidden
+        rounded-xl
+        border
+        bg-muted/20
+      "
     >
-      {children}
+      {edges.map((edge) => (
+        <GraphEdge
+          key={edge.id}
+          {...edge}
+        />
+      ))}
+
+
+      {nodes.map((node) => (
+        <GraphNode
+          key={node.id}
+          label={node.label}
+          type={node.type}
+          position={node.position}
+        />
+      ))}
     </div>
   );
 }

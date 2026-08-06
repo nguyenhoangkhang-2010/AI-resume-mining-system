@@ -1,42 +1,27 @@
-import type { HTMLAttributes, ReactNode } from "react";
-
-export interface GraphEdgeProps
-  extends HTMLAttributes<HTMLDivElement> {
-  source: ReactNode;
-  target: ReactNode;
-  label?: ReactNode;
+interface GraphEdgeProps {
+  label?: string;
 }
 
-export default function GraphEdge({
-  source,
-  target,
-  label,
-  className = "",
-  ...props
+export function GraphEdge({
+  label = "related_to",
 }: GraphEdgeProps) {
   return (
     <div
-      className={`
-        flex
-        items-center
-        gap-3
-        text-sm
-        text-slate-600
-        ${className}
-      `}
-      {...props}
+      className="
+        absolute
+        left-1/2
+        top-1/2
+        -translate-x-1/2
+        -translate-y-1/2
+        rounded-full
+        bg-background
+        px-2
+        py-1
+        text-xs
+        text-muted-foreground
+      "
     >
-      <span>{source}</span>
-
-      <span className="text-slate-400">→</span>
-
-      <span>{target}</span>
-
-      {label && (
-        <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs">
-          {label}
-        </span>
-      )}
+      {label}
     </div>
   );
 }

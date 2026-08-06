@@ -9,7 +9,7 @@ export interface GraphContainerProps
 }
 
 export default function GraphContainer({
-  title,
+  heading,
   subtitle,
   toolbar,
   children,
@@ -29,12 +29,22 @@ export default function GraphContainer({
       `}
       {...props}
     >
-      {(title || subtitle || toolbar) && (
-        <header className="flex items-center justify-between border-b border-slate-200 px-6 py-4">
+      {(heading || subtitle || toolbar) && (
+        <header
+          className="
+            flex
+            items-center
+            justify-between
+            border-b
+            border-slate-200
+            px-6
+            py-4
+          "
+        >
           <div>
-            {title && (
+            {heading && (
               <h2 className="text-lg font-semibold text-slate-900">
-                {title}
+                {heading}
               </h2>
             )}
 

@@ -1,59 +1,44 @@
-import type { HTMLAttributes, ReactNode } from "react";
-
-export interface GraphNodeProps
-  extends HTMLAttributes<HTMLDivElement> {
-  icon?: ReactNode;
-  heading: ReactNode;
-  subtitle?: ReactNode;
-  selected?: boolean;
+interface GraphNodeProps {
+  label: string;
+  type: string;
+  position: {
+    x: string;
+    y: string;
+  };
 }
 
-export default function GraphNode({
-  icon,
-  title,
-  subtitle,
-  selected = false,
-  className = "",
-  ...props
+
+export function GraphNode({
+  label,
+  type,
+  position,
 }: GraphNodeProps) {
   return (
     <div
-      className={`
-        flex
-        items-center
-        gap-3
+      className="
+        absolute
         rounded-xl
         border
-        bg-white
-        p-4
+        bg-background
+        px-4
+        py-3
         shadow-sm
-        transition-all
-        ${
-          selected
-            ? "border-blue-500 ring-2 ring-blue-100"
-            : "border-slate-200"
-        }
-        ${className}
-      `}
-      {...props}
+      "
+      style={{
+        left: position.x,
+        top: position.y,
+      }}
     >
-      {icon && (
-        <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100">
-          {icon}
-        </div>
-      )}
+      <p className="font-medium">
+        {label}
+      </p>
 
-      <div className="min-w-0">
-        <div className="truncate font-semibold text-slate-900">
-          {title}
-        </div>
-
-        {subtitle && (
-          <div className="truncate text-sm text-slate-500">
-            {subtitle}
-          </div>
-        )}
-      </div>
+      <p className="
+        text-xs
+        text-muted-foreground
+      ">
+        {type}
+      </p>
     </div>
   );
 }
