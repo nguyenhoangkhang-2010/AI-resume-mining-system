@@ -1,19 +1,46 @@
-import { ButtonHTMLAttributes, ReactNode } from "react";
+import type {
+  ButtonHTMLAttributes,
+  ReactNode,
+} from "react";
+
+import {
+  cn,
+} from "@/lib/utils";
+
+export type IconButtonSize =
+  | "sm"
+  | "md"
+  | "lg";
+
+export type IconButtonVariant =
+  | "default"
+  | "outline"
+  | "ghost";
 
 export interface IconButtonProps
   extends ButtonHTMLAttributes<HTMLButtonElement> {
   icon: ReactNode;
-  size?: "sm" | "md" | "lg";
-  variant?: "default" | "outline" | "ghost";
+  size?: IconButtonSize;
+  variant?: IconButtonVariant;
 }
 
-const sizeClasses = {
-  sm: "h-8 w-8",
-  md: "h-10 w-10",
-  lg: "h-12 w-12",
+const sizeClasses: Record<
+  IconButtonSize,
+  string
+> = {
+  sm:
+    "h-8 w-8",
+  md:
+    "h-10 w-10",
+  lg:
+    "h-12 w-12",
 };
 
-const variantClasses = {
+const variantClasses: Record<
+  IconButtonVariant,
+  string
+> = {
+
   default:
     "bg-slate-900 text-white hover:bg-slate-800",
 
@@ -28,7 +55,7 @@ export default function IconButton({
   icon,
   size = "md",
   variant = "ghost",
-  className = "",
+  className,
   disabled,
   ...props
 }: IconButtonProps) {
@@ -36,7 +63,8 @@ export default function IconButton({
     <button
       type="button"
       disabled={disabled}
-      className={`
+      className={cn(
+        `
         inline-flex
         items-center
         justify-center
@@ -48,10 +76,11 @@ export default function IconButton({
         focus:ring-blue-500
         disabled:cursor-not-allowed
         disabled:opacity-50
-        ${sizeClasses[size]}
-        ${variantClasses[variant]}
-        ${className}
-      `}
+        `,
+        sizeClasses[size],
+        variantClasses[variant],
+        className,
+      )}
       {...props}
     >
       {icon}

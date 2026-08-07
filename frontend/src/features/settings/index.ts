@@ -1,3 +1,7 @@
+export {
+  default as SettingsPage,
+} from "./page";
+
 export { SettingsView } from "./components/SettingsView";
 export { SettingsHeader } from "./components/SettingsHeader";
 export { SettingsProfile } from "./components/SettingsProfile";

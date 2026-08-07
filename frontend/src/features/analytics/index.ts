@@ -1,3 +1,5 @@
+export { default as AnalyticsPage } from "./page";
+
 export { AnalyticsView } from "./components/AnalyticsView";
 
 export { AnalyticsHeader } from "./components/AnalyticsHeader";

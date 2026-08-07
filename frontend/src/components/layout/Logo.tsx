@@ -1,35 +1,75 @@
-import type { HTMLAttributes } from "react";
-import { cn } from "@/lib/utils";
+import type {
+  HTMLAttributes,
+} from "react";
 
-export interface LogoProps extends HTMLAttributes<HTMLDivElement> {
+
+import {
+  cn,
+} from "@/lib/utils";
+
+export interface LogoProps
+  extends HTMLAttributes<HTMLDivElement> {
+
   collapsed?: boolean;
+
 }
 
-export default function Logo() {
+export default function Logo({
+  collapsed = false,
+  className,
+  ...props
+}: LogoProps) {
   return (
-    <div className="flex items-center gap-3 px-3">
+    <div
+      className={cn(
+        `
+        flex
+        items-center
+        gap-3
+        `,
+        className,
+      )}
+      {...props}
+    >
+      {/* Logo mark */}
       <div
         className="
-          flex h-9 w-9
-          items-center justify-center
+          flex
+          h-10
+          w-10
+          items-center
+          justify-center
           rounded-xl
           bg-white
-          text-[#0B1324]
+          text-sm
           font-bold
+          text-slate-900
         "
       >
         AI
       </div>
-
-      <div>
-        <p className="text-sm font-semibold text-white">
-          Resume AI
-        </p>
-
-        <p className="text-xs text-slate-400">
-          Candidate Matching
-        </p>
-      </div>
+      {/* Brand text */}
+      {!collapsed && (
+        <div>
+          <p
+            className="
+              text-sm
+              font-semibold
+              text-white
+            "
+          >
+            Resume AI
+          </p>
+          <p
+            className="
+              text-xs
+              text-slate-400
+            "
+          >
+            Candidate Matching
+          </p>
+        </div>
+      )}
     </div>
   );
 }

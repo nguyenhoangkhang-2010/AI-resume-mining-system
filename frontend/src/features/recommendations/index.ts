@@ -1,3 +1,7 @@
+export {
+  default as RecommendationsPage,
+} from "./page";
+
 export { RecommendationsView } from "./components/RecommendationsView";
 export { RecommendationsHeader } from "./components/RecommendationsHeader";
 export { RecommendationsSearch } from "./components/RecommendationsSearch";

@@ -1,3 +1,7 @@
+export {
+  default as MatchingPage,
+} from "./page";
+
 export { MatchingView } from "./components/MatchingView";
 export { MatchingHeader } from "./components/MatchingHeader";
 export { MatchingSearch } from "./components/MatchingSearch";

@@ -1,3 +1,7 @@
+export {
+  default as RankingPage,
+} from "./page";
+
 export { RankingView } from "./components/RankingView";
 export { RankingHeader } from "./components/RankingHeader";
 export { RankingSearch } from "./components/RankingSearch";

@@ -1,3 +1,7 @@
+export {
+  default as VectorSearchPage,
+} from "./page";
+
 export { VectorSearchView } from "./components/VectorSearchView";
 export { VectorSearchHeader } from "./components/VectorSearchHeader";
 export { VectorSearchInput } from "./components/VectorSearchInput";

@@ -1,15 +1,22 @@
-import { forwardRef, type ButtonHTMLAttributes, type ReactNode } from "react";
+import {
+  forwardRef,
+  type ButtonHTMLAttributes,
+  type ReactNode,
+} from "react";
+
 import { twMerge } from "tailwind-merge";
 import clsx from "clsx";
 
-type ButtonVariant =
+
+export type ButtonVariant =
   | "primary"
   | "secondary"
   | "outline"
   | "ghost"
   | "danger";
 
-type ButtonSize =
+
+export type ButtonSize =
   | "sm"
   | "md"
   | "lg";
@@ -42,9 +49,7 @@ const variantClasses: Record<ButtonVariant, string> = {
 
 const sizeClasses: Record<ButtonSize, string> = {
   sm: "h-9 px-3 text-sm",
-
   md: "h-11 px-5 text-sm",
-
   lg: "h-12 px-6 text-base",
 };
 
@@ -61,7 +66,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
       children,
       ...props
     },
-    ref
+    ref,
   ) => {
     return (
       <button
@@ -73,14 +78,24 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
             "focus:outline-none focus:ring-2 focus:ring-blue-500",
             "disabled:opacity-60 disabled:pointer-events-none",
             variantClasses[variant],
-            sizeClasses[size]
+            sizeClasses[size],
           ),
-          className
+          className,
         )}
         {...props}
       >
         {loading ? (
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+          <span
+            className="
+              h-4
+              w-4
+              animate-spin
+              rounded-full
+              border-2
+              border-white/40
+              border-t-white
+            "
+          />
         ) : (
           leftIcon
         )}
@@ -90,7 +105,7 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
         {!loading && rightIcon}
       </button>
     );
-  }
+  },
 );
 
 Button.displayName = "Button";

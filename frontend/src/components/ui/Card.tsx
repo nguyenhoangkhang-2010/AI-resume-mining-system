@@ -1,8 +1,14 @@
-import { type HTMLAttributes } from "react";
-import clsx from "clsx";
-import { twMerge } from "tailwind-merge";
+import type {
+  HTMLAttributes,
+} from "react";
 
-interface CardProps extends HTMLAttributes<HTMLDivElement> {}
+import {
+  cn,
+} from "@/lib/utils";
+
+export interface CardProps
+  extends HTMLAttributes<HTMLDivElement> {}
+
 
 export default function Card({
   className,
@@ -11,16 +17,18 @@ export default function Card({
 }: CardProps) {
   return (
     <div
-      className={twMerge(
-        clsx(
-          "rounded-2xl",
-          "border border-slate-200",
-          "bg-white",
-          "shadow-sm",
-          "transition-all duration-200",
-          "hover:shadow-md"
-        ),
-        className
+      className={cn(
+        `
+        rounded-2xl
+        border
+        border-slate-200
+        bg-white
+        shadow-sm
+        transition-all
+        duration-200
+        hover:shadow-md
+        `,
+        className,
       )}
       {...props}
     >
@@ -35,7 +43,10 @@ export function CardHeader({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={twMerge("px-6 pt-6 pb-4", className)}
+      className={cn(
+        "px-6 pt-6 pb-4",
+        className,
+      )}
       {...props}
     />
   );
@@ -47,9 +58,9 @@ export function CardTitle({
 }: HTMLAttributes<HTMLHeadingElement>) {
   return (
     <h3
-      className={twMerge(
+      className={cn(
         "text-lg font-semibold text-slate-900",
-        className
+        className,
       )}
       {...props}
     />
@@ -62,9 +73,9 @@ export function CardDescription({
 }: HTMLAttributes<HTMLParagraphElement>) {
   return (
     <p
-      className={twMerge(
+      className={cn(
         "mt-1 text-sm text-slate-500",
-        className
+        className,
       )}
       {...props}
     />
@@ -77,7 +88,10 @@ export function CardContent({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={twMerge("px-6 pb-6", className)}
+      className={cn(
+        "px-6 pb-6",
+        className,
+      )}
       {...props}
     />
   );
@@ -89,9 +103,18 @@ export function CardFooter({
 }: HTMLAttributes<HTMLDivElement>) {
   return (
     <div
-      className={twMerge(
-        "flex items-center justify-end gap-2 border-t border-slate-100 px-6 py-4",
-        className
+      className={cn(
+        `
+        flex
+        items-center
+        justify-end
+        gap-2
+        border-t
+        border-slate-100
+        px-6
+        py-4
+        `,
+        className,
       )}
       {...props}
     />

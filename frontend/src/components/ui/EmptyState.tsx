@@ -1,6 +1,14 @@
-import { HTMLAttributes, ReactNode } from "react";
+import type {
+  HTMLAttributes,
+  ReactNode,
+} from "react";
 
-export interface EmptyStateProps extends HTMLAttributes<HTMLDivElement> {
+import {
+  cn,
+} from "@/lib/utils";
+
+export interface EmptyStateProps
+  extends HTMLAttributes<HTMLDivElement> {
   icon?: ReactNode;
   title: string;
   description?: string;
@@ -12,33 +20,57 @@ export default function EmptyState({
   title,
   description,
   action,
-  className = "",
+  className,
   ...props
 }: EmptyStateProps) {
   return (
     <div
-      className={`
-        flex flex-col items-center justify-center
-        rounded-xl border border-dashed border-slate-300
+      className={cn(
+        `
+        flex
+        flex-col
+        items-center
+        justify-center
+        rounded-xl
+        border
+        border-dashed
+        border-slate-300
         bg-white
-        px-8 py-12
+        px-8
+        py-12
         text-center
-        ${className}
-      `}
+        `,
+        className,
+      )}
       {...props}
     >
       {icon && (
-        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-500">
+        <div className="mb-4 text-slate-400">
           {icon}
         </div>
       )}
 
-      <h3 className="text-lg font-semibold text-slate-900">
+
+      <h3
+        className="
+          text-lg
+          font-semibold
+          text-slate-900
+        "
+      >
         {title}
       </h3>
 
       {description && (
-        <p className="mt-2 max-w-md text-sm leading-6 text-slate-500">
+        <p
+          className="
+            mt-2
+            max-w-md
+            text-sm
+            leading-6
+            text-slate-500
+          "
+        >
           {description}
         </p>
       )}

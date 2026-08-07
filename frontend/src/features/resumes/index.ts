@@ -1,4 +1,9 @@
 export {
+  default as ResumesPage,
+} from "./page";
+
+
+export {
   ResumesView,
 } from "./components/ResumesView";
 

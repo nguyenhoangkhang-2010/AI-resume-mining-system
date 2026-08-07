@@ -1,6 +1,10 @@
-import { HTMLAttributes } from "react";
+import type { HTMLAttributes } from "react";
 
-export interface AvatarProps extends HTMLAttributes<HTMLDivElement> {
+import { cn } from "@/lib/utils";
+
+
+export interface AvatarProps
+  extends HTMLAttributes<HTMLDivElement> {
   src?: string;
   alt?: string;
   name?: string;
@@ -19,7 +23,7 @@ export default function Avatar({
   alt,
   name,
   size = "md",
-  className = "",
+  className,
   ...props
 }: AvatarProps) {
   const fallback =
@@ -27,7 +31,8 @@ export default function Avatar({
 
   return (
     <div
-      className={`
+      className={cn(
+        `
         inline-flex
         items-center
         justify-center
@@ -38,9 +43,10 @@ export default function Avatar({
         font-semibold
         select-none
         shrink-0
-        ${sizeClasses[size]}
-        ${className}
-      `}
+        `,
+        sizeClasses[size],
+        className,
+      )}
       {...props}
     >
       {src ? (
