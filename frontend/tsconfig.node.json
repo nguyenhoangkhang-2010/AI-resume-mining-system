@@ -10,7 +10,8 @@
     "skipLibCheck": true,
     "types": [
       "node"
-    ]
+    ],
+    "noEmit": true
   },
   "include": [
     "vite.config.ts"
