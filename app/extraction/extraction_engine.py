@@ -2,13 +2,26 @@ import re
 from typing import Dict, List
 
 from app.extraction.skills.skill_extractor import SkillExtractor
+from app.extraction.entity.entity_classifier import EntityClassifier
 
 class ExtractionEngine:
     def __init__(self):
         self.skill_extractor = SkillExtractor()
+        self.entity_classifier = EntityClassifier()
         
     def _normalize_header(self, text: str) -> str:
         return text.casefold().strip().rstrip(":")
+    
+    def classify_entity(
+        self,
+        text:str,
+        context:str | None = None
+    ):
+
+        return self.entity_classifier.classify(
+            text,
+            context
+        )
 
     def _is_valid_name(self, line: str) -> bool:
         
@@ -168,42 +181,86 @@ class ExtractionEngine:
             return False
         
         return True
-        
-    def _is_valid_company(self, line: str) -> bool:
+    
+    def _looks_like_person_name(self, line: str) -> bool:
         line = line.strip()
-
         if not line:
             return False
+        
+        words = line.split()
 
-        line_lower = line.casefold()
+        if not (2 <= len(words) <= 5):
+            return False
 
-        company_keywords = [
-            "company",
-            "corporation",
-            "corp",
-            "inc",
-            "ltd",
-            "limited",
-            "group",
-            "technology",
-            "tech",
-            "software",
-            "solution",
-            "solutions",
-            "bank",
-            "hospital",
-            "factory",
-            "vietnam",
-            "việt nam"
-        ]
+        if any(char.isdigit() for char in line):
+            return False
 
-        if any(keyword in line_lower for keyword in company_keywords):
-            return True
+        lower = line.casefold()
 
-        if line.isupper() and len(line.split()) >= 2:
-            return True
+        if any(
+            pattern in lower
+            for pattern in [
+                "@",
+                "http",
+                "linkedin",
+                "github"
+            ]
+        ):
+            return False
 
-        return False
+        if any(
+            word.isupper()
+            for word in words
+        ):
+            return False
+
+        if not all(
+            word[0].isupper()
+            for word in words
+        ):
+            return False
+        return True
+        
+    def _role_score_without_person_check(self, line: str) -> int:
+        score = 0
+        words = line.split()
+        
+        if len(words) <= 5:
+            score += 1
+
+        if any(
+            word[:1].isupper()
+            for word in words
+        ):
+            score += 1
+        return score
+        
+    def _role_score(self, line: str) -> int:
+        score = 0
+        words = line.split()
+        if self._is_date_line(line):
+            return -10
+        if line.startswith("-"):
+            return -10
+        if len(words) <= 6:
+            score += 1
+        if len(words) >= 2:
+            score += 1
+        return score
+        
+    def _company_score(self, line:str)->int:
+        score = 0
+        words = line.split()
+        if len(words) > 8:
+            return -3
+        if len(words) >= 2:
+            score +=1
+        if any(
+            word[:1].isupper()
+            for word in words
+        ):
+            score +=1
+        return score
     
     def _is_date_line(self, line: str) -> bool:
         pattern = re.compile(
@@ -496,56 +553,55 @@ class ExtractionEngine:
         
         return True
 
-    def extract_experience(self, text: str) -> List[Dict[str, str]]:
-        experience = []
+    def extract_experience(self,text:str):
 
-        experience_lines = self._extract_section(
+        experience=[]
+
+        lines=self._extract_section(
             text,
-            [
-                "experience",
-                "work experience",
-                "professional experience",
-                "employment history"
-            ]
+            ["experience"]
         )
+        current_company=None
+        current_role=None
+        current_date=None
         
-        company = None
-        role = None
-        duration = None
-
-        for line in experience_lines:
-            print("LINE:", line)
-            # Company
-            if self._is_valid_company(line):
-                print("COMPANY:", line)
-                company = line
-                role = None
+        for line in lines:
+            line=line.strip()
+            if not line:
                 continue
-
-            # Date
+            print("LINE:",line)
             if self._is_date_line(line):
-                duration = line
+                current_date=line
+                if (
+                    current_company
+                    and current_role
+                ):
+                    experience.append(
+                        {
+                            "company":current_company,
+                            "role":current_role,
+                            "duration":current_date
+                        }
+                    )
+                    current_company=None
+                    current_role=None
                 continue
-
-            # Bullet
             if line.startswith("-"):
                 continue
-
-            # Role
-            if (
-                company
-                and role is None
-                and self._is_valid_role(line)
-            ):
-                print("ROLE:", line)
-                role = line
-
-                experience.append({
-                    "company": company,
-                    "role": role,
-                    "duration": duration
-                })
-
+            if current_company is None:
+                current_company=line
+                print(
+                    "COMPANY:",
+                    line
+                )
+                continue
+            if current_role is None:
+                current_role=line
+                print(
+                    "ROLE:",
+                    line
+                )
+                continue
         return experience[:5]
 
     def extract_skills(self, text: str) -> List[str]:

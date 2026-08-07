@@ -5,7 +5,7 @@ from typing import List, Dict
 from loguru import logger
 
 
-class SkillRepository:
+class OccupationRepository:
 
     def __init__(self):
 
@@ -15,20 +15,26 @@ class SkillRepository:
             / "data"
             / "taxonomy"
             / "generated"
-            / "skills.json"
+            / "occupations.json"
         )
 
-        self.skill_objects = self._load()
+        self.occupation_objects = self._load()
 
         # Build lookup indexes once.
-        self._skill_lookup = self._build_skill_lookup()
-        self._alias_lookup = self._build_alias_lookup()
+        self._occupation_lookup = (
+            self._build_occupation_lookup()
+        )
+
+        self._alias_lookup = (
+            self._build_alias_lookup()
+        )
 
     def _load(self):
 
         if not self.taxonomy_path.exists():
             raise FileNotFoundError(
-                f"Skill taxonomy not found: {self.taxonomy_path}"
+                f"Occupation taxonomy not found: "
+                f"{self.taxonomy_path}"
             )
 
         with open(
@@ -39,77 +45,85 @@ class SkillRepository:
             data = json.load(file)
 
         logger.info(
-            f"Loaded {len(data)} skills from taxonomy."
+            f"Loaded {len(data)} occupations from taxonomy."
         )
 
         return data
 
-    def _build_skill_lookup(self) -> Dict[str, Dict]:
+    def _build_occupation_lookup(
+        self,
+    ) -> Dict[str, Dict]:
 
         lookup = {}
 
-        for skill in self.skill_objects:
+        for occupation in self.occupation_objects:
 
-            name = skill.get("name")
+            name = occupation.get("name")
 
             if not name:
                 continue
 
             normalized = name.casefold().strip()
 
-            lookup[normalized] = skill
+            lookup[normalized] = occupation
 
         logger.info(
-            f"Built skill lookup with {len(lookup)} entries."
+            "Built occupation lookup with "
+            f"{len(lookup)} entries."
         )
 
         return lookup
 
-    def _build_alias_lookup(self) -> Dict[str, Dict]:
+    def _build_alias_lookup(
+        self,
+    ) -> Dict[str, Dict]:
 
         lookup = {}
 
-        for skill in self.skill_objects:
+        for occupation in self.occupation_objects:
 
-            canonical_name = skill.get("name")
-
-            if not canonical_name:
-                continue
-
-            for alias in skill.get("aliases", []):
+            for alias in occupation.get(
+                "aliases",
+                [],
+            ):
 
                 normalized = alias.casefold().strip()
 
                 if not normalized:
                     continue
 
-                lookup[normalized] = skill
+                lookup[normalized] = occupation
 
         logger.info(
-            f"Built alias lookup with {len(lookup)} entries."
+            "Built occupation alias lookup with "
+            f"{len(lookup)} entries."
         )
 
         return lookup
 
-    def get_all_skills(self) -> List[str]:
+    def get_all_occupations(
+        self,
+    ) -> List[str]:
 
         return [
-            skill["name"]
-            for skill in self.skill_objects
+            occupation["name"]
+            for occupation in self.occupation_objects
         ]
 
-    def get_all_skill_objects(self) -> List[Dict]:
+    def get_all_occupation_objects(
+        self,
+    ) -> List[Dict]:
 
-        return self.skill_objects
+        return self.occupation_objects
 
-    def get_skill(
+    def get_occupation(
         self,
         name: str,
     ) -> Dict | None:
 
         normalized = name.casefold().strip()
 
-        return self._skill_lookup.get(
+        return self._occupation_lookup.get(
             normalized
         )
 
@@ -131,30 +145,32 @@ class SkillRepository:
 
         normalized = text.casefold().strip()
 
-        skill = self._skill_lookup.get(
+        occupation = self._occupation_lookup.get(
             normalized
         )
 
-        if skill:
-            return skill
+        if occupation:
+            return occupation
 
         return self._alias_lookup.get(
             normalized
         )
 
-    def get_alias_map(self) -> dict[str, str]:
+    def get_alias_map(
+        self,
+    ) -> dict[str, str]:
 
         alias_map = {}
 
-        for skill in self.skill_objects:
+        for occupation in self.occupation_objects:
 
-            canonical = skill["name"]
+            canonical = occupation["name"]
 
             alias_map[
                 canonical.casefold()
             ] = canonical
 
-            for alias in skill.get(
+            for alias in occupation.get(
                 "aliases",
                 []
             ):

@@ -48,30 +48,39 @@ class ResumePipeline:
                 raw_text
             )
             resume_data = {
+                "raw_text": raw_text,
+                "cleaned_text": cleaned_text,
+
                 "contact":
                     self.contact_extractor.extract(
                         cleaned_text
                     ),
+
                 "summary":
                     self.summary_extractor.extract(
                         cleaned_text
                     ),
+
                 "education":
                     self.education_extractor.extract(
                         cleaned_text
                     ),
+
                 "experience":
                     self.experience_extractor.extract(
                         cleaned_text
                     ),
+
                 "projects":
                     self.project_extractor.extract(
                         cleaned_text
                     ),
+
                 "certifications":
                     self.certification_extractor.extract(
                         cleaned_text
                     ),
+
                 "skills":
                     self.skill_extractor.extract(
                         cleaned_text

@@ -2,6 +2,7 @@ from pydantic import BaseModel, Field
 
 
 class RankingMetadata(BaseModel):
+
     total_candidates: int = Field(
         ...,
         description="Total candidates received for ranking"
