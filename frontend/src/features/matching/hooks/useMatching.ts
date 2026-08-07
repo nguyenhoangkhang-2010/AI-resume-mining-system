@@ -1,36 +1,38 @@
-import { useMemo, useState } from "react";
-
-import type { MatchResult } from "../types/matching";
-
-
-interface UseMatchingResult {
-  loading: boolean;
-  error: Error | null;
-  matches: MatchResult[];
-}
+import {
+  useQuery,
+} from "@tanstack/react-query";
 
 
-export function useMatching(): UseMatchingResult {
-  const [matches] =
-    useState<MatchResult[]>([]);
-
-  const [loading] =
-    useState(false);
-
-  const [error] =
-    useState<Error | null>(null);
+import {
+  matchCandidates,
+} from "@/services/matching.service";
 
 
-  return useMemo(
-    () => ({
-      loading,
-      error,
-      matches,
-    }),
-    [
-      loading,
-      error,
-      matches,
-    ],
-  );
+export function useMatching(
+  jobId?: string,
+){
+  const query =
+    useQuery({
+      queryKey:[
+        "matches",
+        jobId,
+      ],
+      queryFn:
+        () =>
+          matchCandidates(
+            jobId!,
+          ),
+      enabled:
+        Boolean(jobId),
+    });
+
+
+  return {
+    matches:
+      query.data ?? [],
+    loading:
+      query.isLoading,
+    error:
+      query.error,
+  };
 }

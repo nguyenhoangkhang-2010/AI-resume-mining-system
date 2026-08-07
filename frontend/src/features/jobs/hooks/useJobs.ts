@@ -1,39 +1,52 @@
-import { useMemo } from "react";
+import {
+  useState,
+} from "react";
+
+import {
+  useMutation,
+} from "@tanstack/react-query";
+
+
+import {
+  createJob,
+} from "@/services/job.service";
+
 
 import type {
   Job,
-  JobSearchParams,
 } from "../types/job";
 
 
-interface UseJobsResult {
-  loading: boolean;
-
-  error: Error | null;
-
-  jobs: Job[];
-
-  total: number;
-
-  search: (
-    params?: JobSearchParams,
-  ) => void;
-}
+import type {
+  CreateJobPayload,
+} from "@/services/job.service";
 
 
-export function useJobs(): UseJobsResult {
-  return useMemo(
-    () => ({
-      loading: false,
+export function useJobs(){
 
-      error: null,
-
-      jobs: [],
-
-      total: 0,
-
-      search: () => {},
-    }),
-    [],
-  );
+  const [jobs,setJobs] =
+    useState<Job[]>([]);
+  const mutation =
+    useMutation({
+      mutationFn:
+        createJob,
+      onSuccess:
+        (data)=>{
+          setJobs(
+            current=>[
+              ...current,
+              data,
+            ],
+          );
+        },
+    });
+  return {
+    jobs,
+    createJob:
+      mutation.mutateAsync,
+    loading:
+      mutation.isPending,
+    error:
+      mutation.error,
+  };
 }
