@@ -3,12 +3,15 @@ from bson import ObjectId
 from loguru import logger
 
 from app.database.mongodb.connection import mongo_db
-from app.models.resume import ResumeModel
-from app.models.candidate import CandidateModel
+from app.models.candidate import CandidateModel, Education, Experience
 from app.schemas.resume_schema import ResumeResponse
 from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
+from app.models.resume import ResumeModel
 from app.embeddings.services.embedding_service import EmbeddingService
 from app.vector_store.vector_store import VectorStore
+from app.matching.skills.factory.skill_normalizer_factory import (
+    create_skill_normalizer,
+)
 
 
 class ResumeService:
@@ -17,6 +20,7 @@ class ResumeService:
         self.resume_pipeline = ResumePipeline()
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
+        self.skill_normalizer = create_skill_normalizer()
 
     @property
     def db(self):
@@ -33,81 +37,119 @@ class ResumeService:
     def process_uploaded_resume(
         self,
         file_path: str,
-        filename: str
+        filename: str,
     ) -> ResumeResponse:
+
         logger.info(
             f"Orchestrating processing for resume: {filename}"
         )
+
         resume = ResumeModel(
             filename=filename,
             file_path=file_path,
-            upload_status="pending"
+            upload_status="pending",
         )
+
         resume.id = self._insert_resume(resume)
+
         try:
-            resume_data = self.resume_pipeline.process_pdf(
+            extracted_data = self.resume_pipeline.process_pdf(
                 file_path
             )
-            skills = resume_data.get(
-                "skills",
-                []
-            )
-            personal_info = resume_data.get(
-                "contact",
-                {}
-            )
-            education = resume_data.get(
-                "education",
-                []
-            )
-            experience = resume_data.get(
-                "experience",
-                []
-            )
-            # Build embedding from extracted skills
-            embedding_text = " ".join(
-                skills
-            )
-            embedding = self.embedding_service.generate_embedding(
-                embedding_text
-            )
-            faiss_id = self._generate_faiss_id()
-            self.vector_store.add_candidate_embedding(
-                faiss_id=faiss_id,
-                embedding=embedding
-            )
-            candidate = CandidateModel(
+
+            candidate = self._build_candidate(
                 resume_id=resume.id,
-                personal_info=personal_info,
-                skills=skills,
-                education=education,
-                experience=experience,
-                faiss_id=faiss_id
+                extracted_data=extracted_data,
             )
-            self._insert_candidate(
-                candidate
-            )
+
+            self._insert_candidate(candidate)
+
             self._update_resume_status(
                 resume.id,
                 "processed",
-                resume_data
+                extracted_data,
             )
+
             resume.upload_status = "processed"
+
             logger.success(
                 f"Resume {filename} processed and indexed successfully."
             )
-            return ResumeResponse.model_validate(
-                resume
-            )
+
+            return ResumeResponse.model_validate(resume)
+
         except Exception as e:
+
             logger.error(
                 f"Pipeline failed for resume {filename}: {e}"
             )
+
             self._update_resume_status(
                 resume.id,
-                "failed"
+                "failed",
             )
-            raise e
+            raise
+        
+    def _build_candidate(
+        self,
+        resume_id: str,
+        extracted_data: dict,
+    ) -> CandidateModel:
+
+        skills = extracted_data.get("skills") or []
+
+        normalized_skills = [
+            self.skill_normalizer.normalize(skill)
+            for skill in skills
+            if isinstance(skill, str)
+            and skill.strip()
+        ]
+
+        embedding_text = " ".join(
+            normalized_skills
+        )
+
+        embedding = self.embedding_service.generate_embedding(
+            embedding_text
+        )
+
+        faiss_id = self._generate_faiss_id()
+
+        self.vector_store.add_candidate_embedding(
+            faiss_id=faiss_id,
+            embedding=embedding,
+        )
+
+        education_data = (
+            extracted_data.get("education") or []
+        )
+
+        education_models = [
+            Education.model_validate(education)
+            for education in education_data
+        ]
+
+        experience_data = (
+            extracted_data.get("experience") or []
+        )
+
+        experience_models = [
+            Experience.model_validate(exp)
+            for exp in experience_data
+        ]
+
+        return CandidateModel(
+            resume_id=resume_id,
+            personal_info=extracted_data.get(
+                "personal_info",
+                {},
+            ),
+            skills=skills,
+            normalized_skills=normalized_skills,
+            education=education_models,
+            experience=experience_models,
+            faiss_id=faiss_id,
+        )
 
     def _generate_faiss_id(self) -> int:
         return int(time.time() * 1000) % (2**63 - 1)

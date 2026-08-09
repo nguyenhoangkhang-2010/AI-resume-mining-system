@@ -5,145 +5,140 @@ from loguru import logger
 
 
 class ExperienceExtractor:
-
-    YEARS_PATTERN = (
-        r"(\d+)"
-        r"\+?\s*"
-        r"(years|yrs)"
-        r"\s*(of)?"
-        r"\s*(experience|exp)"
+    DATE_RANGE_PATTERN = re.compile(
+        r"(?P<start>"
+        r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)"
+        r"\s+\d{4}"
+        r")"
+        r"\s*[-–—]\s*"
+        r"(?P<end>"
+        r"(?:"
+        r"(?:Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Sept|Oct|Nov|Dec)"
+        r"\s+\d{4}"
+        r"|Present"
+        r"|Current"
+        r")"
+        r")",
+        re.IGNORECASE,
     )
-
-
-    RANGE_PATTERN = (
-        r"(\d{4})"
-        r"\s*-\s*"
-        r"(\d{4}|present)"
-    )
-
-
-    ROLE_KEYWORDS = [
-        "software engineer",
-        "backend developer",
-        "frontend developer",
-        "data analyst",
-        "data scientist",
-        "machine learning engineer",
-        "ai engineer",
-        "intern",
-        "developer",
-    ]
-
 
     @staticmethod
-    def extract(
-        text: str
-    ) -> List[Dict[str, Any]]:
-        if not text:
-            return []
-        logger.debug(
-            "Starting experience extraction."
-        )
-        text_lower = text.lower()
-        result = {
-            "total_years_extracted": 0,
-            "experience_periods": []
-        }
+    def _clean_line(line: str) -> str:
+        return line.strip().lstrip("•*-–—").strip()
 
-        # -------------------------
-        # Years of experience
-        # -------------------------
-        years_matches = re.findall(
-            ExperienceExtractor.YEARS_PATTERN,
-            text_lower
-        )
-        if years_matches:
-            result["total_years_extracted"] = max(
-                int(year[0])
-                for year in years_matches
+    @staticmethod
+    def _is_date_range(line: str) -> bool:
+        return bool(
+            ExperienceExtractor.DATE_RANGE_PATTERN.fullmatch(
+                line.strip()
             )
-
-        # -------------------------
-        # Work periods
-        # -------------------------
-        periods = re.findall(
-            ExperienceExtractor.RANGE_PATTERN,
-            text_lower
         )
 
-        # -------------------------
-        # Role extraction
-        # -------------------------
-        roles = []
-        for role in (
-            ExperienceExtractor.ROLE_KEYWORDS
-        ):
-            if role in text_lower:
-                roles.append(
-                    role.title()
-                )
+    @staticmethod
+    def _is_description_line(line: str) -> bool:
+        return line.lstrip().startswith(("•", "-", "*"))
 
-        # -------------------------
-        # Company heuristic
-        # -------------------------
-        companies = []
-        lines = [
+    @classmethod
+    def _non_empty_lines(cls, text: str) -> List[str]:
+        return [
             line.strip()
             for line in text.splitlines()
             if line.strip()
         ]
-        for line in lines:
-            if any(
-                role in line.lower()
-                for role in ExperienceExtractor.ROLE_KEYWORDS
-            ):
-                continue
-            if re.search(
-                r"[A-Z][a-z]+",
-                line
-            ):
-                companies.append(
-                    line
-                )
 
-        # -------------------------
-        # Build experience records
-        # -------------------------
-        for start, end in periods:
-            record = {
-                "start": start,
-                "end": end
-            }
-            if companies:
-                record["company"] = (
-                    companies[0]
-                )
-            if roles:
-                record["role"] = (
-                    roles[0]
-                )
-            result[
-                "experience_periods"
-            ].append(
-                record
+
+    @classmethod
+    def _extract_description(
+        cls,
+        lines: List[str],
+    ) -> str:
+        description_lines = []
+
+        for line in lines:
+            if cls._is_description_line(line):
+                cleaned = cls._clean_line(line)
+
+                if cleaned:
+                    description_lines.append(cleaned)
+
+        return " ".join(description_lines)
+
+    @classmethod
+    def extract(
+        cls,
+        text: str,
+    ) -> List[Dict[str, Any]]:
+        if not text:
+            return []
+
+        logger.debug(
+            "Starting experience extraction."
+        )
+
+        lines = cls._non_empty_lines(text)
+
+        experiences: List[Dict[str, Any]] = []
+
+        date_indexes = [
+            index
+            for index, line in enumerate(lines)
+            if cls._is_date_range(line)
+        ]
+
+        if not date_indexes:
+            logger.debug(
+                "No experience date ranges found."
+            )
+            return []
+
+        for position, date_index in enumerate(date_indexes):
+            match = cls.DATE_RANGE_PATTERN.fullmatch(
+                lines[date_index]
             )
 
-        # If no period found
-        # but role exists
-        if (
-            not result["experience_periods"]
-            and roles
-        ):
-            result[
-                "experience_periods"
-            ].append(
+            if not match:
+                continue
+
+            block_end = (
+                date_indexes[position + 1]
+                if position + 1 < len(date_indexes)
+                else len(lines)
+            )
+
+            block = lines[date_index + 1:block_end]
+
+            if not block:
+                continue
+
+            company = None
+            role = None
+
+            # The line immediately before the date range
+            # is normally the company.
+            if date_index > 0:
+                company = lines[date_index - 1]
+
+            # The first non-description line after the date
+            # is normally the role.
+            for line in block:
+                if not line.startswith(("•", "-", "*")):
+                    role = line
+                    break
+
+            description = cls._extract_description(block)
+
+            experiences.append(
                 {
-                    "role": roles[0]
+                    "role": role,
+                    "company": company,
+                    "start_date": match.group("start"),
+                    "end_date": match.group("end"),
+                    "description": description,
                 }
             )
+
         logger.debug(
-            f"Experience extracted: {result}"
+            f"Extracted {len(experiences)} experience records."
         )
-        return [
-            result
-        ]
+
+        return experiences

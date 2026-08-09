@@ -39,42 +39,41 @@ class EntityClassifier:
         if not text:
             return EntityType.UNKNOWN
 
-        # Taxonomy evidence has priority for known skills.
+        # Strong domain evidence.
         if self._is_known_skill(text):
             return EntityType.SKILL
 
-        # NER evidence.
-        if ner_label == "PERSON":
-            return EntityType.PERSON
+        # NER is only evidence.
+        entity_type = self._map_ner_label(ner_label)
 
-        if ner_label == "ORG":
-            return EntityType.COMPANY
-
-        # Contextual evidence.
-        contextual_type = self._classify_from_context(
-            text=text,
-            context=context,
-        )
-
-        if contextual_type != EntityType.UNKNOWN:
-            return contextual_type
+        if entity_type is not EntityType.UNKNOWN:
+            return entity_type
 
         return EntityType.UNKNOWN
 
-
-    def _is_known_skill(self, text: str) -> bool:
+    def _is_known_skill(
+        self,
+        text: str,
+    ) -> bool:
 
         skill = self.skill_repository.find(text)
 
         return skill is not None
 
-    def _classify_from_context(
-        self,
-        text: str,
-        context: str | None,
+    @staticmethod
+    def _map_ner_label(
+        ner_label: str | None,
     ) -> EntityType:
 
-        if not context:
+        if not ner_label:
             return EntityType.UNKNOWN
 
-        return EntityType.UNKNOWN
+        mapping = {
+            "PERSON": EntityType.PERSON,
+            "ORG": EntityType.COMPANY,
+        }
+
+        return mapping.get(
+            ner_label,
+            EntityType.UNKNOWN,
+        )

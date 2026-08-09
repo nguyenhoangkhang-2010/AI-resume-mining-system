@@ -1,29 +1,16 @@
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import List, Optional, Any, Dict
 
 from pydantic import BaseModel, Field
 
 
 class PersonalInfo(BaseModel):
-    """
-    Structured personal information extracted from a resume.
-    """
 
     full_name: Optional[str] = None
     email: Optional[str] = None
     phone: Optional[str] = None
     linkedin: Optional[str] = None
     github: Optional[str] = None
-
-
-class Education(BaseModel):
-    institution: Optional[str] = None
-    degree_level: List[str] = Field(
-        default_factory=list
-    )
-    start_year: Optional[int] = None
-    end_year: Optional[int] = None
-    gpa: Optional[float] = None
 
 
 class Experience(BaseModel):
@@ -64,9 +51,9 @@ class CandidateModel(BaseModel):
         description="List of normalized skills.",
     )
 
-    education: List[Education] = Field(
+    education: List[Dict[str, Any]] = Field(
         default_factory=list,
-        description="Structured educational experiences.",
+        description="List of educational experiences.",
     )
 
     experience: List[Experience] = Field(
@@ -90,5 +77,5 @@ class CandidateModel(BaseModel):
     class Config:
         populate_by_name = True
         json_schema_extra = {
-            "collection_name": "candidates",
+            "collection_name": "candidates"
         }

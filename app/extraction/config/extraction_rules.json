@@ -1,0 +1,80 @@
+{
+    "name": {
+        "max_length": 50,
+        "min_words": 2,
+        "max_words": 5,
+        "scan_lines": 5
+    },
+
+    "sections": {
+        "personal_info": [
+            "personal information",
+            "contact information",
+            "contact"
+        ],
+        "summary": [
+            "summary",
+            "profile",
+            "objective",
+            "career objective",
+            "professional summary"
+        ],
+        "education": [
+            "education",
+            "academic background",
+            "academic qualifications"
+        ],
+        "experience": [
+            "experience",
+            "work experience",
+            "professional experience",
+            "employment history"
+        ],
+        "skills": [
+            "skills",
+            "technical skills",
+            "professional skills"
+        ],
+        "projects": [
+            "projects",
+            "personal projects",
+            "academic projects"
+        ],
+        "certifications": [
+            "certifications",
+            "licenses & certifications",
+            "certificates"
+        ],
+        "languages": [
+            "languages"
+        ],
+        "publications": [
+            "publications"
+        ],
+        "references": [
+            "references"
+        ],
+        "awards": [
+            "awards",
+            "honors and awards"
+        ],
+        "interests": [
+            "interests",
+            "hobbies"
+        ],
+        "additional_information": [
+            "additional information",
+            "additional info",
+            "other information",
+            "other info"
+        ]
+    },
+
+    "entity_labels": {
+        "person": "PERSON",
+        "company": "ORG",
+        "date": "DATE",
+        "role": "ROLE",
+        "school": "EDUCATION"
+    }
+}

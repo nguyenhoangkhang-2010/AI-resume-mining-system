@@ -6,50 +6,87 @@ from loguru import logger
 
 class CertificationExtractor:
 
-    CERTIFICATION_SECTION_PATTERN = (
-        r"(certifications?|certificates?|licenses?)"
-        r"(.*?)(?="
-        r"\n\s*(education|experience|projects|skills)"
-        r"|$)"
+    CERTIFICATION_SECTION_PATTERN = re.compile(
+        r"(?im)"
+        r"^\s*(?:certifications?|certificates?|licenses?)\s*:?\s*$"
+        r"(.*?)"
+        r"(?="
+        r"^\s*(?:education|experience|work experience|"
+        r"professional experience|employment history|"
+        r"projects?|academic projects?|personal projects?|"
+        r"skills?|technical skills|professional skills|"
+        r"languages?|publications?|references?|"
+        r"awards?|honors?\s+and\s+awards?|"
+        r"additional information|interests?|hobbies?)"
+        r"\s*:?\s*$"
+        r"|$)",
+        re.DOTALL,
     )
 
+    @staticmethod
+    def _clean_line(line: str) -> str:
+        line = line.strip()
+
+        line = re.sub(
+            r"^\s*[•●▪◦‣\-*]\s*",
+            "",
+            line,
+        )
+
+        line = re.sub(r"\s+", " ", line)
+
+        return line.strip()
 
     @staticmethod
-    def extract(
-        text: str
-    ) -> List[Dict[str, Any]]:
-        if not text:
-            return []
-        logger.debug(
-            "Starting certification extraction."
-        )
-        certifications = []
-        match = re.search(
-            CertificationExtractor.CERTIFICATION_SECTION_PATTERN,
-            text,
-            re.IGNORECASE | re.DOTALL
-        )
-        if not match:
-            return []
-        section = match.group(2)
-        lines = [
-            line.strip()
-            for line in section.split("\n")
-            if line.strip()
-        ]
-        for line in lines:
-            clean_name = (
-                line
-                .replace("-", "")
-                .strip()
+    def _extract_lines(section: str) -> List[Dict[str, Any]]:
+        certifications: List[Dict[str, Any]] = []
+
+        for raw_line in section.splitlines():
+            line = CertificationExtractor._clean_line(raw_line)
+
+            if not line:
+                continue
+
+            certifications.append(
+                {
+                    "name": line,
+                }
             )
-            if clean_name:
-                certifications.append(
-                    {
-                        "name": clean_name
-                    }
-                )
-        logger.debug(
-            f"Extracted certifications: {len(certifications)}"
+
+        return certifications
+
+    @staticmethod
+    def extract(text: str) -> List[Dict[str, Any]]:
+        if not text or not text.strip():
+            return []
+
+        logger.debug("Starting certification extraction.")
+
+        text = text.strip()
+
+        match = CertificationExtractor.CERTIFICATION_SECTION_PATTERN.search(
+            text
         )
+
+        if match:
+            section = match.group(1).strip()
+
+            certifications = CertificationExtractor._extract_lines(
+                section
+            )
+
+            logger.debug(
+                f"Extracted certifications from full resume: "
+                f"{len(certifications)}"
+            )
+
+            return certifications
+
+        certifications = CertificationExtractor._extract_lines(text)
+
+        logger.debug(
+            f"Extracted certifications from isolated section: "
+            f"{len(certifications)}"
+        )
+
         return certifications

@@ -1,11 +1,11 @@
 from typing import List, Dict, Any
 from loguru import logger
 
+from app.models.job import JobModel
+from app.models.candidate import CandidateModel
 from app.matching.ranking.ranking_config import (
     RankingConfig,
 )
-from app.models.candidate import CandidateModel
-from app.models.job import JobModel
 from app.schemas.matching_schema import MatchResponse
 from app.matching.ranking.ranking_adapter import RankingAdapter
 from app.matching.ranking.ranking_sorter import RankingSorter

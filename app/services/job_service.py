@@ -21,16 +21,21 @@ class JobService:
         return self.db["jobs"]
 
     def create_job(self, request: JobCreateRequest) -> JobResponse:
-        logger.info(f"Orchestrating job creation for: '{request.title}'")
+        logger.info(f"Creating job: '{request.title}'")
         
-        extracted_skills = self.extraction_engine.extract_skills(request.description)
+        # Use the JobPipeline for comprehensive extraction
+        job_data = self.extraction_engine.extract_job_description(request.description)
         
         job_model = JobModel(
             title=request.title,
-            description=request.description,
-            required_skills=extracted_skills,
+            raw_text=request.description,  # Store original description as raw_text
+            description=job_data.get("description", request.description), # LLM-extracted description or original
+            required_skills=job_data.get("required_skills", []),
+            normalized_skills=job_data.get("normalized_skills", []),
+            experience_years=job_data.get("experience_years"),
+            responsibilities=job_data.get("responsibilities", []),
+            occupation=job_data.get("occupation"),
             faiss_id=None,
-            created_at=datetime.utcnow()
         )
         
         job_id = self._save_job(job_model)
@@ -38,7 +43,7 @@ class JobService:
         
         logger.success(f"Successfully created and indexed job (ID: {job_id})")
         return JobResponse.model_validate(job_model)
-
+    
     def _save_job(self, job: JobModel) -> str:
         result = self.jobs_col.insert_one(job.model_dump(by_alias=True, exclude={"id"}))
         return str(result.inserted_id)

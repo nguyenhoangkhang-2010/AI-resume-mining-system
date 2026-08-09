@@ -1,45 +1,36 @@
 from pathlib import Path
 from typing import Dict, Any
+import json
 
 from loguru import logger
 
 from app.resume_processing.parsers.pdf_parser import PDFParser
 from app.resume_processing.cleaners.text_cleaner import TextCleaner
-
-
-from app.extraction.contact.contact_extractor import ContactExtractor
-from app.extraction.summary.summary_extractor import SummaryExtractor
-from app.extraction.education.education_extractor import EducationExtractor
-from app.extraction.experience.experience_extractor import ExperienceExtractor
-from app.extraction.projects.project_extractor import ProjectExtractor
-from app.extraction.certifications.certification_extractor import CertificationExtractor
-from app.extraction.skills.skill_extractor import SkillExtractor
-
+from app.extraction.section.section_detector import SectionDetector
+from app.extraction.extraction_engine import ExtractionEngine
+from app.core.config.settings import settings
 
 
 class ResumePipeline:
-
-
     def __init__(self):
-
         self.parser = PDFParser()
         self.cleaner = TextCleaner()
-        self.contact_extractor = ContactExtractor()
-        self.summary_extractor = SummaryExtractor()
-        self.education_extractor = EducationExtractor()
-        self.experience_extractor = ExperienceExtractor()
-        self.project_extractor = ProjectExtractor()
-        self.certification_extractor = CertificationExtractor()
-        self.skill_extractor = SkillExtractor()
-
+        
+        # Load rules and initialize detectors/engines
+        rules_path = Path("app/extraction/config/extraction_rules.json")
+        if not rules_path.exists():
+            raise FileNotFoundError(f"Extraction rules file not found at {rules_path}")
+        with open(rules_path, "r") as f:
+            rules = json.load(f)
+            
+        self.section_detector = SectionDetector(rules)
+        self.extraction_engine = ExtractionEngine()
 
     def process_pdf(
         self,
         file_path: str | Path
     ) -> Dict[str, Any]:
-        logger.info(
-            f"Initiating resume processing pipeline for: {file_path}"
-        )
+        logger.info(f"Initiating resume processing pipeline for: {file_path}")
         try:
             raw_text = self.parser.extract_text(
                 file_path
@@ -47,51 +38,29 @@ class ResumePipeline:
             cleaned_text = self.cleaner.clean(
                 raw_text
             )
+
+            # Step 1: Detect sections from the cleaned text
+            sections = self.section_detector.detect(cleaned_text)
+
+            logger.info(f"Detected sections: {list(sections.keys())}")
+
+            for section_name, section_lines in sections.items():
+                logger.info(
+                    f"\n===== SECTION: {section_name} =====\n"
+                    + "\n".join(section_lines[:20])
+                )
+
+            # Step 2: Pass the detected sections to the extraction engine
+            extracted_data = self.extraction_engine.extract_resume(sections)
+
             resume_data = {
                 "raw_text": raw_text,
                 "cleaned_text": cleaned_text,
-
-                "contact":
-                    self.contact_extractor.extract(
-                        cleaned_text
-                    ),
-
-                "summary":
-                    self.summary_extractor.extract(
-                        cleaned_text
-                    ),
-
-                "education":
-                    self.education_extractor.extract(
-                        cleaned_text
-                    ),
-
-                "experience":
-                    self.experience_extractor.extract(
-                        cleaned_text
-                    ),
-
-                "projects":
-                    self.project_extractor.extract(
-                        cleaned_text
-                    ),
-
-                "certifications":
-                    self.certification_extractor.extract(
-                        cleaned_text
-                    ),
-
-                "skills":
-                    self.skill_extractor.extract(
-                        cleaned_text
-                    )
+                **extracted_data
             }
-            logger.info(
-                "Resume extraction pipeline completed."
-            )
+            
+            logger.info("Resume extraction pipeline completed.")
             return resume_data
         except Exception as e:
-            logger.error(
-                f"Resume pipeline failed for '{file_path}': {e}"
-            )
+            logger.error(f"Resume pipeline failed for '{file_path}': {e}")
             raise

@@ -15,6 +15,24 @@ class Settings(BaseSettings):
     LLM_MODEL_NAME: str = (
         "Qwen/Qwen2.5-1.5B-Instruct"
     )
+    
+    NER_PRIMARY_MODEL: str = (
+        "oksomu/resume-ner"
+    )
+
+    NER_MULTILINGUAL_MODEL: str = (
+        "Davlan/xlm-roberta-base-wikiann-ner"
+    )
+
+    NER_PRIMARY_ENABLED: bool = True
+
+    NER_MULTILINGUAL_ENABLED: bool = True
+
+    NER_DEVICE: str = "cpu"
+
+    NER_TRUST_REMOTE_CODE: bool = True
+
+    NER_CONFIDENCE_THRESHOLD: float = 0.70
 
     LLM_PROVIDER: str = (
         "huggingface"
