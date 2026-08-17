@@ -81,7 +81,7 @@ class MatchingService:
         )
         score_map = {
             item["faiss_id"]:
-            item["score"]
+            item["similarity_score"]
             for item in faiss_results
         }
         ranking_result = (

@@ -6,7 +6,10 @@ from app.extraction.ner.ner_service import NERService
 
 class NameDetector:
 
-    def __init__(self):
+    def __init__(
+        self,
+        ner_service: NERService,
+    ):
         path = (
             Path(__file__)
             .parent
@@ -21,21 +24,33 @@ class NameDetector:
         ) as f:
             self.rules = json.load(f)
 
-        self.ner_service = NERService()
+        self.ner_service = ner_service
 
-    def detect(self, text: str):
+    def detect(
+        self,
+        text: str,
+    ):
         if not text:
             return None
 
-        name = self._detect_from_header(text)
+        name = self._detect_from_header(
+            text
+        )
 
         if name:
             return name
 
-        return self._detect_from_ner(text)
+        return self._detect_from_ner(
+            text
+        )
 
-    def _detect_from_header(self, text: str):
-        lines = self._prepare_lines(text)
+    def _detect_from_header(
+        self,
+        text: str,
+    ):
+        lines = self._prepare_lines(
+            text
+        )
 
         scan_lines = self.rules["name"].get(
             "scan_lines",
@@ -47,14 +62,16 @@ class NameDetector:
         for line_index, line in enumerate(
             lines[:scan_lines]
         ):
+
             if not self.valid(line):
                 continue
 
-            person_entities = self._get_person_entities(
-                line
+            person_entities = (
+                self._get_person_entities(line)
             )
 
             for entity in person_entities:
+
                 entity_text = entity.get(
                     "text",
                     "",
@@ -63,10 +80,12 @@ class NameDetector:
                 if not entity_text:
                     continue
 
-                score = self._header_candidate_score(
-                    line=line,
-                    line_index=line_index,
-                    entity=entity,
+                score = (
+                    self._header_candidate_score(
+                        line=line,
+                        line_index=line_index,
+                        entity=entity,
+                    )
                 )
 
                 candidates.append(
@@ -125,7 +144,8 @@ class NameDetector:
 
         coverage = min(
             1.0,
-            len(entity_normalized) / line_length,
+            len(entity_normalized)
+            / line_length,
         )
 
         score += coverage * 4.0
@@ -160,6 +180,7 @@ class NameDetector:
                 2.0,
                 agreement * 0.75,
             )
+
         except (
             TypeError,
             ValueError,
@@ -177,27 +198,37 @@ class NameDetector:
     ) -> list[dict]:
 
         try:
-            entities = self.ner_service.extract(
-                text
+            entities = (
+                self.ner_service.extract(
+                    text
+                )
             )
+
         except Exception:
             return []
 
         return [
             entity
             for entity in entities
-            if entity.get("label") == "PERSON"
+            if entity.get("label")
+            == "PERSON"
         ]
 
-    def _detect_from_ner(self, text: str):
+    def _detect_from_ner(
+        self,
+        text: str,
+    ):
         try:
-            entities = self.ner_service.extract(
-                text
+            entities = (
+                self.ner_service.extract(
+                    text
+                )
             )
 
             candidates = []
 
             for entity in entities:
+
                 if entity.get("label") != "PERSON":
                     continue
 
@@ -270,6 +301,7 @@ class NameDetector:
 
         if source == "primary":
             score += 3.0
+
         elif source == "multilingual":
             score += 0.5
 
@@ -280,6 +312,7 @@ class NameDetector:
                     0.0,
                 )
             )
+
         except (
             TypeError,
             ValueError,
@@ -296,6 +329,7 @@ class NameDetector:
         lines = []
 
         for raw_line in text.splitlines():
+
             line = raw_line.strip()
 
             if not line:
@@ -304,10 +338,13 @@ class NameDetector:
             parts = line.split("|")
 
             for part in parts:
+
                 candidate = part.strip()
 
                 if candidate:
-                    lines.append(candidate)
+                    lines.append(
+                        candidate
+                    )
 
         return lines
 
@@ -320,9 +357,17 @@ class NameDetector:
 
         name_rules = self.rules["name"]
 
-        min_words = name_rules["min_words"]
-        max_words = name_rules["max_words"]
-        max_length = name_rules["max_length"]
+        min_words = name_rules[
+            "min_words"
+        ]
+
+        max_words = name_rules[
+            "max_words"
+        ]
+
+        max_length = name_rules[
+            "max_length"
+        ]
 
         if not (
             min_words

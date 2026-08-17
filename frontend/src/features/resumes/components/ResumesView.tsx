@@ -27,24 +27,14 @@ export function ResumesView() {
     uploadResume,
   } = useResumes();
 
-
-  if (loading) {
-    return (
-      <div>
-        Loading resumes...
-      </div>
-    );
-  }
-
-
   if (error) {
     return (
       <div>
-        Failed to load resumes
+        Failed to process resume.
+        Please try again.
       </div>
     );
   }
-
 
   return (
     <section
@@ -56,11 +46,15 @@ export function ResumesView() {
     >
       <ResumesHeader />
 
-
       <ResumeUpload
         onUpload={uploadResume}
       />
 
+      {loading && (
+        <div>
+          Uploading resume...
+        </div>
+      )}
 
       {resumes.length === 0 ? (
         <ResumeEmptyState />

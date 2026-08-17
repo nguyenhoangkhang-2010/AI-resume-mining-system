@@ -1,4 +1,4 @@
-import time
+from __future__ import annotations
 
 from bson import ObjectId
 from loguru import logger
@@ -11,9 +11,8 @@ from app.models.candidate import (
     Experience,
     Project,
 )
-from app.schemas.resume_schema import ResumeResponse
-from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
 from app.models.resume import ResumeModel
+from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
 from app.embeddings.services.embedding_service import EmbeddingService
 from app.vector_store.vector_store import VectorStore
 from app.matching.skills.factory.skill_normalizer_factory import (
@@ -21,12 +20,12 @@ from app.matching.skills.factory.skill_normalizer_factory import (
 )
 
 
-class ResumeService:
+class ResumeProcessingService:
 
     def __init__(
         self,
         resume_pipeline: ResumePipeline,
-    ):
+    ) -> None:
         self.resume_pipeline = resume_pipeline
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
@@ -44,98 +43,51 @@ class ResumeService:
     def candidates_col(self):
         return self.db["candidates"]
 
-    def create_resume(
-        self,
-        file_path: str,
-        filename: str,
-    ) -> ResumeResponse:
-
-        logger.info(
-            "Creating resume processing job for: {}",
-            filename,
-        )
-
-        resume = ResumeModel(
-            filename=filename,
-            file_path=file_path,
-            upload_status="pending",
-        )
-
-        resume.id = self._insert_resume(
-            resume
-        )
-
-        logger.success(
-            "Resume job created successfully: {}",
-            resume.id,
-        )
-
-        return ResumeResponse.model_validate(
-            resume
-        )
-
-    def process_resume(
+    def process_pending_resume(
         self,
         resume_id: str,
     ) -> None:
 
         logger.info(
-            "Starting background resume processing: {}",
+            "Starting background processing for resume: {}",
             resume_id,
         )
 
-        try:
-            object_id = ObjectId(resume_id)
+        self._update_resume_status(
+            resume_id=resume_id,
+            status="processing",
+        )
 
-            resume_document = self.resumes_col.find_one(
+        try:
+            resume = self.resumes_col.find_one(
                 {
-                    "_id": object_id,
+                    "_id": ObjectId(resume_id),
                 }
             )
 
-            if not resume_document:
-                logger.error(
-                    "Resume not found for processing: {}",
-                    resume_id,
+            if not resume:
+                raise ValueError(
+                    f"Resume not found: {resume_id}"
                 )
-                return
 
-            file_path = resume_document.get(
-                "file_path"
-            )
-
-            filename = resume_document.get(
-                "filename",
-                "unknown",
-            )
+            file_path = resume.get("file_path")
+            filename = resume.get("filename")
 
             if not file_path:
                 raise ValueError(
-                    f"Resume file path is missing: {resume_id}"
+                    f"Resume {resume_id} has no file path."
                 )
 
-            self._update_resume_status(
-                resume_id,
-                "processing",
-            )
-
-            pipeline_start = time.perf_counter()
-
             logger.info(
-                "Running resume AI pipeline: {}",
+                "Processing resume '{}' from '{}'",
                 filename,
+                file_path,
             )
 
             extracted_data = (
                 self.resume_pipeline.process_pdf(
                     file_path
                 )
-            )
-
-            logger.info(
-                "Resume AI pipeline completed in {:.3f}s: {}",
-                time.perf_counter() - pipeline_start,
-                filename,
             )
 
             candidate = self._build_candidate(
@@ -148,35 +100,28 @@ class ResumeService:
             )
 
             self._update_resume_status(
-                resume_id,
-                "processed",
-                extracted_data,
+                resume_id=resume_id,
+                status="processed",
+                data=extracted_data,
             )
 
             logger.success(
-                "Resume {} processed and indexed successfully.",
+                "Resume '{}' processed successfully.",
                 filename,
             )
 
-        except Exception as e:
+        except Exception as exc:
 
             logger.exception(
-                "Background resume processing failed for {}: {}",
+                "Background processing failed for resume {}: {}",
                 resume_id,
-                e,
+                exc,
             )
 
-            try:
-                self._update_resume_status(
-                    resume_id,
-                    "failed",
-                )
-            except Exception as status_error:
-                logger.exception(
-                    "Failed to update resume {} status to failed: {}",
-                    resume_id,
-                    status_error,
-                )
+            self._update_resume_status(
+                resume_id=resume_id,
+                status="failed",
+            )
 
             raise
 
@@ -186,19 +131,17 @@ class ResumeService:
         extracted_data: dict,
     ) -> CandidateModel:
 
-        skills = extracted_data.get(
-            "skills"
-        ) or []
+        skills = (
+            extracted_data.get("skills")
+            or []
+        )
 
         normalized_skills = [
             self.skill_normalizer.normalize(
                 skill
             )
             for skill in skills
-            if isinstance(
-                skill,
-                str,
-            )
+            if isinstance(skill, str)
             and skill.strip()
         ]
 
@@ -219,60 +162,44 @@ class ResumeService:
             embedding=embedding,
         )
 
-        education_data = (
-            extracted_data.get(
-                "education"
-            )
-            or []
-        )
-
         education_models = [
             Education.model_validate(
                 education
             )
-            for education in education_data
-        ]
-
-        experience_data = (
-            extracted_data.get(
-                "experience"
+            for education in (
+                extracted_data.get("education")
+                or []
             )
-            or []
-        )
+        ]
 
         experience_models = [
             Experience.model_validate(
                 experience
             )
-            for experience in experience_data
-        ]
-
-        projects_data = (
-            extracted_data.get(
-                "projects"
+            for experience in (
+                extracted_data.get("experience")
+                or []
             )
-            or []
-        )
+        ]
 
         project_models = [
             Project.model_validate(
                 project
             )
-            for project in projects_data
-        ]
-
-        certifications_data = (
-            extracted_data.get(
-                "certifications"
+            for project in (
+                extracted_data.get("projects")
+                or []
             )
-            or []
-        )
+        ]
 
         certification_models = [
             Certification.model_validate(
                 certification
             )
-            for certification in certifications_data
+            for certification in (
+                extracted_data.get("certifications")
+                or []
+            )
         ]
 
         return CandidateModel(
@@ -290,31 +217,12 @@ class ResumeService:
             faiss_id=faiss_id,
         )
 
-    def _generate_faiss_id(
-        self,
-    ) -> int:
+    def _generate_faiss_id(self) -> int:
+        import time
 
         return int(
             time.time() * 1000
-        ) % (
-            2**63 - 1
-        )
-
-    def _insert_resume(
-        self,
-        resume: ResumeModel,
-    ) -> str:
-
-        result = self.resumes_col.insert_one(
-            resume.model_dump(
-                by_alias=True,
-                exclude={"id"},
-            )
-        )
-
-        return str(
-            result.inserted_id
-        )
+        ) % (2**63 - 1)
 
     def _insert_candidate(
         self,
@@ -352,9 +260,9 @@ class ResumeService:
             {
                 "_id": ObjectId(
                     resume_id
-                )
+                ),
             },
             {
-                "$set": update_data
+                "$set": update_data,
             },
         )

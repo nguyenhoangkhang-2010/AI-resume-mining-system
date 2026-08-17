@@ -1,36 +1,49 @@
-import {
-  Button,
-} from "@/components/ui";
+import { useRef, useState } from "react";
+import type { ChangeEvent } from "react";
 
-import type {
-  ChangeEvent,
-} from "react";
-
+import { Button } from "@/components/ui";
 
 interface ResumeUploadProps {
-  onUpload?: (
-    file: File,
-  ) => void;
+  onUpload?: (file: File) => Promise<unknown> | void;
+  loading?: boolean;
 }
-
 
 export function ResumeUpload({
   onUpload,
+  loading = false,
 }: ResumeUploadProps) {
+  const inputRef = useRef<HTMLInputElement>(null);
 
-  function handleChange(
+  const [selectedFile, setSelectedFile] =
+    useState<File | null>(null);
+
+  async function handleChange(
     event: ChangeEvent<HTMLInputElement>,
   ) {
-    const file =
-      event.target.files?.[0];
+    const file = event.target.files?.[0];
 
     if (!file) {
       return;
     }
 
-    onUpload?.(file);
+    setSelectedFile(file);
+
+    try {
+      await onUpload?.(file);
+    } catch {
+      // Parent hook handles the error.
+    }
+
+    event.target.value = "";
   }
 
+  function handleChooseFile() {
+    if (loading) {
+      return;
+    }
+
+    inputRef.current?.click();
+  }
 
   return (
     <div
@@ -47,45 +60,53 @@ export function ResumeUpload({
       "
     >
       <div>
-        <h3
-          className="
-            text-lg
-            font-semibold
-            text-slate-900
-          "
-        >
+        <h3 className="text-lg font-semibold text-slate-900">
           Upload Resume
         </h3>
 
-        <p
-          className="
-            mt-1
-            text-sm
-            text-slate-500
-          "
-        >
-          Upload a resume file for
-          parsing and candidate analysis.
+        <p className="mt-1 text-sm text-slate-500">
+          Upload a resume file for parsing
+          and candidate analysis.
         </p>
       </div>
 
+      <input
+        ref={inputRef}
+        type="file"
+        accept=".pdf,.doc,.docx"
+        className="hidden"
+        disabled={loading}
+        onChange={handleChange}
+      />
 
-      <label
-        className="
-          cursor-pointer
-        "
+      <Button
+        type="button"
+        disabled={loading}
+        onClick={handleChooseFile}
       >
-        <input
-          type="file"
-          accept=".pdf,.doc,.docx"
-          className="hidden"
-          onChange={handleChange}
-        />
+        {loading ? "Uploading..." : "Choose Resume"}
+      </Button>
 
-        <Button>
-          Choose Resume
-        </Button>
-      </label>
+      {selectedFile && (
+        <div
+          className="
+            rounded-xl
+            border
+            border-slate-200
+            bg-slate-50
+            px-4
+            py-3
+          "
+        >
+          <p className="text-sm font-medium text-slate-900">
+            {selectedFile.name}
+          </p>
+
+          <p className="mt-1 text-xs text-slate-500">
+            {(selectedFile.size / 1024).toFixed(1)} KB
+          </p>
+        </div>
+      )}
     </div>
   );
 }

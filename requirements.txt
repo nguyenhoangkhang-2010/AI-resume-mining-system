@@ -27,3 +27,4 @@ torchvision
 huggingface_hub
 flashtext
 spacy
+llama-cpp-python

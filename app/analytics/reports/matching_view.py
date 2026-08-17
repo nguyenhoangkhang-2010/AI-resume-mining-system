@@ -80,7 +80,7 @@ def render_matching_page():
                         "View candidate profile",
                         options=range(len(results)),
                         format_func=lambda x: results[x].candidate_profile.personal_info.get(
-                            "name",
+                            "full_name",
                             "Unknown Candidate"
                         )
                     )

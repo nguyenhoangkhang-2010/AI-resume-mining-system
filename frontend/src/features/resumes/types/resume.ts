@@ -1,18 +1,13 @@
 export type ResumeStatus =
-  | "uploaded"
+  | "pending"
   | "processing"
-  | "completed"
+  | "processed"
   | "failed";
-
 
 export interface Resume {
   id: string;
-
   name: string;
-
   fileName: string;
-
   status: ResumeStatus;
-
   createdAt?: string;
 }
