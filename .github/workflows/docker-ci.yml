@@ -14,7 +14,7 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}
+  IMAGE_NAME: ai-resume-mining-system
 
 jobs:
   docker-build:
@@ -32,7 +32,7 @@ jobs:
         run: |
           docker build \
             -f docker/Dockerfile \
-            -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:test .
+            -t ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:test .
 
   publish:
     name: Publish Docker Image to GHCR
@@ -64,5 +64,5 @@ jobs:
           file: docker/Dockerfile
           push: true
           tags: |
-            ghcr.io/${{ github.repository }}:latest
-            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
