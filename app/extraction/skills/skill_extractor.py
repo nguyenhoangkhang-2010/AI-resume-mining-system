@@ -7,7 +7,10 @@ from loguru import logger
 
 class SkillExtractor:
 
-    def __init__(self):
+    def __init__(
+        self,
+        ner_service=None,
+    ):
 
         repository = SkillRepository()
 
@@ -18,18 +21,19 @@ class SkillExtractor:
         strategy = factory.build_strategy()
 
         self.pipeline = SkillExtractionPipeline(
-            strategy
+            strategy,
+            ner_service=ner_service,
         )
 
         logger.info("SkillExtractor initialized.")
-        
+
     def extract(self, text: str):
         if not text:
             logger.warning("Empty text provided to SkillExtractor.")
             return []
 
         return self.pipeline.extract(text)
-        
+
     def extract_many(
         self,
         texts: list[str],

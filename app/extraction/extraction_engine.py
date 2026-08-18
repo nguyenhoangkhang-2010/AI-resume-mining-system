@@ -1,553 +1,176 @@
-import re
-from typing import Dict, List
+from __future__ import annotations
 
+import time
+from typing import Any, Dict, List, Optional
+
+from loguru import logger
+
+from app.extraction.certifications.certification_extractor import (
+    CertificationExtractor,
+)
+from app.extraction.education.education_extractor import EducationExtractor
+from app.extraction.experience.experience_extractor import ExperienceExtractor
+from app.extraction.llm.llm_extractor import LLMExtractor
+from app.extraction.ner.ner_service import NERService
+from app.extraction.personal.personal_extractor import PersonalExtractor
+from app.extraction.projects.project_extractor import ProjectExtractor
 from app.extraction.skills.skill_extractor import SkillExtractor
+from app.extraction.summary.summary_extractor import SummaryExtractor
+
 
 class ExtractionEngine:
-    def __init__(self):
-        self.skill_extractor = SkillExtractor()
-        
-    def _normalize_header(self, text: str) -> str:
-        return text.casefold().strip().rstrip(":")
 
-    def _is_valid_name(self, line: str) -> bool:
-        
-        line = line.strip()
-        
-        line_lower = line.casefold()
-        
-        if not line:
-            return False
-        
-        if not any(char.isalpha() for char in line):
-            return False
-        
-        if len(line) > 50:
-            return False
+    def __init__(
+        self,
+        llm_extractor: LLMExtractor,
+    ) -> None:
+        logger.info("Initializing extraction engine dependencies.")
 
-        if "@" in line:
-            return False
-        
-        if "http" in line_lower:
-            return False
-        
-        if "linkedin" in line_lower:
-            return False
-        
-        if "github" in line_lower:
-            return False
-        
-        invalid_titles = [
-            "resume",
-            "curriculum vitae",
-            "curriculum",
-            "cv",
-            "portfolio",
-            "profile",
-            "about me",
-            "objective",
-            "contact",
-            "education",
-            "experience",
-            "references",
-            "reference",
-            "skills",
-            "language",
-            "languages",
-            "expertise",
-            "summary"
-        ]
-        
-        job_titles = [
-            "manager",
-            "engineer",
-            "developer",
-            "designer",
-            "analyst",
-            "consultant",
-            "specialist",
-            "coordinator",
-            "executive",
-            "intern",
-            "director",
-            "leader"
-        ]
-        
-        if line_lower in invalid_titles:
-            return False
+        self.llm_extractor = llm_extractor
+        self.ner_service = NERService()
 
-        if any(title in line_lower for title in job_titles):
-            return False
-        
-        words = line.split()
-
-        if len(words) > 6:
-            return False
-        
-        digits = re.sub(r"\D", "", line)
-
-        if len(digits) >= 9:
-            return False
-        
-        return True
-        
-    def _is_valid_school(self, line: str) -> bool:
-
-        line = line.strip()
-        
-        line_lower = line.casefold()
-
-        if not line:
-            return False
-
-        if len(line) < 5:
-            return False
-        
-        if "@" in line:
-            return False
-        
-        if "http" in line_lower:
-            return False
-        
-        invalid_titles = [
-            "education",
-            "academic background",
-            "education background",
-            "qualification",
-            "qualifications"
-        ]
-
-        if line_lower in invalid_titles:
-            return False
-        
-        degree_keywords = [
-            "bachelor",
-            "master",
-            "phd",
-            "associate",
-            "engineer",
-            "mba"
-        ]
-
-        if any(keyword in line_lower for keyword in degree_keywords):
-            return False
-        
-        school_keywords = [
-            "university",
-            "college",
-            "institute",
-            "academy",
-            "school",
-            "đại học",
-            "cao đẳng",
-            "học viện"
-        ]
-        
-        if not any(keyword in line_lower for keyword in school_keywords):
-            return False
-        
-        achievement_keywords = [
-            "runner-up",
-            "award",
-            "competition",
-            "contest",
-            "certificate",
-            "scholarship",
-            "prize",
-            "achievement",
-            "honor"
-        ]
-        
-        if any(keyword in line_lower for keyword in achievement_keywords):
-            return False
-
-        if "organized by" in line_lower:
-            return False
-
-        if "hosted by" in line_lower:
-            return False
-        
-        return True
-        
-    def _is_valid_company(self, line: str) -> bool:
-        line = line.strip()
-
-        if not line:
-            return False
-
-        line_lower = line.casefold()
-
-        company_keywords = [
-            "company",
-            "corporation",
-            "corp",
-            "inc",
-            "ltd",
-            "limited",
-            "group",
-            "technology",
-            "tech",
-            "software",
-            "solution",
-            "solutions",
-            "bank",
-            "hospital",
-            "factory",
-            "vietnam",
-            "việt nam"
-        ]
-
-        if any(keyword in line_lower for keyword in company_keywords):
-            return True
-
-        if line.isupper() and len(line.split()) >= 2:
-            return True
-
-        return False
-    
-    def _is_date_line(self, line: str) -> bool:
-        pattern = re.compile(
-            r"""
-            ^
-            (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)
-            \s+
-            \d{4}
-            \s*-\s*
-            (
-                Present
-                |
-                (Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)
-                \s+\d{4}
-            )
-            $
-            """,
-            re.I | re.X,
-        )
-
-        return bool(pattern.match(line.strip()))
-    
-    def _name_score(self, line: str) -> int:
-        score = 0
-
-        words = line.split()
-
-        if 2 <= len(words) <= 4:
-            score += 3
-
-        if all(word[:1].isupper() for word in words):
-            score += 2
-
-        if len(line) < 35:
-            score += 1
-
-        return score    
-    
-    def extract_personal_info(self, text: str) -> Dict[str, str]:
-        email_pattern = r'[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}'
-        emails = re.findall(email_pattern, text)
-        email = emails[0] if emails else "unknown@example.com"
-
-        lines = [line.strip() for line in text.split('\n') if line.strip()]
-        name = "Unknown Candidate"
-        
-        candidate_names = []
-
-        for line in lines:
-            if self._is_valid_name(line):
-                candidate_names.append(line)
-
-        if candidate_names:
-            name = max(
-                candidate_names,
-                key=self._name_score
-            )
-        else:
-            name = "Unknown Candidate"
-            
-        return {"name": name, "email": email}
-
-    def _extract_section(self, text: str, headers: List[str]) -> List[str]:
-        print("HEADERS =", headers)
-        lines = [line.strip() for line in text.split("\n") if line.strip()]
-
-        section_lines = []
-        inside_section = False
-
-        common_headers: List[str] = [
-            "education",
-            "experience",
-            "work experience",
-            "professional experience",
-            "skills",
-            "projects",
-            "activities",
-            "awards",
-            "references",
-            "languages",
-            "interests",
-            "summary",
-            "profile",
-            "objective",
-            "certifications",
-            "volunteer",
-            "leadership",
-            "academic projects",
-            "projects",
-            "education background",
-            "academic background",
-        ]
-        
-        headers = {
-            self._normalize_header(h)
-            for h in headers
+        self.extractors = {
+            "personal_info": PersonalExtractor(
+                ner_service=self.ner_service,
+            ),
+            "summary": SummaryExtractor(
+                self.llm_extractor,
+            ),
+            "education": EducationExtractor(
+                llm_extractor=self.llm_extractor,
+            ),
+            "experience": ExperienceExtractor(
+                self.llm_extractor,
+            ),
+            "projects": ProjectExtractor(
+                llm_extractor=self.llm_extractor,
+            ),
+            "certifications": CertificationExtractor(
+                self.llm_extractor,
+            ),
+            "skills": SkillExtractor(
+                ner_service=self.ner_service,
+            ),
         }
 
-        common_headers = {
-            self._normalize_header(h)
-            for h in common_headers
+        logger.success(
+            "Extraction engine initialized successfully."
+        )
+
+    def extract_resume(
+        self,
+        sections: Dict[str, List[str]],
+    ) -> Dict[str, Any]:
+
+        if not sections:
+            return {}
+        
+        section_texts = {
+            key: "\n".join(value)
+            for key, value in sections.items()
+            if not key.startswith("__")
         }
 
-        for i, line in enumerate(lines):
+        full_text = "\n".join(
+            text
+            for text in section_texts.values()
+            if text
+        )
 
-            normalized = self._normalize_header(line)
+        project_regions = sections.get(
+            "__projects_regions__"
+        )
 
-            print(
-                i,
-                normalized,
-                "inside=",
-                inside_section
+        extracted_data: Dict[str, Any] = {}
+
+        for section_name, extractor in self.extractors.items():
+
+            text = section_texts.get(
+                section_name,
+                "",
             )
 
-            if normalized in headers:
-                inside_section = True
-                continue
+            if section_name == "skills":
+                text = full_text
 
-            if inside_section and normalized in common_headers:
-                break
+            elif not text and section_name == "personal_info":
+                text = full_text
 
-            if inside_section:
-                section_lines.append(line)
+            logger.info(
+                "========== START EXTRACTOR: {} ==========",
+                section_name,
+            )
 
-        return section_lines
+            start_time = time.perf_counter()
 
-    def extract_education(self, text: str) -> List[Dict[str, str]]:
-        education = []
-        
-        education_lines = self._extract_section(
-            text,
-            ["education", "academic background"]
+            try:
+                if section_name == "projects":
+                    result = self._extract_projects(
+                        extractor=extractor,
+                        project_regions=project_regions,
+                        fallback_text=text,
+                    )
+                else:
+                    result = extractor.extract(text)
+
+                elapsed = (
+                    time.perf_counter()
+                    - start_time
+                )
+
+                logger.success(
+                    "Extractor '{}' completed in {:.3f}s",
+                    section_name,
+                    elapsed,
+                )
+
+                extracted_data[section_name] = result
+
+            except Exception:
+                elapsed = (
+                    time.perf_counter()
+                    - start_time
+                )
+
+                logger.exception(
+                    "Extractor '{}' failed after {:.3f}s",
+                    section_name,
+                    elapsed,
+                )
+
+                raise
+
+        return extracted_data
+
+    @staticmethod
+    def _extract_projects(
+        extractor: ProjectExtractor,
+        project_regions: Optional[List[str]],
+        fallback_text: str,
+    ) -> List[Dict[str, Any]]:
+
+        regions = (
+            project_regions
+            if project_regions
+            else (
+                [fallback_text]
+                if fallback_text
+                else []
+            )
         )
-        
-        school = None
-        degree = None
-        duration = None
 
-        for line in education_lines:
-            if self._is_valid_school(line):
-                school = line
+        all_projects: List[Dict[str, Any]] = []
+
+        for region_text in regions:
+
+            if not region_text or not region_text.strip():
                 continue
 
-            if "bachelor" in line.casefold():
-                degree = line
-                continue
+            projects = extractor.extract(
+                region_text,
+                section_type="projects",
+            )
 
-            if self._is_date_line(line):
-                duration = line
-                continue
-            
-        if school:
-            education.append({
-                "school": school,
-                "degree": degree or "Unknown",
-                "duration": duration
-            })
+            all_projects.extend(projects)
 
-        return education[:3]
-
-    def _is_valid_role(self, line: str) -> bool:
-
-        line = line.strip()
-        
-        line_lower = line.casefold()
-        
-        if not line:
-            return False
-        
-        invalid_titles = [
-            "experience",
-            "work experience",
-            "professional experience",
-            "employment",
-            "employment history",
-            "career history",
-            "work history",
-            "career",
-            "career objective",
-            "objective",
-            "summary",
-            "profile",
-            "education",
-            "skills",
-            "projects",
-            "activities",
-            "certificates",
-            "awards",
-            "references",
-            "languages",
-            "interests",
-            "responsibilities",
-            "responsibility",
-            "duties",
-            "overview",
-            "academic projects",
-            "project",
-            "projects"
-        ]
-        
-        school_keywords = [
-            "university",
-            "college",
-            "academy",
-            "institute",
-            "school",
-            "đại học",
-            "cao đẳng",
-            "học viện"
-        ]
-        
-        months = [
-            "jan", "feb", "mar", "apr", "may", "jun",
-            "jul", "aug", "sep", "oct", "nov", "dec",
-            "present"
-        ]
-        
-        achievement_keywords = [
-            "runner-up",
-            "award",
-            "competition",
-            "contest",
-            "certificate",
-            "scholarship",
-            "prize",
-            "achievement",
-            "honor"
-        ]
-
-        if any(keyword in line_lower for keyword in achievement_keywords):
-            return False
-
-        if "organized by" in line_lower:
-            return False
-
-        if "hosted by" in line_lower:
-            return False
-        
-        if "@" in line:
-            return False
-        
-        if "http" in line_lower:
-            return False
-
-        if "linkedin" in line_lower:
-            return False
-
-        if "github" in line_lower:
-            return False
-        
-        if "score" in line_lower:
-            return False
-
-        if "gpa" in line_lower:
-            return False
-        
-        digits = re.sub(r"\D", "", line)
-
-        if len(digits) >= 9:
-            return False
-        
-        if not any(char.isalpha() for char in line):
-            return False
-
-        if re.fullmatch(r"[\d\s\-/]+", line):
-            return False
-
-        if line_lower in invalid_titles:
-            return False
-
-        if len(line) < 3:
-            return False
-        
-        words = line.split()
-
-        if len(words) > 10:
-            return False
-        
-        if any(keyword in line_lower for keyword in school_keywords):
-            return False
-
-        if any(month in line_lower for month in months):
-            return False
-
-        if "graduation" in line_lower:
-            return False
-
-        if "expected" in line_lower:
-            return False
-        
-        return True
-
-    def extract_experience(self, text: str) -> List[Dict[str, str]]:
-        experience = []
-
-        experience_lines = self._extract_section(
-            text,
-            [
-                "experience",
-                "work experience",
-                "professional experience",
-                "employment history"
-            ]
-        )
-        
-        company = None
-        role = None
-        duration = None
-
-        for line in experience_lines:
-            print("LINE:", line)
-            # Company
-            if self._is_valid_company(line):
-                print("COMPANY:", line)
-                company = line
-                role = None
-                continue
-
-            # Date
-            if self._is_date_line(line):
-                duration = line
-                continue
-
-            # Bullet
-            if line.startswith("-"):
-                continue
-
-            # Role
-            if (
-                company
-                and role is None
-                and self._is_valid_role(line)
-            ):
-                print("ROLE:", line)
-                role = line
-
-                experience.append({
-                    "company": company,
-                    "role": role,
-                    "duration": duration
-                })
-
-        return experience[:5]
-
-    def extract_skills(self, text: str) -> List[str]:
-        skills = self.skill_extractor.extract(text)
-        return skills if skills else ["General Skills"]
+        return all_projects

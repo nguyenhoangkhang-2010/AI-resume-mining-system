@@ -1,149 +1,292 @@
-import re
-from typing import List, Dict, Any
+from __future__ import annotations
+
+import json
+from typing import Any, Dict, List
 
 from loguru import logger
+
+from app.extraction.llm.llm_extractor import LLMExtractor
 
 
 class ExperienceExtractor:
 
-    YEARS_PATTERN = (
-        r"(\d+)"
-        r"\+?\s*"
-        r"(years|yrs)"
-        r"\s*(of)?"
-        r"\s*(experience|exp)"
-    )
+    EXTRACTION_PROMPT = """
+    You are a multilingual resume information extraction system.
 
+    Extract professional experience from the input text.
 
-    RANGE_PATTERN = (
-        r"(\d{4})"
-        r"\s*-\s*"
-        r"(\d{4}|present)"
-    )
+    Infer the semantic structure from the source text.
+    Do not rely on fixed company names, job titles, industries, keywords,
+    templates, languages, or date formats.
 
+    Return ONLY valid JSON with this structure:
 
-    ROLE_KEYWORDS = [
-        "software engineer",
-        "backend developer",
-        "frontend developer",
-        "data analyst",
-        "data scientist",
-        "machine learning engineer",
-        "ai engineer",
-        "intern",
-        "developer",
+    {
+    "experience": [
+        {
+        "company": null,
+        "role": null,
+        "start_date": null,
+        "end_date": null,
+        "description": [],
+        "employment_type": null,
+        "location": null,
+        "achievements": []
+        }
     ]
+    }
 
+    Rules:
+
+    - company: organization or entity associated with the experience.
+    - role: person's position, role, or function.
+    - start_date/end_date: preserve the source representation.
+    - description: responsibilities, activities, duties, and contributions.
+    - employment_type: infer only when clearly supported by the text.
+    - location: associated location when available.
+    - achievements: explicit results, measurable outcomes, awards,
+    improvements, or accomplishments only.
+    - Preserve source meaning and wording.
+    - Keep separate experiences separate.
+    - Do not fabricate missing information.
+    - Use null for unknown scalar fields and [] for unknown list fields.
+    - Interpret multilingual content semantically.
+    - Return ONLY the JSON object.
+"""
+
+    MAX_NEW_TOKENS = 180
+
+    def __init__(
+        self,
+        llm_extractor: LLMExtractor,
+    ) -> None:
+        self.llm_extractor = llm_extractor
+
+    def extract(
+        self,
+        text: str,
+    ) -> List[Dict[str, Any]]:
+
+        if not text or not text.strip():
+            return []
+
+        logger.debug(
+            "Starting semantic experience extraction."
+        )
+
+        raw_result = self.llm_extractor.extract_info(
+            text=text,
+            prompt_template=self.EXTRACTION_PROMPT,
+            max_new_tokens=self.MAX_NEW_TOKENS,
+        )
+
+        if not raw_result:
+            logger.warning(
+                "Experience LLM extraction returned empty output."
+            )
+            return []
+
+        result = self._parse_result(
+            raw_result
+        )
+
+        logger.debug(
+            "Extracted {} experience records.",
+            len(result),
+        )
+
+        return result
+
+    @classmethod
+    def _parse_result(
+        cls,
+        raw_result: str,
+    ) -> List[Dict[str, Any]]:
+
+        if not raw_result:
+            return []
+
+        text = cls._remove_markdown_code_fence(
+            raw_result.strip()
+        )
+
+        parsed = cls._parse_json(
+            text
+        )
+
+        if parsed is None:
+            logger.warning(
+                "Failed to parse experience LLM output as JSON."
+            )
+            return []
+
+        if isinstance(parsed, list):
+            experiences = parsed
+
+        elif isinstance(parsed, dict):
+            experiences = parsed.get(
+                "experience",
+                [],
+            )
+
+        else:
+            return []
+
+        if not isinstance(experiences, list):
+            return []
+
+        normalized: List[Dict[str, Any]] = []
+
+        for item in experiences:
+
+            if not isinstance(item, dict):
+                continue
+
+            entry = {
+                "company": cls._normalize_string(
+                    item.get("company")
+                ),
+                "role": cls._normalize_string(
+                    item.get("role")
+                ),
+                "start_date": cls._normalize_string(
+                    item.get("start_date")
+                ),
+                "end_date": cls._normalize_string(
+                    item.get("end_date")
+                ),
+                "description": cls._normalize_string_list(
+                    item.get("description")
+                ),
+                "employment_type": cls._normalize_string(
+                    item.get("employment_type")
+                ),
+                "location": cls._normalize_string(
+                    item.get("location")
+                ),
+                "achievements": cls._normalize_string_list(
+                    item.get("achievements")
+                ),
+            }
+
+            if not cls._has_content(entry):
+                continue
+
+            normalized.append(entry)
+
+        return normalized
 
     @staticmethod
-    def extract(
-        text: str
-    ) -> List[Dict[str, Any]]:
-        if not text:
+    def _remove_markdown_code_fence(
+        text: str,
+    ) -> str:
+
+        if not text.startswith("```"):
+            return text
+
+        lines = text.splitlines()
+
+        if lines:
+            lines = lines[1:]
+
+        if lines and lines[-1].strip() == "```":
+            lines = lines[:-1]
+
+        return "\n".join(lines).strip()
+
+    @staticmethod
+    def _parse_json(
+        text: str,
+    ) -> Any | None:
+
+        try:
+            return json.loads(text)
+
+        except json.JSONDecodeError:
+            pass
+
+        start = text.find("{")
+        end = text.rfind("}")
+
+        if start >= 0 and end > start:
+
+            candidate = text[
+                start:end + 1
+            ]
+
+            try:
+                return json.loads(candidate)
+            except json.JSONDecodeError:
+                pass
+
+        start = text.find("[")
+        end = text.rfind("]")
+
+        if start >= 0 and end > start:
+
+            candidate = text[
+                start:end + 1
+            ]
+
+            try:
+                return json.loads(candidate)
+            except json.JSONDecodeError:
+                pass
+
+        return None
+
+    @staticmethod
+    def _normalize_string(
+        value: Any,
+    ) -> str | None:
+
+        if value is None:
+            return None
+
+        if not isinstance(value, str):
+            return None
+
+        value = value.strip()
+
+        return value or None
+
+    @staticmethod
+    def _normalize_string_list(
+        value: Any,
+    ) -> List[str]:
+
+        if value is None:
             return []
-        logger.debug(
-            "Starting experience extraction."
-        )
-        text_lower = text.lower()
-        result = {
-            "total_years_extracted": 0,
-            "experience_periods": []
-        }
 
-        # -------------------------
-        # Years of experience
-        # -------------------------
-        years_matches = re.findall(
-            ExperienceExtractor.YEARS_PATTERN,
-            text_lower
-        )
-        if years_matches:
-            result["total_years_extracted"] = max(
-                int(year[0])
-                for year in years_matches
-            )
+        if isinstance(value, str):
 
-        # -------------------------
-        # Work periods
-        # -------------------------
-        periods = re.findall(
-            ExperienceExtractor.RANGE_PATTERN,
-            text_lower
-        )
+            value = value.strip()
 
-        # -------------------------
-        # Role extraction
-        # -------------------------
-        roles = []
-        for role in (
-            ExperienceExtractor.ROLE_KEYWORDS
-        ):
-            if role in text_lower:
-                roles.append(
-                    role.title()
-                )
+            return [value] if value else []
 
-        # -------------------------
-        # Company heuristic
-        # -------------------------
-        companies = []
-        lines = [
-            line.strip()
-            for line in text.splitlines()
-            if line.strip()
-        ]
-        for line in lines:
-            if any(
-                role in line.lower()
-                for role in ExperienceExtractor.ROLE_KEYWORDS
-            ):
+        if not isinstance(value, list):
+            return []
+
+        result: List[str] = []
+
+        for item in value:
+
+            if not isinstance(item, str):
                 continue
-            if re.search(
-                r"[A-Z][a-z]+",
-                line
-            ):
-                companies.append(
-                    line
-                )
 
-        # -------------------------
-        # Build experience records
-        # -------------------------
-        for start, end in periods:
-            record = {
-                "start": start,
-                "end": end
-            }
-            if companies:
-                record["company"] = (
-                    companies[0]
-                )
-            if roles:
-                record["role"] = (
-                    roles[0]
-                )
-            result[
-                "experience_periods"
-            ].append(
-                record
-            )
+            item = item.strip()
 
-        # If no period found
-        # but role exists
-        if (
-            not result["experience_periods"]
-            and roles
-        ):
-            result[
-                "experience_periods"
-            ].append(
-                {
-                    "role": roles[0]
-                }
-            )
-        logger.debug(
-            f"Experience extracted: {result}"
+            if item:
+                result.append(item)
+
+        return result
+
+    @staticmethod
+    def _has_content(
+        entry: Dict[str, Any],
+    ) -> bool:
+
+        return any(
+            bool(value)
+            for value in entry.values()
         )
-        return [
-            result
-        ]

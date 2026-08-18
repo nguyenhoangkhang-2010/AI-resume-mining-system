@@ -1,0 +1,16 @@
+{
+    "name": {
+        "max_length": 50,
+        "min_words": 2,
+        "max_words": 5,
+        "scan_lines": 5
+    },
+
+    "entity_labels": {
+        "person": "PERSON",
+        "company": "ORG",
+        "date": "DATE",
+        "role": "ROLE",
+        "school": "EDUCATION"
+    }
+}

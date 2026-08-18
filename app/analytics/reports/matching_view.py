@@ -52,7 +52,7 @@ def render_matching_page():
                         profile = cand.candidate_profile
                         display_data.append({
                             "Rank": rank,
-                            "Name": profile.personal_info.get("name", "Unknown Candidate"),
+                            "Name": profile.personal_info.get("full_name", "Unknown Candidate"),
                             "Email": profile.personal_info.get("email", "N/A"),
                             "Match Score": cand.similarity_score,
                             "Skill Gaps (Missing)": ", ".join(cand.skill_gaps) if cand.skill_gaps else "Perfect Match"
@@ -80,7 +80,7 @@ def render_matching_page():
                         "View candidate profile",
                         options=range(len(results)),
                         format_func=lambda x: results[x].candidate_profile.personal_info.get(
-                            "name",
+                            "full_name",
                             "Unknown Candidate"
                         )
                     )
@@ -92,7 +92,7 @@ def render_matching_page():
 
                     st.write(
                         {
-                            "Name": profile.personal_info.get("name"),
+                            "Name": profile.personal_info.get("full_name"),
                             "Email": profile.personal_info.get("email")
                         }
                     )
