@@ -15,6 +15,10 @@ def get_matching_service():
 def render_matching_page():
     st.title("AI Candidate Matching Engine")
     
+    st.caption(
+        "Semantic candidate ranking powered by Sentence Transformers and FAISS vector search."
+    )
+    
     db = mongo_db.get_db()
     jobs = list(db["jobs"].find({}, {"title": 1, "_id": 1}).sort("created_at", -1))
     
@@ -32,7 +36,7 @@ def render_matching_page():
     )
     
     if st.button("Find Best Candidates", type="primary"):
-        with st.spinner("Analyzing semantics, calculating vector distances and analyzing skill gaps..."):
+        with st.spinner("Finding the best matching candidates..."):
             try:
                 matching_svc = get_matching_service()
                 match_response = matching_svc.match_candidates_for_job(selected_job_id)
@@ -48,7 +52,7 @@ def render_matching_page():
                         profile = cand.candidate_profile
                         display_data.append({
                             "Rank": rank,
-                            "Name": profile.personal_info.get("name", "Unknown Candidate"),
+                            "Name": profile.personal_info.get("full_name", "Unknown Candidate"),
                             "Email": profile.personal_info.get("email", "N/A"),
                             "Match Score": cand.similarity_score,
                             "Skill Gaps (Missing)": ", ".join(cand.skill_gaps) if cand.skill_gaps else "Perfect Match"
@@ -68,6 +72,47 @@ def render_matching_page():
                         df_results, 
                         column_config={"Match Score": st.column_config.ProgressColumn("Match Score (%)", format="%.2f", min_value=0, max_value=100)},
                         hide_index=True, use_container_width=True
+                    )
+                    
+                    st.markdown("### Candidate Details")
+
+                    selected_candidate = st.selectbox(
+                        "View candidate profile",
+                        options=range(len(results)),
+                        format_func=lambda x: results[x].candidate_profile.personal_info.get(
+                            "full_name",
+                            "Unknown Candidate"
+                        )
+                    )
+
+                    candidate = results[selected_candidate]
+                    profile = candidate.candidate_profile
+
+                    st.write("### Personal Information")
+
+                    st.write(
+                        {
+                            "Name": profile.personal_info.get("full_name"),
+                            "Email": profile.personal_info.get("email")
+                        }
+                    )
+
+                    st.write("### Skills")
+
+                    st.write(profile.skills)
+
+                    st.write("### Skill Gap")
+
+                    if candidate.skill_gaps:
+                        st.warning(candidate.skill_gaps)
+                    else:
+                        st.success("Perfect Match")
+
+                    st.write("### Match Score")
+
+                    st.metric(
+                        "Similarity Score",
+                        f"{candidate.similarity_score:.2f}%"
                     )
             except Exception as e:
                 logger.error(f"Error during Streamlit matching process: {e}")

@@ -1,0 +1,49 @@
+from app.core.config.settings import settings
+
+from app.infrastructure.repositories.json_skill_alias_repository import (
+    JsonSkillAliasRepository,
+)
+
+from app.matching.skills.normalization.alias_rule import (
+    AliasNormalizationRule,
+)
+
+from app.matching.skills.normalization.skill_normalizer import (
+    SkillNormalizer,
+)
+from app.matching.skills.normalization.registry import (
+    NormalizationRuleRegistry,
+)
+from app.matching.skills.normalization.case_rule import (
+    CaseNormalizationRule,
+)
+from app.matching.skills.normalization.trim_whitespace_rule import (
+    TrimWhitespaceRule,
+)
+from app.matching.skills.normalization.punctuation_rule import (
+    PunctuationNormalizationRule,
+)
+from app.matching.skills.normalization.unicode_rule import (
+    UnicodeNormalizationRule,
+)
+
+
+def build_skill_normalizer() -> SkillNormalizer:
+
+    repository = JsonSkillAliasRepository(
+        settings.skill_alias_path
+    )
+
+    registry = NormalizationRuleRegistry(
+        rules=[
+            UnicodeNormalizationRule(),
+            TrimWhitespaceRule(),
+            PunctuationNormalizationRule(),
+            CaseNormalizationRule(),
+            AliasNormalizationRule(repository),
+        ]
+    )
+
+    return SkillNormalizer(
+        registry.get_rules()
+    )

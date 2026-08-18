@@ -1,0 +1,16 @@
+[
+    {
+        "name": "Docker",
+        "category": "DevOps",
+        "aliases": [
+            "docker container"
+        ]
+    },
+    {
+        "name": "FastAPI",
+        "category": "Backend",
+        "aliases": [
+            "fast api"
+        ]
+    }
+]

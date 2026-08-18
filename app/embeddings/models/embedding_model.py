@@ -1,42 +1,73 @@
-import torch
-from sentence_transformers import SentenceTransformer
-from loguru import logger
+from __future__ import annotations
+
 from typing import Optional
+
+import torch
+from loguru import logger
+from sentence_transformers import SentenceTransformer
 
 from app.core.config.settings import settings
 
 
 class EmbeddingModelSingleton:
-    _instance: Optional['EmbeddingModelSingleton'] = None
+    _instance: Optional["EmbeddingModelSingleton"] = None
     _model: Optional[SentenceTransformer] = None
 
-    def __new__(cls):
+    def __new__(cls) -> "EmbeddingModelSingleton":
         if cls._instance is None:
-            cls._instance = super(EmbeddingModelSingleton, cls).__new__(cls)
+            cls._instance = super().__new__(cls)
             cls._instance._initialize()
+
         return cls._instance
 
-    def _initialize(self):
-        logger.info("Initializing Embedding Model Singleton...")
+    def _initialize(self) -> None:
+        logger.info(
+            "Initializing multilingual embedding model..."
+        )
+
         self.device = self._get_device()
+
+        logger.info(
+            "Loading embedding model '{}' on device '{}'",
+            settings.MODEL_NAME,
+            self.device,
+        )
+
         try:
-            # Load model specified in settings (e.g., sentence-transformers/all-MiniLM-L6-v2)
-            logger.info(f"Loading model '{settings.MODEL_NAME}' on device '{self.device}'...")
-            self._model = SentenceTransformer(settings.MODEL_NAME, device=self.device)
-            logger.success("Embedding model loaded successfully.")
-        except Exception as e:
-            logger.error(f"Failed to load embedding model: {e}")
+            self._model = SentenceTransformer(
+                settings.MODEL_NAME,
+                device=self.device,
+            )
+
+            logger.success(
+                "Multilingual embedding model loaded successfully."
+            )
+
+        except Exception as exc:
+            logger.exception(
+                "Failed to load embedding model: {}",
+                exc,
+            )
             raise
 
-    def _get_device(self) -> str:
+    @staticmethod
+    def _get_device() -> str:
         if torch.cuda.is_available():
             return "cuda"
-        elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+
+        if (
+            hasattr(torch.backends, "mps")
+            and torch.backends.mps.is_available()
+        ):
             return "mps"
+
         return "cpu"
 
     @property
     def model(self) -> SentenceTransformer:
         if self._model is None:
-            raise RuntimeError("Model is not initialized.")
+            raise RuntimeError(
+                "Embedding model is not initialized."
+            )
+
         return self._model

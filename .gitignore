@@ -107,3 +107,76 @@ dump/
 # Streamlit Secrets
 # =========================
 .streamlit/secrets.toml
+
+# =========================
+# Upload
+# =========================
+/data/uploads
+# =========================
+# ESCO raw dataset
+# =========================
+*.zip
+data/esco/raw/
+# =========================
+# Data
+# =========================
+data/jobs/
+data/onet/
+
+
+# =========================
+# Frontend
+# =========================
+# Dependencies
+node_modules/
+
+# Build output
+dist/
+build/
+
+# Vite cache
+.vite/
+node_modules/.vite/
+
+# Environment variables
+.env
+.env.*
+!.env.example
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# TypeScript build cache
+*.tsbuildinfo
+
+# Testing coverage
+coverage/
+
+# IDE
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+
+# Local config
+*.local
+
+# =========================
+# Frontend Test
+# =========================
+.nyc_output/
+coverage/
+
+# =========================
+# Model
+# =========================
+models/

@@ -26,7 +26,7 @@ class VectorStore:
         
         results = []
         for score, faiss_id in zip(distances, indices):
-            if faiss_id != -1:
+            if faiss_id != -1 and score > 0:
                 results.append({
                     "faiss_id": int(faiss_id),
                     "similarity_score": float(score)

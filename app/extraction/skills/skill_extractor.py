@@ -1,33 +1,47 @@
-import re
-from typing import List
+from app.extraction.skills.repository import SkillRepository
+from app.extraction.skills.pipeline import SkillExtractionPipeline
+from app.extraction.skills.factory.matcher_factory import MatcherFactory
+
 from loguru import logger
 
 
 class SkillExtractor:
-    PREDEFINED_SKILLS = [
-        "python", "java", "c++", "c#", "javascript", "typescript", "sql", "nosql",
-        "machine learning", "deep learning", "data science", "nlp", "computer vision",
-        "fastapi", "django", "flask", "react", "angular", "vue",
-        "mongodb", "postgresql", "mysql", "redis",
-        "docker", "kubernetes", "aws", "gcp", "azure", "ci/cd",
-        "pandas", "numpy", "scikit-learn", "pytorch", "tensorflow",
-        "agile", "scrum", "communication", "leadership", "problem solving"
-    ]
 
-    @staticmethod
-    def extract(text: str) -> List[str]:
+    def __init__(
+        self,
+        ner_service=None,
+    ):
+
+        repository = SkillRepository()
+
+        factory = MatcherFactory(
+            repository
+        )
+
+        strategy = factory.build_strategy()
+
+        self.pipeline = SkillExtractionPipeline(
+            strategy,
+            ner_service=ner_service,
+        )
+
+        logger.info("SkillExtractor initialized.")
+
+    def extract(self, text: str):
         if not text:
             logger.warning("Empty text provided to SkillExtractor.")
             return []
-            
-        logger.debug("Starting skill extraction process.")
-        text_lower = text.lower()
-        extracted_skills = set()
-        
-        for skill in SkillExtractor.PREDEFINED_SKILLS:
-            pattern = r'\b' + re.escape(skill).replace(r'\ ', r'\s+') + r'\b'
-            if re.search(pattern, text_lower):
-                extracted_skills.add(skill)
-                
-        logger.debug(f"Extracted {len(extracted_skills)} skills.")
-        return sorted(list(extracted_skills))
+
+        return self.pipeline.extract(text)
+
+    def extract_many(
+        self,
+        texts: list[str],
+    ) -> list[list[str]]:
+
+        return [
+            self.extract(text)
+            for text in texts
+        ]
+    # TODO:
+    # Optimize using batch semantic embedding.
