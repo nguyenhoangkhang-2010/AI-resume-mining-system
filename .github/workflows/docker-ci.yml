@@ -1,0 +1,28 @@
+name: Docker CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feat/**"
+
+  pull_request:
+    branches:
+      - main
+      - develop
+
+jobs:
+  docker-build:
+    name: Build Docker Image
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build \
+            -f docker/Dockerfile \
+            -t ai-resume-backend:test .
