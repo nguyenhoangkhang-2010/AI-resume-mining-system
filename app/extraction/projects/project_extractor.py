@@ -245,8 +245,8 @@ class ProjectExtractor:
             )
 
             logger.debug(
-                "Project LLM output preview: {}",
-                text[:1000],
+                "Project LLM output length: {}",
+                len(text),
             )
 
             return []
