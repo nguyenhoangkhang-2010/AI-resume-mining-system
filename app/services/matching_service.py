@@ -1,4 +1,5 @@
 from bson import ObjectId
+from bson.errors import InvalidId
 from loguru import logger
 from typing import List
 
@@ -102,9 +103,14 @@ class MatchingService:
         self,
         job_id:str
     ):
+        try:
+            object_id = ObjectId(job_id)
+        except (InvalidId, TypeError):
+            return None
+
         data = self.jobs_col.find_one(
             {
-                "_id":ObjectId(job_id)
+                "_id":object_id
             }
         )
         if not data:
