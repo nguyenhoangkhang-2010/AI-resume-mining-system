@@ -6,7 +6,9 @@ from typing import Dict, List, Protocol, Sequence
 
 import numpy as np
 
+from app.evaluation.pooling import ProfileEmbedder
 from app.evaluation.dataset import EvalCandidate, EvalDataset, EvalJob
+from app.matching.embedding_text import CandidateTextBuilder, JobTextBuilder
 from app.matching.ranking.candidate_scorer import HybridCandidateScorer
 from app.matching.scoring.skill_overlap_scorer import SkillOverlapScorer
 from app.matching.similarity.similarity_engine import SimilarityEngine
@@ -124,6 +126,7 @@ def to_candidate_model(
 
     return CandidateModel(
         resume_id=candidate.id,
+        summary=candidate.summary,
         skills=skills,
         normalized_skills=list(
             dict.fromkeys(normalizer.normalize(skill) for skill in skills)
@@ -332,11 +335,72 @@ class SemanticRanker(Ranker):
         return dict(zip(self.ids, self.cosine_scores(job).tolist()))
 
 
+class ProfileSemanticRanker(Ranker):
+    """
+    Cosine similarity of embeddings built from the production profile
+    text (roles, summary, skills, experience bullets, projects) and job
+    text (title, skills, responsibilities).
+
+    pooled=True embeds each section separately and averages the vectors;
+    pooled=False embeds one concatenated string, which the model truncates
+    at 128 tokens.
+    """
+
+    def __init__(self, embedder: Embedder, normalizer, pooled: bool = True):
+        self.embedder = embedder
+        self.normalizer = normalizer
+        self.pooled = pooled
+        self.profile_embedder = ProfileEmbedder(embedder)
+        self.candidate_builder = CandidateTextBuilder()
+        self.job_builder = JobTextBuilder()
+        self.name = (
+            "semantic_profile_pooled" if pooled else "semantic_profile_concat"
+        )
+
+    def prepare(self, dataset: EvalDataset) -> None:
+        super().prepare(dataset)
+
+        self.ids = [c.id for c in dataset.candidates]
+
+        candidates = [
+            to_candidate_model(c, index, self.normalizer)
+            for index, c in enumerate(dataset.candidates)
+        ]
+
+        if self.pooled:
+            self.matrix = self.profile_embedder.embed_many(
+                [self.candidate_builder.sections(c) for c in candidates]
+            )
+        else:
+            self.matrix = self.embedder.encode(
+                [self.candidate_builder.text(c) for c in candidates]
+            )
+
+    def cosine_scores(self, job: EvalJob) -> np.ndarray:
+        job_model = to_job_model(job, self.normalizer)
+
+        if self.pooled:
+            query = self.profile_embedder.embed(
+                self.job_builder.sections(job_model)
+            )
+        else:
+            query = self.embedder.encode([self.job_builder.text(job_model)])[0]
+
+        return self.matrix @ query
+
+    def scores(self, job: EvalJob) -> Dict[str, float]:
+        return dict(zip(self.ids, self.cosine_scores(job).tolist()))
+
+
 class HybridRanker(Ranker):
     """
-    The production scoring path: skill coverage, semantic similarity
-    (skills embedding) and experience, via HybridCandidateScorer. No
-    minimum-score filter is applied so every candidate receives a rank.
+    The production scoring path: skill coverage, semantic similarity and
+    experience, via HybridCandidateScorer. No minimum-score filter is
+    applied so every candidate receives a rank.
+
+    `semantic` is the ranker that supplies cosine similarities; by default
+    the profile-text embedding used in production (pass a skills-only
+    SemanticRanker to reproduce the earlier behaviour).
     """
 
     def __init__(
@@ -344,13 +408,19 @@ class HybridRanker(Ranker):
         embedder: Embedder,
         normalizer,
         use_experience: bool = True,
+        semantic=None,
+        name: str | None = None,
     ):
-        self.semantic = SemanticRanker(embedder, normalizer, mode="skills")
+        self.semantic = semantic or ProfileSemanticRanker(
+            embedder, normalizer, pooled=False
+        )
         self.normalizer = normalizer
         self.use_experience = use_experience
         self.scorer = HybridCandidateScorer()
         self.similarity = SimilarityEngine()
-        self.name = "hybrid" if use_experience else "hybrid_no_experience"
+        self.name = name or (
+            "hybrid" if use_experience else "hybrid_no_experience"
+        )
 
     def prepare(self, dataset: EvalDataset) -> None:
         super().prepare(dataset)
@@ -393,6 +463,15 @@ def build_default_rankers(embedder: Embedder, normalizer) -> List[Ranker]:
         SkillOverlapRanker(normalizer),
         SemanticRanker(embedder, normalizer, mode="skills"),
         SemanticRanker(embedder, normalizer, mode="fulltext"),
+        ProfileSemanticRanker(embedder, normalizer, pooled=False),
+        ProfileSemanticRanker(embedder, normalizer, pooled=True),
+        HybridRanker(
+            embedder,
+            normalizer,
+            use_experience=True,
+            semantic=SemanticRanker(embedder, normalizer, mode="skills"),
+            name="hybrid_skills_embedding",
+        ),
         HybridRanker(embedder, normalizer, use_experience=False),
         HybridRanker(embedder, normalizer, use_experience=True),
     ]

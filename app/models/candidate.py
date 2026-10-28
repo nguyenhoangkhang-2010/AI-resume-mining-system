@@ -112,6 +112,11 @@ class CandidateModel(BaseModel):
         description="Structured personal information extracted from the resume.",
     )
 
+    summary: Optional[str] = Field(
+        default=None,
+        description="Professional summary or objective extracted from the resume.",
+    )
+
     skills: List[str] = Field(
         default_factory=list,
         description="List of skills extracted from the resume.",
@@ -145,6 +150,11 @@ class CandidateModel(BaseModel):
     faiss_id: int = Field(
         ...,
         description="The ID used in the FAISS vector index.",
+    )
+
+    embedding_version: Optional[str] = Field(
+        default=None,
+        description="Version of the text used to build the FAISS vector.",
     )
 
     created_at: datetime = Field(

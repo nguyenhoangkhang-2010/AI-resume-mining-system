@@ -149,8 +149,9 @@ def main() -> None:
         f"- Only {len(dataset.jobs)} jobs are used, so confidence intervals "
         "are wide; read differences together with the paired intervals.",
         "- The ranker named `hybrid` is the production scoring path "
-        "(skill coverage + skills-only embedding + experience) without its "
-        "minimum-score filter.",
+        "(skill coverage + profile-text embedding + experience) without its "
+        "minimum-score filter. `hybrid_skills_embedding` is the same path "
+        "with the earlier skills-only embedding, for comparison.",
         "",
         "## Ranking",
         "",

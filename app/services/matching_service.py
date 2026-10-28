@@ -15,6 +15,8 @@ from app.embeddings.services.embedding_service import EmbeddingService
 
 from app.vector_store.vector_store import VectorStore
 
+from app.core.constants.app_constants import EMBEDDING_VERSION
+from app.matching.embedding_text import JobTextBuilder
 from app.matching.ranking.candidate_scorer import HybridCandidateScorer
 from app.matching.ranking.ranking_config import RankingConfig
 from app.matching.ranking.ranking_pipeline import RankingPipeline
@@ -24,6 +26,7 @@ class MatchingService:
     def __init__(self):
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
+        self.job_text_builder = JobTextBuilder()
         self.ranking_config = RankingConfig()
         self.ranking_pipeline = RankingPipeline(
             candidate_scorer=HybridCandidateScorer(),
@@ -52,12 +55,11 @@ class MatchingService:
             raise NotFoundError(
                 f"Job not found: {job_id}"
             )
-        job_text = " ".join(
-            job.required_skills
-        )
         embedding = (
             self.embedding_service
-            .generate_embedding(job_text)
+            .generate_embedding(
+                self.job_text_builder.text(job)
+            )
         )
         faiss_results = (
             self.vector_store
@@ -86,6 +88,17 @@ class MatchingService:
                 faiss_ids
             )
         )
+        stale = [
+            candidate
+            for candidate in candidates
+            if candidate.embedding_version != EMBEDDING_VERSION
+        ]
+        if stale:
+            logger.warning(
+                f"{len(stale)} of {len(candidates)} candidates were indexed "
+                f"with an older embedding version; run "
+                f"scripts/reindex_candidates.py to rebuild the index."
+            )
         score_map = {
             item["faiss_id"]:
             item["similarity_score"]

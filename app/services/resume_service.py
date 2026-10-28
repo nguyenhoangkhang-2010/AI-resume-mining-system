@@ -16,6 +16,8 @@ from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
 from app.models.resume import ResumeModel
 from app.embeddings.services.embedding_service import EmbeddingService
 from app.vector_store.vector_store import VectorStore
+from app.core.constants.app_constants import EMBEDDING_VERSION
+from app.matching.embedding_text import CandidateTextBuilder
 from app.matching.skills.factory.skill_normalizer_factory import (
     create_skill_normalizer,
 )
@@ -31,6 +33,7 @@ class ResumeService:
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
         self.skill_normalizer = create_skill_normalizer()
+        self.candidate_text_builder = CandidateTextBuilder()
 
     @property
     def db(self):
@@ -202,85 +205,53 @@ class ResumeService:
             and skill.strip()
         ]
 
-        embedding_text = " ".join(
-            normalized_skills
-        )
-
-        embedding = (
-            self.embedding_service.generate_embedding(
-                embedding_text
-            )
-        )
-
-        faiss_id = self._generate_faiss_id()
-
-        self.vector_store.add_candidate_embedding(
-            faiss_id=faiss_id,
-            embedding=embedding,
-        )
-
-        education_data = (
-            extracted_data.get(
-                "education"
-            )
-            or []
-        )
-
         education_models = [
             Education.model_validate(
                 education
             )
-            for education in education_data
-        ]
-
-        experience_data = (
-            extracted_data.get(
-                "experience"
+            for education in (
+                extracted_data.get("education") or []
             )
-            or []
-        )
+        ]
 
         experience_models = [
             Experience.model_validate(
                 experience
             )
-            for experience in experience_data
-        ]
-
-        projects_data = (
-            extracted_data.get(
-                "projects"
+            for experience in (
+                extracted_data.get("experience") or []
             )
-            or []
-        )
+        ]
 
         project_models = [
             Project.model_validate(
                 project
             )
-            for project in projects_data
-        ]
-
-        certifications_data = (
-            extracted_data.get(
-                "certifications"
+            for project in (
+                extracted_data.get("projects") or []
             )
-            or []
-        )
+        ]
 
         certification_models = [
             Certification.model_validate(
                 certification
             )
-            for certification in certifications_data
+            for certification in (
+                extracted_data.get("certifications") or []
+            )
         ]
 
-        return CandidateModel(
+        summary = extracted_data.get("summary")
+
+        faiss_id = self._generate_faiss_id()
+
+        candidate = CandidateModel(
             resume_id=resume_id,
             personal_info=extracted_data.get(
                 "personal_info",
                 {},
             ),
+            summary=summary if isinstance(summary, str) else None,
             skills=skills,
             normalized_skills=normalized_skills,
             education=education_models,
@@ -288,7 +259,25 @@ class ResumeService:
             projects=project_models,
             certifications=certification_models,
             faiss_id=faiss_id,
+            embedding_version=EMBEDDING_VERSION,
         )
+
+        # The vector is added last: if any model above fails validation,
+        # nothing has been written to the index yet.
+        embedding = (
+            self.embedding_service.generate_embedding(
+                self.candidate_text_builder.text(
+                    candidate
+                )
+            )
+        )
+
+        self.vector_store.add_candidate_embedding(
+            faiss_id=faiss_id,
+            embedding=embedding,
+        )
+
+        return candidate
 
     def _generate_faiss_id(
         self,
