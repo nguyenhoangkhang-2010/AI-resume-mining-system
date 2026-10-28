@@ -6,12 +6,25 @@ class ConfidenceCalculator:
 
     @staticmethod
     def calculate(
-        skill_score: float,
-        semantic_score: float,
+        skill_score: float | None,
+        semantic_score: float | None,
+        experience_score: float | None = None,
     ) -> float:
 
-        confidence = (
-            skill_score + semantic_score
-        ) / 2
+        scores = [
+            score
+            for score in (
+                skill_score,
+                semantic_score,
+                experience_score,
+            )
+            if score is not None
+        ]
 
-        return round(confidence, 2)
+        if not scores:
+            return 0.0
+
+        return round(
+            sum(scores) / len(scores),
+            2,
+        )

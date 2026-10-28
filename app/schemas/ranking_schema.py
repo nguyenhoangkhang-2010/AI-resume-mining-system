@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel, Field
 
 
@@ -20,5 +22,13 @@ class RankingMetadata(BaseModel):
 
     similarity_threshold: float = Field(
         ...,
-        description="Similarity threshold used during ranking"
+        description=(
+            "Threshold used during ranking: a cosine similarity (0-1) "
+            "in similarity mode, a minimum overall score (0-100) in hybrid mode"
+        )
+    )
+
+    scoring_mode: Optional[str] = Field(
+        default=None,
+        description="Scoring mode used for this ranking, e.g. 'hybrid'"
     )
