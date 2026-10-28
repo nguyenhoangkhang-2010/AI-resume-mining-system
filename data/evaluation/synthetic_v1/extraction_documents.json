@@ -1,0 +1,1946 @@
+[
+  {
+    "id": "cand-0001",
+    "text": "Skills: sql, py, django, fastapi, mongodb, rest, aws, graphql, helm, docker, kubernetes, ansible, java, git, firebase, grafana\nMaintained systems written in python with git.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "ansible",
+      "aws",
+      "django",
+      "docker",
+      "fastapi",
+      "firebase",
+      "git",
+      "grafana",
+      "graphql",
+      "helm",
+      "java",
+      "kubernetes",
+      "mongodb",
+      "python",
+      "rest",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0002",
+    "text": "Skills: javascript, k8s, nlp, swift, git, reactjs, docker, next.js, typescript, graphql, ansible, jest\nMaintained systems written in docker with ansible.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "ansible",
+      "docker",
+      "git",
+      "graphql",
+      "javascript",
+      "jest",
+      "kubernetes",
+      "next.js",
+      "nlp",
+      "react",
+      "swift",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0003",
+    "text": "Skills: hadoop, dbt, git, python, rest, snowflake\nBuilt services using dbt and python.\nDocumented architecture decisions for the wider team.\nWorked daily with hadoop, git and rest.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "dbt",
+      "git",
+      "hadoop",
+      "python",
+      "rest",
+      "snowflake"
+    ]
+  },
+  {
+    "id": "cand-0004",
+    "text": "Skills: sql, dbt, figma, spark, sklearn, pandas, java, redux, pytorch, tensorflow\nMaintained systems written in java with pandas.\nReviewed code and mentored junior colleagues.\nWorked daily with pytorch, scikit-learn and redux.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "dbt",
+      "figma",
+      "java",
+      "pandas",
+      "pytorch",
+      "redux",
+      "scikit-learn",
+      "spark",
+      "sql",
+      "tensorflow"
+    ]
+  },
+  {
+    "id": "cand-0005",
+    "text": "Skills: jenkins, aws, ci/cd, git, helm, kotlin, react native, redis, prometheus, nginx, terraform, grafana, linux, docker\nMaintained systems written in prometheus with linux.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "aws",
+      "ci/cd",
+      "docker",
+      "git",
+      "grafana",
+      "helm",
+      "jenkins",
+      "kotlin",
+      "linux",
+      "nginx",
+      "prometheus",
+      "react native",
+      "redis",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0006",
+    "text": "Skills: react native, docker, ios, python, kotlin, git, android, k8s, firebase, graphql, machine learning, swift, java\nDesigned and shipped a project with react native.\nImproved reliability and reduced incident response time.\nBuilt services using docker and android.\nDocumented architecture decisions for the wider team.\nDesigned and shipped a project with react native.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "android",
+      "docker",
+      "firebase",
+      "git",
+      "graphql",
+      "ios",
+      "java",
+      "kotlin",
+      "kubernetes",
+      "machine learning",
+      "python",
+      "react native",
+      "swift"
+    ]
+  },
+  {
+    "id": "cand-0007",
+    "text": "Skills: graphql, python3, redis, git, k8s, aws, fastapi, kafka, java, rest, flutter\nBuilt services using flutter and kafka.\nReviewed code and mentored junior colleagues.\nBuilt services using flutter and kubernetes.\nCollaborated with product and design teams on quarterly planning.\nMaintained systems written in flutter with python.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "aws",
+      "fastapi",
+      "flutter",
+      "git",
+      "graphql",
+      "java",
+      "kafka",
+      "kubernetes",
+      "python",
+      "redis",
+      "rest"
+    ]
+  },
+  {
+    "id": "cand-0008",
+    "text": "Skills: typescript, next.js, nodejs, machine learning, numpy, tf, javascript, figma, jest, vue.js, nlp, flutter, docker, pandas, scikit-learn, html, deep learning, css\nWorked daily with flutter, machine learning and figma.\nDelivered features on schedule in an agile environment.\nBuilt services using css and nlp.\nImproved reliability and reduced incident response time.\nBuilt services using pandas and machine learning.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "css",
+      "deep learning",
+      "docker",
+      "figma",
+      "flutter",
+      "html",
+      "javascript",
+      "jest",
+      "machine learning",
+      "next.js",
+      "nlp",
+      "node.js",
+      "numpy",
+      "pandas",
+      "scikit-learn",
+      "tensorflow",
+      "typescript",
+      "vue.js"
+    ]
+  },
+  {
+    "id": "cand-0009",
+    "text": "Skills: kafka, snowflake, docker, typescript, airflow, pandas, android, terraform, ci/cd, spark, redux, kubernetes, dbt, bigquery, react native, sql\nDesigned and shipped a project with dbt.\nDelivered features on schedule in an agile environment.\nBuilt services using bigquery and snowflake.\nDocumented architecture decisions for the wider team.\nWorked daily with react native, sql and typescript.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "airflow",
+      "android",
+      "bigquery",
+      "ci/cd",
+      "dbt",
+      "docker",
+      "kafka",
+      "kubernetes",
+      "pandas",
+      "react native",
+      "redux",
+      "snowflake",
+      "spark",
+      "sql",
+      "terraform",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0010",
+    "text": "Skills: tensorflow, prometheus, pytorch, pandas, html, ml, git, react native, kafka, terraform, deep learning\nMaintained systems written in kafka with html.\nDelivered features on schedule in an agile environment.\nDesigned and shipped a project with tensorflow.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "deep learning",
+      "git",
+      "html",
+      "kafka",
+      "machine learning",
+      "pandas",
+      "prometheus",
+      "pytorch",
+      "react native",
+      "tensorflow",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0011",
+    "text": "Skills: ansible, pytorch, aws, next.js, helm, terraform, ci/cd, linux, git, docker, react, grafana, jenkins, kubernetes\nWorked daily with jenkins, grafana and ansible.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "ansible",
+      "aws",
+      "ci/cd",
+      "docker",
+      "git",
+      "grafana",
+      "helm",
+      "jenkins",
+      "kubernetes",
+      "linux",
+      "next.js",
+      "pytorch",
+      "react",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0012",
+    "text": "Skills: ios, postgresql, pandas, spark, css, pytorch, react native, graphql\nDesigned and shipped a project with spark.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "css",
+      "graphql",
+      "ios",
+      "pandas",
+      "postgresql",
+      "pytorch",
+      "react native",
+      "spark"
+    ]
+  },
+  {
+    "id": "cand-0013",
+    "text": "Skills: git, flutter, jenkins, bigquery, docker, mongo, machine learning, k8s, fastapi, python, sql, django, aws, rest, tensorflow\nBuilt services using machine learning and rest.\nImproved reliability and reduced incident response time.\nDesigned and shipped a project with docker.\nImproved reliability and reduced incident response time.\nBuilt services using bigquery and django.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "aws",
+      "bigquery",
+      "django",
+      "docker",
+      "fastapi",
+      "flutter",
+      "git",
+      "jenkins",
+      "kubernetes",
+      "machine learning",
+      "mongodb",
+      "python",
+      "rest",
+      "sql",
+      "tensorflow"
+    ]
+  },
+  {
+    "id": "cand-0014",
+    "text": "Skills: javascript, jest, graphql, flutter, css, docker, git, html, react, ios, linux, redux, vue.js, tf\nWorked daily with redux, graphql and html.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "css",
+      "docker",
+      "flutter",
+      "git",
+      "graphql",
+      "html",
+      "ios",
+      "javascript",
+      "jest",
+      "linux",
+      "react",
+      "redux",
+      "tensorflow",
+      "vue.js"
+    ]
+  },
+  {
+    "id": "cand-0015",
+    "text": "Skills: sql, python, postgresql, android, pandas, terraform, git, graphql, spark\nMaintained systems written in sql with pandas.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "android",
+      "git",
+      "graphql",
+      "pandas",
+      "postgresql",
+      "python",
+      "spark",
+      "sql",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0016",
+    "text": "Skills: aws, docker, pytorch, deep learning, nlp, kafka, machine learning, flutter, numpy, pandas\nWorked daily with aws, pytorch and kafka.\nReviewed code and mentored junior colleagues.\nDesigned and shipped a project with pandas.\nReviewed code and mentored junior colleagues.\nWorked daily with machine learning, nlp and kafka.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "aws",
+      "deep learning",
+      "docker",
+      "flutter",
+      "kafka",
+      "machine learning",
+      "nlp",
+      "numpy",
+      "pandas",
+      "pytorch"
+    ]
+  },
+  {
+    "id": "cand-0017",
+    "text": "Skills: ci/cd, linux, py, docker, terraform, k8s, git, helm\nDesigned and shipped a project with helm.\nReviewed code and mentored junior colleagues.\nMaintained systems written in linux with terraform.\nCollaborated with product and design teams on quarterly planning.\nBuilt services using docker and kubernetes.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "ci/cd",
+      "docker",
+      "git",
+      "helm",
+      "kubernetes",
+      "linux",
+      "python",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0018",
+    "text": "Skills: git, graphql, kubernetes, tf, flutter, rest, postgresql, firebase, swift, ci/cd, ansible\nBuilt services using postgresql and swift.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "ansible",
+      "ci/cd",
+      "firebase",
+      "flutter",
+      "git",
+      "graphql",
+      "kubernetes",
+      "postgresql",
+      "rest",
+      "swift",
+      "tensorflow"
+    ]
+  },
+  {
+    "id": "cand-0019",
+    "text": "Skills: postgres, numpy, snowflake, docker, redis, sql, figma, redux, fastapi, graphql, kafka, git, nlp, scikit-learn, java\nWorked daily with postgresql, nlp and kafka.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "docker",
+      "fastapi",
+      "figma",
+      "git",
+      "graphql",
+      "java",
+      "kafka",
+      "nlp",
+      "numpy",
+      "postgresql",
+      "redis",
+      "redux",
+      "scikit-learn",
+      "snowflake",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0020",
+    "text": "Skills: figma, css, next.js, redis, prometheus, graphql, html, git, typescript\nDesigned and shipped a project with html.\nImproved reliability and reduced incident response time.\nBuilt services using graphql and git.\nImproved reliability and reduced incident response time.\nWorked daily with redis, graphql and next.js.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "css",
+      "figma",
+      "git",
+      "graphql",
+      "html",
+      "next.js",
+      "prometheus",
+      "redis",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0021",
+    "text": "Skills: java, flutter, graphql, kafka, snowflake, tf, react, redis, rest, css, postgresql, git, docker, deep learning, dbt, airflow, aws, py, sql\nMaintained systems written in tensorflow with postgresql.\nDocumented architecture decisions for the wider team.\nMaintained systems written in graphql with css.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "airflow",
+      "aws",
+      "css",
+      "dbt",
+      "deep learning",
+      "docker",
+      "flutter",
+      "git",
+      "graphql",
+      "java",
+      "kafka",
+      "postgresql",
+      "python",
+      "react",
+      "redis",
+      "rest",
+      "snowflake",
+      "sql",
+      "tensorflow"
+    ]
+  },
+  {
+    "id": "cand-0022",
+    "text": "Skills: python, reactjs, ansible, pytorch, grafana, linux, aws, ci/cd, spark, pandas, sql, rest, machine learning, firebase, git, next.js, redux, docker\nMaintained systems written in rest with pytorch.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "ansible",
+      "aws",
+      "ci/cd",
+      "docker",
+      "firebase",
+      "git",
+      "grafana",
+      "linux",
+      "machine learning",
+      "next.js",
+      "pandas",
+      "python",
+      "pytorch",
+      "react",
+      "redux",
+      "rest",
+      "spark",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0023",
+    "text": "Skills: rest, terraform, kubernetes, git, python, helm, javascript, bigquery, sklearn, next.js, prometheus, jenkins\nBuilt services using prometheus and javascript.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "bigquery",
+      "git",
+      "helm",
+      "javascript",
+      "jenkins",
+      "kubernetes",
+      "next.js",
+      "prometheus",
+      "python",
+      "rest",
+      "scikit-learn",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0024",
+    "text": "Skills: k8s, graphql, android, aws, ios, swift, react native, firebase, kotlin, java, rest\nWorked daily with ios, swift and graphql.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "firebase",
+      "graphql",
+      "ios",
+      "java",
+      "kotlin",
+      "kubernetes",
+      "react native",
+      "rest",
+      "swift"
+    ]
+  },
+  {
+    "id": "cand-0025",
+    "text": "Skills: terraform, java, ios, redis, aws, rest, flutter, fastapi, numpy, docker, mongodb, sql, dbt, postgresql, git, py\nDesigned and shipped a project with java.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "aws",
+      "dbt",
+      "docker",
+      "fastapi",
+      "flutter",
+      "git",
+      "ios",
+      "java",
+      "mongodb",
+      "numpy",
+      "postgresql",
+      "python",
+      "redis",
+      "rest",
+      "sql",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0026",
+    "text": "Skills: redux, prometheus, redis, pytorch, javascript, next.js, figma, docker, tensorflow, deep learning, numpy, graphql, machine learning, pandas, kotlin, python3, react, vue.js, aws\nWorked daily with javascript, vue.js and numpy.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "aws",
+      "deep learning",
+      "docker",
+      "figma",
+      "graphql",
+      "javascript",
+      "kotlin",
+      "machine learning",
+      "next.js",
+      "numpy",
+      "pandas",
+      "prometheus",
+      "python",
+      "pytorch",
+      "react",
+      "redis",
+      "redux",
+      "tensorflow",
+      "vue.js"
+    ]
+  },
+  {
+    "id": "cand-0027",
+    "text": "Skills: flutter, docker, redis, tf, kafka, javascript, prometheus, next.js, terraform, bigquery, git, sql\nBuilt services using terraform and tensorflow.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "bigquery",
+      "docker",
+      "flutter",
+      "git",
+      "javascript",
+      "kafka",
+      "next.js",
+      "prometheus",
+      "redis",
+      "sql",
+      "tensorflow",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0028",
+    "text": "Skills: rest, git, nlp, deep learning, ansible, aws, python, k8s, numpy, prometheus, docker, pandas, machine learning\nDesigned and shipped a project with docker.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "ansible",
+      "aws",
+      "deep learning",
+      "docker",
+      "git",
+      "kubernetes",
+      "machine learning",
+      "nlp",
+      "numpy",
+      "pandas",
+      "prometheus",
+      "python",
+      "rest"
+    ]
+  },
+  {
+    "id": "cand-0029",
+    "text": "Skills: prometheus, rest, nlp, git, terraform, azure, aws, helm, jenkins, ansible, docker, python3, ci/cd, sklearn, nginx, kubernetes\nBuilt services using prometheus and jenkins.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "ansible",
+      "aws",
+      "azure",
+      "ci/cd",
+      "docker",
+      "git",
+      "helm",
+      "jenkins",
+      "kubernetes",
+      "nginx",
+      "nlp",
+      "prometheus",
+      "python",
+      "rest",
+      "scikit-learn",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0030",
+    "text": "Skills: dbt, pytorch, firebase, flutter, next.js, kafka, docker, android, linux, git, snowflake, react native, kotlin, sql, aws, ios, bigquery\nMaintained systems written in dbt with sql.\nReviewed code and mentored junior colleagues.\nMaintained systems written in pytorch with flutter.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "bigquery",
+      "dbt",
+      "docker",
+      "firebase",
+      "flutter",
+      "git",
+      "ios",
+      "kafka",
+      "kotlin",
+      "linux",
+      "next.js",
+      "pytorch",
+      "react native",
+      "snowflake",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0031",
+    "text": "Skills: aws, python, java, docker, graphql, postgresql, ts, fastapi, kubernetes, mongodb, sql, redis, jenkins, kafka, next.js, rest\nBuilt services using docker and next.js.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "aws",
+      "docker",
+      "fastapi",
+      "graphql",
+      "java",
+      "jenkins",
+      "kafka",
+      "kubernetes",
+      "mongodb",
+      "next.js",
+      "postgresql",
+      "python",
+      "redis",
+      "rest",
+      "sql",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0032",
+    "text": "Skills: javascript es6, angular, numpy, git, sql, html, jest, prometheus, redux\nMaintained systems written in prometheus with numpy.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "angular",
+      "git",
+      "html",
+      "javascript",
+      "jest",
+      "numpy",
+      "prometheus",
+      "redux",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0033",
+    "text": "Skills: sql, java, spark, grafana, dbt, python, airflow, pandas, aws, react native, docker\nBuilt services using aws and dbt.\nReviewed code and mentored junior colleagues.\nWorked daily with grafana, python and airflow.\nImproved reliability and reduced incident response time.\nDesigned and shipped a project with spark.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "airflow",
+      "aws",
+      "dbt",
+      "docker",
+      "grafana",
+      "java",
+      "pandas",
+      "python",
+      "react native",
+      "spark",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0034",
+    "text": "Skills: css, ml, swift, nlp, dbt, flutter, aws, docker, scikit-learn, ios, deep learning, rest, kotlin, tensorflow, html, terraform, javascript, python\nMaintained systems written in aws with python.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "aws",
+      "css",
+      "dbt",
+      "deep learning",
+      "docker",
+      "flutter",
+      "html",
+      "ios",
+      "javascript",
+      "kotlin",
+      "machine learning",
+      "nlp",
+      "python",
+      "rest",
+      "scikit-learn",
+      "swift",
+      "tensorflow",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0035",
+    "text": "Skills: dbt, react native, ios, prometheus, grafana, aws, helm, rest, jenkins, nginx, linux, python, kotlin, flutter, redis, git, firebase, gcp, nlp\nMaintained systems written in linux with jenkins.\nDocumented architecture decisions for the wider team.\nWorked daily with rest, ios and redis.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "aws",
+      "dbt",
+      "firebase",
+      "flutter",
+      "gcp",
+      "git",
+      "grafana",
+      "helm",
+      "ios",
+      "jenkins",
+      "kotlin",
+      "linux",
+      "nginx",
+      "nlp",
+      "prometheus",
+      "python",
+      "react native",
+      "redis",
+      "rest"
+    ]
+  },
+  {
+    "id": "cand-0036",
+    "text": "Skills: python, ios, css, numpy, react, react native, android, jenkins, flutter\nDesigned and shipped a project with react.\nReviewed code and mentored junior colleagues.\nDesigned and shipped a project with css.\nDelivered features on schedule in an agile environment.\nDesigned and shipped a project with numpy.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "android",
+      "css",
+      "flutter",
+      "ios",
+      "jenkins",
+      "numpy",
+      "python",
+      "react",
+      "react native"
+    ]
+  },
+  {
+    "id": "cand-0037",
+    "text": "Skills: fastapi, graphql, redis, mongodb, sql, docker, python, java, rest, spark, postgres\nDesigned and shipped a project with java.\nImproved reliability and reduced incident response time.\nBuilt services using rest and mongodb.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "docker",
+      "fastapi",
+      "graphql",
+      "java",
+      "mongodb",
+      "postgresql",
+      "python",
+      "redis",
+      "rest",
+      "spark",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0038",
+    "text": "Skills: jenkins, javascript, helm, jest, figma, next.js, nodejs, git, terraform, ci/cd, snowflake, graphql, rest, postgres, linux, aws, css, html, firebase\nMaintained systems written in figma with rest.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "aws",
+      "ci/cd",
+      "css",
+      "figma",
+      "firebase",
+      "git",
+      "graphql",
+      "helm",
+      "html",
+      "javascript",
+      "jenkins",
+      "jest",
+      "linux",
+      "next.js",
+      "node.js",
+      "postgresql",
+      "rest",
+      "snowflake",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0039",
+    "text": "Skills: git, postgres, ml, rest, snowflake, kafka, bigquery, terraform, css, dbt, redis, sql, docker, kubernetes, firebase, react native\nMaintained systems written in sql with css.\nDelivered features on schedule in an agile environment.\nMaintained systems written in snowflake with terraform.\nDocumented architecture decisions for the wider team.\nWorked daily with sql, git and rest.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "bigquery",
+      "css",
+      "dbt",
+      "docker",
+      "firebase",
+      "git",
+      "kafka",
+      "kubernetes",
+      "machine learning",
+      "postgresql",
+      "react native",
+      "redis",
+      "rest",
+      "snowflake",
+      "sql",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0040",
+    "text": "Skills: docker, javascript, tf, deep learning, airflow, java, pandas\nBuilt services using deep learning and pandas.\nReviewed code and mentored junior colleagues.\nMaintained systems written in airflow with pandas.\nReviewed code and mentored junior colleagues.\nBuilt services using deep learning and airflow.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "airflow",
+      "deep learning",
+      "docker",
+      "java",
+      "javascript",
+      "pandas",
+      "tensorflow"
+    ]
+  },
+  {
+    "id": "cand-0041",
+    "text": "Skills: ansible, rest, ci/cd, python3, docker, terraform, gcp, linux, redis, kubernetes, git\nWorked daily with kubernetes, ansible and ci/cd.\nCollaborated with product and design teams on quarterly planning.\nMaintained systems written in python with redis.\nDelivered features on schedule in an agile environment.\nMaintained systems written in redis with git.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "ansible",
+      "ci/cd",
+      "docker",
+      "gcp",
+      "git",
+      "kubernetes",
+      "linux",
+      "python",
+      "redis",
+      "rest",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0042",
+    "text": "Skills: rest, kubernetes, swift, ios, docker, graphql, android, aws, dbt, git, ml, terraform, flutter\nBuilt services using machine learning and aws.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "dbt",
+      "docker",
+      "flutter",
+      "git",
+      "graphql",
+      "ios",
+      "kubernetes",
+      "machine learning",
+      "rest",
+      "swift",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0043",
+    "text": "Skills: rest, helm, docker, javascript, git, kafka, html, flutter, sql, aws, java, kubernetes\nWorked daily with java, sql and flutter.\nDocumented architecture decisions for the wider team.\nMaintained systems written in aws with git.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "aws",
+      "docker",
+      "flutter",
+      "git",
+      "helm",
+      "html",
+      "java",
+      "javascript",
+      "kafka",
+      "kubernetes",
+      "rest",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0044",
+    "text": "Skills: kubernetes, typescript, snowflake, spark, next.js, html, aws, ml, graphql, css, git, react, java, js\nDesigned and shipped a project with java.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "aws",
+      "css",
+      "git",
+      "graphql",
+      "html",
+      "java",
+      "javascript",
+      "kubernetes",
+      "machine learning",
+      "next.js",
+      "react",
+      "snowflake",
+      "spark",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0045",
+    "text": "Skills: dbt, grafana, rest, postgresql, javascript es6, figma, aws, hadoop, reactjs, kafka, docker, typescript, python, bigquery\nWorked daily with dbt, kafka and typescript.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "aws",
+      "bigquery",
+      "dbt",
+      "docker",
+      "figma",
+      "grafana",
+      "hadoop",
+      "javascript",
+      "kafka",
+      "postgresql",
+      "python",
+      "react",
+      "rest",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0046",
+    "text": "Skills: git, react native, sql, ios, docker, linux, swift, android, spark, scikit-learn, rest, graphql, kotlin, prometheus, html, pandas\nMaintained systems written in kotlin with ios.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "android",
+      "docker",
+      "git",
+      "graphql",
+      "html",
+      "ios",
+      "kotlin",
+      "linux",
+      "pandas",
+      "prometheus",
+      "react native",
+      "rest",
+      "scikit-learn",
+      "spark",
+      "sql",
+      "swift"
+    ]
+  },
+  {
+    "id": "cand-0047",
+    "text": "Skills: swift, figma, prometheus, css, html, ci/cd, aws, helm, graphql, jenkins, git, redux, python, kubernetes\nDesigned and shipped a project with html.\nImproved reliability and reduced incident response time.\nMaintained systems written in graphql with redux.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "aws",
+      "ci/cd",
+      "css",
+      "figma",
+      "git",
+      "graphql",
+      "helm",
+      "html",
+      "jenkins",
+      "kubernetes",
+      "prometheus",
+      "python",
+      "redux",
+      "swift"
+    ]
+  },
+  {
+    "id": "cand-0048",
+    "text": "Skills: android, rest, graphql, jenkins, ios, flutter, react, ansible, firebase, kotlin, git, python, terraform, docker\nBuilt services using react and firebase.\nDocumented architecture decisions for the wider team.\nBuilt services using docker and kotlin.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "android",
+      "ansible",
+      "docker",
+      "firebase",
+      "flutter",
+      "git",
+      "graphql",
+      "ios",
+      "jenkins",
+      "kotlin",
+      "python",
+      "react",
+      "rest",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0049",
+    "text": "Skills: django, graphql, java, redis, prometheus, git, react native, fastapi, swift, terraform, docker, spring, ios, kotlin, sql, firebase\nDesigned and shipped a project with kotlin.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "django",
+      "docker",
+      "fastapi",
+      "firebase",
+      "git",
+      "graphql",
+      "ios",
+      "java",
+      "kotlin",
+      "prometheus",
+      "react native",
+      "redis",
+      "spring",
+      "sql",
+      "swift",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0050",
+    "text": "Skills: pandas, kubernetes, graphql, css, js, redux, next.js, docker, git, aws, figma\nDesigned and shipped a project with pandas.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "aws",
+      "css",
+      "docker",
+      "figma",
+      "git",
+      "graphql",
+      "javascript",
+      "kubernetes",
+      "next.js",
+      "pandas",
+      "redux"
+    ]
+  },
+  {
+    "id": "cand-0051",
+    "text": "Skills: ios, bigquery, pandas, docker, airflow, grafana, kubernetes, graphql, aws, swift, html, flutter, android, spark, sql, terraform, react, rest\nDesigned and shipped a project with pandas.\nCollaborated with product and design teams on quarterly planning.\nBuilt services using html and rest.\nReviewed code and mentored junior colleagues.\nWorked daily with html, rest and terraform.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "airflow",
+      "android",
+      "aws",
+      "bigquery",
+      "docker",
+      "flutter",
+      "grafana",
+      "graphql",
+      "html",
+      "ios",
+      "kubernetes",
+      "pandas",
+      "react",
+      "rest",
+      "spark",
+      "sql",
+      "swift",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0052",
+    "text": "Skills: spark, ios, docker, aws, kubernetes, pandas, sklearn, swift, nlp, numpy, kafka, deep learning, helm, graphql, python, css\nBuilt services using spark and numpy.\nDelivered features on schedule in an agile environment.\nDesigned and shipped a project with deep learning.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "aws",
+      "css",
+      "deep learning",
+      "docker",
+      "graphql",
+      "helm",
+      "ios",
+      "kafka",
+      "kubernetes",
+      "nlp",
+      "numpy",
+      "pandas",
+      "python",
+      "scikit-learn",
+      "spark",
+      "swift"
+    ]
+  },
+  {
+    "id": "cand-0053",
+    "text": "Skills: machine learning, docker, flutter, kafka, pandas, git, aws, rest, gcp, kubernetes, ansible, jenkins, snowflake, java, linux\nWorked daily with docker, kubernetes and linux.\nDocumented architecture decisions for the wider team.\nBuilt services using ansible and linux.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "ansible",
+      "aws",
+      "docker",
+      "flutter",
+      "gcp",
+      "git",
+      "java",
+      "jenkins",
+      "kafka",
+      "kubernetes",
+      "linux",
+      "machine learning",
+      "pandas",
+      "rest",
+      "snowflake"
+    ]
+  },
+  {
+    "id": "cand-0054",
+    "text": "Skills: redux, react native, rest, flutter, android, k8s, scikit-learn, css, swift, ts\nBuilt services using typescript and css.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "android",
+      "css",
+      "flutter",
+      "kubernetes",
+      "react native",
+      "redux",
+      "rest",
+      "scikit-learn",
+      "swift",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0055",
+    "text": "Skills: git, sql, rest, jenkins, pytorch, tensorflow, typescript, redux, redis, kafka, figma, aws\nDesigned and shipped a project with pytorch.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "aws",
+      "figma",
+      "git",
+      "jenkins",
+      "kafka",
+      "pytorch",
+      "redis",
+      "redux",
+      "rest",
+      "sql",
+      "tensorflow",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0056",
+    "text": "Skills: graphql, bigquery, flutter, git, css, firebase, postgresql, helm, typescript, machine learning, redux, sql, react, spark, python, java, docker\nMaintained systems written in bigquery with react.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "bigquery",
+      "css",
+      "docker",
+      "firebase",
+      "flutter",
+      "git",
+      "graphql",
+      "helm",
+      "java",
+      "machine learning",
+      "postgresql",
+      "python",
+      "react",
+      "redux",
+      "spark",
+      "sql",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0057",
+    "text": "Skills: rest, kubernetes, python, ios, postgres, dbt, aws, deep learning, docker, airflow, helm, kafka, nlp, reactjs\nMaintained systems written in aws with dbt.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "airflow",
+      "aws",
+      "dbt",
+      "deep learning",
+      "docker",
+      "helm",
+      "ios",
+      "kafka",
+      "kubernetes",
+      "nlp",
+      "postgresql",
+      "python",
+      "react",
+      "rest"
+    ]
+  },
+  {
+    "id": "cand-0058",
+    "text": "Skills: nlp, ci/cd, python, pytorch, scikit-learn, git, graphql, pandas, sql, docker, android, typescript, aws, spark\nMaintained systems written in spark with pytorch.\nDocumented architecture decisions for the wider team.\nWorked daily with docker, pandas and nlp.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "ci/cd",
+      "docker",
+      "git",
+      "graphql",
+      "nlp",
+      "pandas",
+      "python",
+      "pytorch",
+      "scikit-learn",
+      "spark",
+      "sql",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0059",
+    "text": "Skills: prometheus, ci/cd, jenkins, bigquery, grafana, ansible, terraform, azure, aws, linux, k8s, javascript, docker, git, pytorch, sql, python\nBuilt services using python and javascript.\nDocumented architecture decisions for the wider team.\nBuilt services using javascript and pytorch.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "ansible",
+      "aws",
+      "azure",
+      "bigquery",
+      "ci/cd",
+      "docker",
+      "git",
+      "grafana",
+      "javascript",
+      "jenkins",
+      "kubernetes",
+      "linux",
+      "prometheus",
+      "python",
+      "pytorch",
+      "sql",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0060",
+    "text": "Skills: firebase, graphql, kotlin, java, spark, flutter, swift, deep learning, android, git\nMaintained systems written in git with kotlin.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "android",
+      "deep learning",
+      "firebase",
+      "flutter",
+      "git",
+      "graphql",
+      "java",
+      "kotlin",
+      "spark",
+      "swift"
+    ]
+  },
+  {
+    "id": "cand-0061",
+    "text": "Skills: java, aws, python, kubernetes, ansible, rest, django, ci/cd, docker, machine learning, git, deep learning, redis, html, postgres, sql\nWorked daily with python, postgresql and machine learning.\nCollaborated with product and design teams on quarterly planning.\nWorked daily with html, git and ansible.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "ansible",
+      "aws",
+      "ci/cd",
+      "deep learning",
+      "django",
+      "docker",
+      "git",
+      "html",
+      "java",
+      "kubernetes",
+      "machine learning",
+      "postgresql",
+      "python",
+      "redis",
+      "rest",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0062",
+    "text": "Skills: docker, python, android, javascript, next.js, redux, graphql, snowflake, aws, redis, react native, git, html, css\nDesigned and shipped a project with docker.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "css",
+      "docker",
+      "git",
+      "graphql",
+      "html",
+      "javascript",
+      "next.js",
+      "python",
+      "react native",
+      "redis",
+      "redux",
+      "snowflake"
+    ]
+  },
+  {
+    "id": "cand-0063",
+    "text": "Skills: aws, postgres, graphql, bigquery, python, redis, sql, docker, dbt, nlp, kafka, git, ci/cd, hadoop, spark\nMaintained systems written in kafka with hadoop.\nImproved reliability and reduced incident response time.\nBuilt services using hadoop and sql.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "aws",
+      "bigquery",
+      "ci/cd",
+      "dbt",
+      "docker",
+      "git",
+      "graphql",
+      "hadoop",
+      "kafka",
+      "nlp",
+      "postgresql",
+      "python",
+      "redis",
+      "spark",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0064",
+    "text": "Skills: bigquery, tf, python, pytorch, sql, pandas, nlp, rest, kotlin, spark, git, scikit-learn, docker, numpy\nBuilt services using rest and kotlin.\nImproved reliability and reduced incident response time.\nDesigned and shipped a project with rest.\nImproved reliability and reduced incident response time.\nBuilt services using bigquery and numpy.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "bigquery",
+      "docker",
+      "git",
+      "kotlin",
+      "nlp",
+      "numpy",
+      "pandas",
+      "python",
+      "pytorch",
+      "rest",
+      "scikit-learn",
+      "spark",
+      "sql",
+      "tensorflow"
+    ]
+  },
+  {
+    "id": "cand-0065",
+    "text": "Skills: pytorch, grafana, terraform, linux, helm, k8s, rest, prometheus, jenkins, ios, docker, kafka, bigquery, aws, react native, scikit-learn, git, firebase\nDesigned and shipped a project with rest.\nImproved reliability and reduced incident response time.\nBuilt services using prometheus and bigquery.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "aws",
+      "bigquery",
+      "docker",
+      "firebase",
+      "git",
+      "grafana",
+      "helm",
+      "ios",
+      "jenkins",
+      "kafka",
+      "kubernetes",
+      "linux",
+      "prometheus",
+      "pytorch",
+      "react native",
+      "rest",
+      "scikit-learn",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0066",
+    "text": "Skills: android, sql, rest, firebase, ios, docker, python, git, flutter, kotlin, pytorch, ml\nDesigned and shipped a project with android.\nReviewed code and mentored junior colleagues.\nWorked daily with ios, firebase and rest.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "android",
+      "docker",
+      "firebase",
+      "flutter",
+      "git",
+      "ios",
+      "kotlin",
+      "machine learning",
+      "python",
+      "pytorch",
+      "rest",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0067",
+    "text": "Skills: git, redis, py, android, graphql, redux, k8s, mongodb, kafka\nMaintained systems written in graphql with android.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "android",
+      "git",
+      "graphql",
+      "kafka",
+      "kubernetes",
+      "mongodb",
+      "python",
+      "redis",
+      "redux"
+    ]
+  },
+  {
+    "id": "cand-0068",
+    "text": "Skills: git, figma, next.js, kafka, react, flutter, redux, redis, python3, node.js, graphql, firebase, ts, angular\nDesigned and shipped a project with angular.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "angular",
+      "figma",
+      "firebase",
+      "flutter",
+      "git",
+      "graphql",
+      "kafka",
+      "next.js",
+      "node.js",
+      "python",
+      "react",
+      "redis",
+      "redux",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0069",
+    "text": "Skills: dbt, html, pytorch, python3, javascript, docker, git, airflow, css, kafka\nDesigned and shipped a project with javascript.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "airflow",
+      "css",
+      "dbt",
+      "docker",
+      "git",
+      "html",
+      "javascript",
+      "kafka",
+      "python",
+      "pytorch"
+    ]
+  },
+  {
+    "id": "cand-0070",
+    "text": "Skills: redux, tensorflow, machine learning, sql, terraform, sklearn, jenkins, deep learning, numpy, html, pandas, git, docker, ansible, py, react native\nWorked daily with tensorflow, deep learning and jenkins.\nReviewed code and mentored junior colleagues.\nWorked daily with tensorflow, numpy and redux.\nDelivered features on schedule in an agile environment.\nWorked daily with machine learning, terraform and pandas.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "ansible",
+      "deep learning",
+      "docker",
+      "git",
+      "html",
+      "jenkins",
+      "machine learning",
+      "numpy",
+      "pandas",
+      "python",
+      "react native",
+      "redux",
+      "scikit-learn",
+      "sql",
+      "tensorflow",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0071",
+    "text": "Skills: docker, git, helm, machine learning, airflow, deep learning, terraform, ci/cd, kubernetes\nMaintained systems written in deep learning with kubernetes.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "airflow",
+      "ci/cd",
+      "deep learning",
+      "docker",
+      "git",
+      "helm",
+      "kubernetes",
+      "machine learning",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0072",
+    "text": "Skills: redis, swift, redux, graphql, sklearn, typescript, reactjs, android, flutter, git, grafana, aws, ios, sql\nDesigned and shipped a project with git.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "flutter",
+      "git",
+      "grafana",
+      "graphql",
+      "ios",
+      "react",
+      "redis",
+      "redux",
+      "scikit-learn",
+      "sql",
+      "swift",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0073",
+    "text": "Skills: figma, sql, terraform, spark, react native, git, linux, java, airflow, docker, kubernetes, grafana, mongodb\nWorked daily with java, git and linux.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "airflow",
+      "docker",
+      "figma",
+      "git",
+      "grafana",
+      "java",
+      "kubernetes",
+      "linux",
+      "mongodb",
+      "react native",
+      "spark",
+      "sql",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0074",
+    "text": "Skills: git, vue.js, jenkins, kubernetes, py, node.js, graphql, jest, kafka, scikit-learn, next.js, javascript, react, swift\nMaintained systems written in jest with git.\nImproved reliability and reduced incident response time.\nBuilt services using kafka and scikit-learn.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "git",
+      "graphql",
+      "javascript",
+      "jenkins",
+      "jest",
+      "kafka",
+      "kubernetes",
+      "next.js",
+      "node.js",
+      "python",
+      "react",
+      "scikit-learn",
+      "swift",
+      "vue.js"
+    ]
+  },
+  {
+    "id": "cand-0075",
+    "text": "Skills: docker, android, ios, airflow, ansible, aws, redis, spark, snowflake, postgres, bigquery\nMaintained systems written in airflow with android.\nDocumented architecture decisions for the wider team.\nWorked daily with aws, docker and ansible.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "airflow",
+      "android",
+      "ansible",
+      "aws",
+      "bigquery",
+      "docker",
+      "ios",
+      "postgresql",
+      "redis",
+      "snowflake",
+      "spark"
+    ]
+  },
+  {
+    "id": "cand-0076",
+    "text": "Skills: sql, ml, deep learning, nlp, rest, pandas, aws, python, flutter, jenkins, git, docker, react, pytorch, dbt, grafana, tensorflow\nBuilt services using jenkins and pytorch.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "aws",
+      "dbt",
+      "deep learning",
+      "docker",
+      "flutter",
+      "git",
+      "grafana",
+      "jenkins",
+      "machine learning",
+      "nlp",
+      "pandas",
+      "python",
+      "pytorch",
+      "react",
+      "rest",
+      "sql",
+      "tensorflow"
+    ]
+  },
+  {
+    "id": "cand-0077",
+    "text": "Skills: ci/cd, swift, nginx, snowflake, ansible, docker, kubernetes, git, linux, grafana, prometheus, py, helm\nMaintained systems written in nginx with ansible.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "ansible",
+      "ci/cd",
+      "docker",
+      "git",
+      "grafana",
+      "helm",
+      "kubernetes",
+      "linux",
+      "nginx",
+      "prometheus",
+      "python",
+      "snowflake",
+      "swift"
+    ]
+  },
+  {
+    "id": "cand-0078",
+    "text": "Skills: ios, ts, react native, git, firebase, rest, swift, flutter, kotlin\nBuilt services using rest and firebase.\nCollaborated with product and design teams on quarterly planning.\nDesigned and shipped a project with firebase.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "firebase",
+      "flutter",
+      "git",
+      "ios",
+      "kotlin",
+      "react native",
+      "rest",
+      "swift",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0079",
+    "text": "Skills: linux, sql, postgresql, swift, java, redis, spring, py, rest, docker, aws, mongo, git, graphql, kafka, tf\nBuilt services using git and swift.\nDelivered features on schedule in an agile environment.\nBuilt services using kafka and aws.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "aws",
+      "docker",
+      "git",
+      "graphql",
+      "java",
+      "kafka",
+      "linux",
+      "mongodb",
+      "postgresql",
+      "python",
+      "redis",
+      "rest",
+      "spring",
+      "sql",
+      "swift",
+      "tensorflow"
+    ]
+  },
+  {
+    "id": "cand-0080",
+    "text": "Skills: css, figma, javascript es6, react, tf, next.js, html, helm, pytorch, prometheus, flutter, git, typescript\nMaintained systems written in html with next.js.\nCollaborated with product and design teams on quarterly planning.\nMaintained systems written in css with tensorflow.\nDocumented architecture decisions for the wider team.\nBuilt services using helm and typescript.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "css",
+      "figma",
+      "flutter",
+      "git",
+      "helm",
+      "html",
+      "javascript",
+      "next.js",
+      "prometheus",
+      "pytorch",
+      "react",
+      "tensorflow",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0081",
+    "text": "Skills: snowflake, react, python, numpy, helm, hadoop, rest, dbt, docker, sql, aws, spark, git, android\nWorked daily with hadoop, snowflake and sql.\nDelivered features on schedule in an agile environment.\nBuilt services using aws and spark.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "dbt",
+      "docker",
+      "git",
+      "hadoop",
+      "helm",
+      "numpy",
+      "python",
+      "react",
+      "rest",
+      "snowflake",
+      "spark",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0082",
+    "text": "Skills: sklearn, numpy, pandas, pytorch, kafka, sql, typescript, spark, machine learning, python, nlp, tensorflow\nWorked daily with kafka, typescript and machine learning.\nImproved reliability and reduced incident response time.\nMaintained systems written in pandas with spark.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "kafka",
+      "machine learning",
+      "nlp",
+      "numpy",
+      "pandas",
+      "python",
+      "pytorch",
+      "scikit-learn",
+      "spark",
+      "sql",
+      "tensorflow",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0083",
+    "text": "Skills: aws, docker, nlp, figma, terraform, ci/cd, kubernetes, python, git, kafka, graphql, firebase\nMaintained systems written in git with docker.\nReviewed code and mentored junior colleagues.\nDesigned and shipped a project with aws.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "aws",
+      "ci/cd",
+      "docker",
+      "figma",
+      "firebase",
+      "git",
+      "graphql",
+      "kafka",
+      "kubernetes",
+      "nlp",
+      "python",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0084",
+    "text": "Skills: react native, deep learning, rest, machine learning, pandas, ios, kotlin, sql, android, graphql, python, aws, numpy, swift, pytorch, docker, flutter\nBuilt services using machine learning and swift.\nImproved reliability and reduced incident response time.\nDesigned and shipped a project with numpy.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "deep learning",
+      "docker",
+      "flutter",
+      "graphql",
+      "ios",
+      "kotlin",
+      "machine learning",
+      "numpy",
+      "pandas",
+      "python",
+      "pytorch",
+      "react native",
+      "rest",
+      "sql",
+      "swift"
+    ]
+  },
+  {
+    "id": "cand-0085",
+    "text": "Skills: redux, javascript es6, aws, sql, ts, graphql, css, python3, next.js, git, mongodb\nBuilt services using sql and next.js.\nImproved reliability and reduced incident response time.\nWorked daily with git, redux and typescript.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "aws",
+      "css",
+      "git",
+      "graphql",
+      "javascript",
+      "mongodb",
+      "next.js",
+      "python",
+      "redux",
+      "sql",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0086",
+    "text": "Skills: pytorch, node.js, rest, kafka, react native, figma, typescript, python, next.js, css, docker, graphql\nDesigned and shipped a project with docker.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "css",
+      "docker",
+      "figma",
+      "graphql",
+      "kafka",
+      "next.js",
+      "node.js",
+      "python",
+      "pytorch",
+      "react native",
+      "rest",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0087",
+    "text": "Skills: bigquery, dbt, graphql, aws, airflow, android, spark, postgresql, docker\nDesigned and shipped a project with dbt.\nReviewed code and mentored junior colleagues.\nMaintained systems written in android with spark.\nCollaborated with product and design teams on quarterly planning.\nMaintained systems written in docker with graphql.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "airflow",
+      "android",
+      "aws",
+      "bigquery",
+      "dbt",
+      "docker",
+      "graphql",
+      "postgresql",
+      "spark"
+    ]
+  },
+  {
+    "id": "cand-0088",
+    "text": "Skills: kubernetes, redis, ios, postgres, java, docker, ml, typescript, scikit-learn, sql, aws, git\nBuilt services using java and docker.\nReviewed code and mentored junior colleagues.\nBuilt services using machine learning and docker.\nDocumented architecture decisions for the wider team.\nMaintained systems written in postgresql with redis.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "aws",
+      "docker",
+      "git",
+      "ios",
+      "java",
+      "kubernetes",
+      "machine learning",
+      "postgresql",
+      "redis",
+      "scikit-learn",
+      "sql",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0089",
+    "text": "Skills: helm, gcp, dbt, swift, postgres, sql, snowflake, ansible, pandas, figma, docker, git, jenkins, linux, grafana\nBuilt services using sql and snowflake.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "ansible",
+      "dbt",
+      "docker",
+      "figma",
+      "gcp",
+      "git",
+      "grafana",
+      "helm",
+      "jenkins",
+      "linux",
+      "pandas",
+      "postgresql",
+      "snowflake",
+      "sql",
+      "swift"
+    ]
+  },
+  {
+    "id": "cand-0090",
+    "text": "Skills: grafana, swift, docker, postgres, java, scikit-learn, react native, graphql, rest, ios, aws, ts, kotlin, flutter, android\nMaintained systems written in ios with java.\nReviewed code and mentored junior colleagues.\nBuilt services using ios and postgresql.\nDelivered features on schedule in an agile environment.\nDesigned and shipped a project with typescript.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "docker",
+      "flutter",
+      "grafana",
+      "graphql",
+      "ios",
+      "java",
+      "kotlin",
+      "postgresql",
+      "react native",
+      "rest",
+      "scikit-learn",
+      "swift",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0091",
+    "text": "Skills: react native, kotlin, fastapi, mongo, redis, git, aws, python, docker, jenkins, java\nDesigned and shipped a project with fastapi.\nDelivered features on schedule in an agile environment.",
+    "gold_skills": [
+      "aws",
+      "docker",
+      "fastapi",
+      "git",
+      "java",
+      "jenkins",
+      "kotlin",
+      "mongodb",
+      "python",
+      "react native",
+      "redis"
+    ]
+  },
+  {
+    "id": "cand-0092",
+    "text": "Skills: pytorch, vue.js, graphql, sql, numpy, python, react, next.js, figma, jest, rest, machine learning, html\nDesigned and shipped a project with machine learning.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "figma",
+      "graphql",
+      "html",
+      "jest",
+      "machine learning",
+      "next.js",
+      "numpy",
+      "python",
+      "pytorch",
+      "react",
+      "rest",
+      "sql",
+      "vue.js"
+    ]
+  },
+  {
+    "id": "cand-0093",
+    "text": "Skills: bigquery, docker, nlp, spark, sklearn, java, sql, machine learning, airflow, postgres, kafka, dbt, git, graphql, ios, html\nBuilt services using git and nlp.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "airflow",
+      "bigquery",
+      "dbt",
+      "docker",
+      "git",
+      "graphql",
+      "html",
+      "ios",
+      "java",
+      "kafka",
+      "machine learning",
+      "nlp",
+      "postgresql",
+      "scikit-learn",
+      "spark",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0094",
+    "text": "Skills: rest, spark, nlp, python, next.js, deep learning, ml, pandas, pytorch, kubernetes, numpy\nMaintained systems written in spark with pandas.\nReviewed code and mentored junior colleagues.\nDesigned and shipped a project with spark.\nCollaborated with product and design teams on quarterly planning.\nWorked daily with nlp, pandas and next.js.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "deep learning",
+      "kubernetes",
+      "machine learning",
+      "next.js",
+      "nlp",
+      "numpy",
+      "pandas",
+      "python",
+      "pytorch",
+      "rest",
+      "spark"
+    ]
+  },
+  {
+    "id": "cand-0095",
+    "text": "Skills: jenkins, spark, k8s, docker, helm, sql, snowflake, rest, python, redux, swift, typescript, postgres, airflow, prometheus, git, bigquery, pandas, graphql, aws\nMaintained systems written in swift with aws.\nReviewed code and mentored junior colleagues.\nWorked daily with git, swift and docker.\nDelivered features on schedule in an agile environment.\nWorked daily with jenkins, prometheus and helm.\nCollaborated with product and design teams on quarterly planning.",
+    "gold_skills": [
+      "airflow",
+      "aws",
+      "bigquery",
+      "docker",
+      "git",
+      "graphql",
+      "helm",
+      "jenkins",
+      "kubernetes",
+      "pandas",
+      "postgresql",
+      "prometheus",
+      "python",
+      "redux",
+      "rest",
+      "snowflake",
+      "spark",
+      "sql",
+      "swift",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0096",
+    "text": "Skills: linux, react native, sql, rest, android, ios, dbt, pytorch\nMaintained systems written in sql with android.\nReviewed code and mentored junior colleagues.\nWorked daily with dbt, pytorch and linux.\nDocumented architecture decisions for the wider team.\nMaintained systems written in sql with rest.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "android",
+      "dbt",
+      "ios",
+      "linux",
+      "pytorch",
+      "react native",
+      "rest",
+      "sql"
+    ]
+  },
+  {
+    "id": "cand-0097",
+    "text": "Skills: sql, fastapi, react, terraform, tensorflow, aws, bigquery, nlp, git, kafka, postgres, java, redis, docker, django, kubernetes, python\nMaintained systems written in tensorflow with nlp.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "aws",
+      "bigquery",
+      "django",
+      "docker",
+      "fastapi",
+      "git",
+      "java",
+      "kafka",
+      "kubernetes",
+      "nlp",
+      "postgresql",
+      "python",
+      "react",
+      "redis",
+      "sql",
+      "tensorflow",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0098",
+    "text": "Skills: pandas, next.js, grafana, git, reactjs, docker, sql, android, bigquery, typescript, figma, redux, javascript es6, aws\nBuilt services using react and grafana.\nImproved reliability and reduced incident response time.\nWorked daily with figma, pandas and next.js.\nDocumented architecture decisions for the wider team.\nDesigned and shipped a project with redux.\nDocumented architecture decisions for the wider team.",
+    "gold_skills": [
+      "android",
+      "aws",
+      "bigquery",
+      "docker",
+      "figma",
+      "git",
+      "grafana",
+      "javascript",
+      "next.js",
+      "pandas",
+      "react",
+      "redux",
+      "sql",
+      "typescript"
+    ]
+  },
+  {
+    "id": "cand-0099",
+    "text": "Skills: redis, docker, postgresql, kafka, next.js, snowflake, git, k8s, terraform, rest\nWorked daily with rest, terraform and kafka.\nCollaborated with product and design teams on quarterly planning.\nDesigned and shipped a project with next.js.\nReviewed code and mentored junior colleagues.",
+    "gold_skills": [
+      "docker",
+      "git",
+      "kafka",
+      "kubernetes",
+      "next.js",
+      "postgresql",
+      "redis",
+      "rest",
+      "snowflake",
+      "terraform"
+    ]
+  },
+  {
+    "id": "cand-0100",
+    "text": "Skills: git, aws, machine learning, java, html, nlp, scikit-learn, redis, react native, pandas, javascript es6, kubernetes, terraform, tensorflow, reactjs, numpy, rest, deep learning, docker, postgres, python, pytorch\nWorked daily with kubernetes, pandas and javascript.\nImproved reliability and reduced incident response time.",
+    "gold_skills": [
+      "aws",
+      "deep learning",
+      "docker",
+      "git",
+      "html",
+      "java",
+      "javascript",
+      "kubernetes",
+      "machine learning",
+      "nlp",
+      "numpy",
+      "pandas",
+      "postgresql",
+      "python",
+      "pytorch",
+      "react",
+      "react native",
+      "redis",
+      "rest",
+      "scikit-learn",
+      "tensorflow",
+      "terraform"
+    ]
+  }
+]
