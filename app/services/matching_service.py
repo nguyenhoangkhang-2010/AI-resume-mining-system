@@ -3,6 +3,7 @@ from bson.errors import InvalidId
 from loguru import logger
 from typing import List
 
+from app.core.exceptions import NotFoundError
 from app.database.mongodb.connection import mongo_db
 
 from app.models.job import JobModel
@@ -48,8 +49,8 @@ class MatchingService:
         )
         job = self._get_job(job_id)
         if not job:
-            raise ValueError(
-                "Job not found"
+            raise NotFoundError(
+                f"Job not found: {job_id}"
             )
         job_text = " ".join(
             job.required_skills

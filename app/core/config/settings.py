@@ -8,6 +8,8 @@ class Settings(BaseSettings):
 
     DB_NAME: str = "resume_mining_db"
 
+    DB_REQUIRED_AT_STARTUP: bool = False
+
     MODEL_NAME: str = (
         "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     )

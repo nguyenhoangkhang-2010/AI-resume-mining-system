@@ -1,7 +1,10 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
+from fastapi.concurrency import run_in_threadpool
+from fastapi.responses import JSONResponse
 from loguru import logger
 
+from app.core.config.settings import settings
 from app.core.logger.logging_config import setup_logger
 from app.database.mongodb.connection import mongo_db
 from app.api.router import api_router
@@ -39,6 +42,9 @@ async def lifespan(app: FastAPI):
             "Database initialization failed during startup: {}",
             e,
         )
+
+        if settings.DB_REQUIRED_AT_STARTUP:
+            raise
 
     logger.info(
         "Initializing resume processing pipeline..."
@@ -109,11 +115,13 @@ async def root_endpoint() -> dict:
 
 
 @app.get("/health", tags=["Health"])
-async def health_check() -> dict:
-    db_status = "connected" if mongo_db.client is not None else "disconnected"
-    app_status = "healthy" if db_status == "connected" else "degraded"
+async def health_check() -> JSONResponse:
+    database_up = await run_in_threadpool(mongo_db.ping)
 
-    return {
-        "status": app_status,
-        "database": db_status
-    }
+    return JSONResponse(
+        status_code=200 if database_up else 503,
+        content={
+            "status": "healthy" if database_up else "degraded",
+            "database": "connected" if database_up else "disconnected",
+        },
+    )
