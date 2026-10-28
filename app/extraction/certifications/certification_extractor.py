@@ -178,8 +178,8 @@ class CertificationExtractor:
             )
 
             logger.debug(
-                "Certification LLM output preview: {}",
-                text[:1000],
+                "Certification LLM output length: {}",
+                len(text),
             )
 
             return []

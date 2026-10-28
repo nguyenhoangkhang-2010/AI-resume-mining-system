@@ -176,11 +176,6 @@ class LLMExtractor:
                 len(generated_text),
             )
 
-            logger.debug(
-                "LLM generated text preview: {}",
-                generated_text[:1000],
-            )
-
             return generated_text
 
         except Exception as exc:
