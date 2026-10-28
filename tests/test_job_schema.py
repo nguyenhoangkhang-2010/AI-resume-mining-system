@@ -21,6 +21,8 @@ def test_job_response():
     response = JobResponse(
         id="1",
         title="Backend Engineer",
+        description="Python FastAPI Docker",
+        raw_text="Python FastAPI Docker",
         required_skills=["Python"],
         created_at=datetime.utcnow(),
     )

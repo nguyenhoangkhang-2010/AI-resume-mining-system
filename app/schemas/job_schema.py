@@ -5,8 +5,8 @@ from pydantic import BaseModel, Field
 
 
 class JobCreateRequest(BaseModel):
-    title: str = Field(..., description="The title of the job.")
-    description: str = Field(..., description="The raw job description text.")
+    title: str = Field(..., min_length=1, description="The title of the job.")
+    description: str = Field(..., min_length=1, description="The raw job description text.")
 
 
 class JobResponse(BaseModel):

@@ -1,36 +1,71 @@
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any
 
 from loguru import logger
 
-from app.resume_processing.cleaners.text_cleaner import TextCleaner
-from app.extraction.extraction_engine import ExtractionEngine
+from app.job_processing.parsers.job_parser import (
+    JobDescriptionParser,
+)
+
+from app.extraction.job.job_extractor import (
+    JobExtractor,
+)
 
 
 class JobPipeline:
     """
-    Orchestrates the processing of a Job Description (JD)
-    from raw text to structured data.
+    Turns a job description (raw text or a file path) into
+    structured data: requirements, responsibilities and skills.
     """
 
     def __init__(self):
-        self.cleaner = TextCleaner()
-        self.extraction_engine = ExtractionEngine()
 
-    def process_job_description(self, raw_text: str) -> Dict[str, Any]:
-        logger.info("Initiating job description processing pipeline.")
+        self.parser = JobDescriptionParser()
+
+        self.extractor = JobExtractor()
+
+    def process(
+        self,
+        source: str | Path,
+    ) -> dict[str, Any]:
+
+        if source is None:
+            raise ValueError(
+                "source cannot be None."
+            )
+
+        logger.info(
+            "Starting job pipeline."
+        )
+
         try:
-            cleaned_text = self.cleaner.clean(raw_text)
-            
-            # Use LLM for structured extraction of job details
-            job_data = self.extraction_engine.extract_job_description(cleaned_text)
-            
-            # Add raw and cleaned text to the extracted data for completeness
-            job_data["raw_text"] = raw_text
-            job_data["cleaned_text"] = cleaned_text
-
-            logger.info("Job description extraction pipeline completed.")
-            return job_data
-        except Exception as e:
-            logger.error(f"Job description pipeline failed: {e}")
+            text = self.parser.parse(
+                source
+            )
+        except Exception as exc:
+            logger.exception(
+                f"Failed to parse job description: {exc}"
+            )
             raise
+
+        if not text or not text.strip():
+            logger.warning(
+                "Empty job description detected."
+            )
+            return {
+                "requirements": None,
+                "responsibilities": None,
+                "skills": [],
+            }
+
+        logger.info(
+            "Extracting job information..."
+        )
+
+        result = self.extractor.extract(text)
+
+        logger.success(
+            "Job processing completed."
+        )
+
+        return result
