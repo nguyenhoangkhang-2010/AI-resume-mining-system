@@ -1,64 +1,46 @@
 from app.extraction.summary import SummaryExtractor
-
+from tests.fakes.fake_llm_extractor import FakeLLMExtractor
 
 
 def test_extract_professional_summary():
-
-    extractor = SummaryExtractor()
-
-    text = """
-    PROFESSIONAL SUMMARY
-
-    Data Engineer with experience in Python,
-    SQL and Machine Learning.
-
-    EDUCATION
-
-    Bachelor of IT
-    """
-
-    result = extractor.extract(
-        text
+    llm = FakeLLMExtractor(
+        {"summary": "Data Engineer with experience in Python and SQL."}
     )
 
-    assert result is not None
-    assert "Data Engineer" in result
+    result = SummaryExtractor(llm).extract(
+        "PROFESSIONAL SUMMARY\nData Engineer with experience in Python and SQL."
+    )
 
+    assert result == "Data Engineer with experience in Python and SQL."
 
 
 def test_extract_objective():
-
-    extractor = SummaryExtractor()
-
-    text = """
-    OBJECTIVE
-
-    Looking for a Data Analyst position.
-
-    EXPERIENCE
-
-    Company ABC
-    """
-
-    result = extractor.extract(
-        text
+    llm = FakeLLMExtractor(
+        '```json\n{"summary": "Looking for a Data Analyst position."}\n```'
     )
 
-    assert result is not None
+    result = SummaryExtractor(llm).extract("OBJECTIVE\nLooking for a Data Analyst position.")
+
     assert "Data Analyst" in result
 
 
-
 def test_missing_summary():
+    llm = FakeLLMExtractor({"summary": None})
 
-    extractor = SummaryExtractor()
+    assert SummaryExtractor(llm).extract("EDUCATION\nBachelor Degree") is None
 
-    result = extractor.extract(
-        """
-        EDUCATION
 
-        Bachelor Degree
-        """
-    )
+def test_blank_or_non_string_summary_is_none():
+    assert SummaryExtractor(FakeLLMExtractor({"summary": "   "})).extract("text") is None
+    assert SummaryExtractor(FakeLLMExtractor({"summary": 5})).extract("text") is None
 
-    assert result is None
+
+def test_invalid_output_returns_none():
+    assert SummaryExtractor(FakeLLMExtractor("not json")).extract("text") is None
+
+
+def test_empty_text_skips_llm():
+    llm = FakeLLMExtractor({"summary": "x"})
+
+    assert SummaryExtractor(llm).extract("") is None
+    assert llm.calls == []

@@ -17,6 +17,7 @@ loguru
 tqdm
 requests
 pytest
+pytest-timeout
 python-multipart
 python-docx
 pdfplumber

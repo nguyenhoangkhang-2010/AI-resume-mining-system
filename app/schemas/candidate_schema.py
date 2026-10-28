@@ -1,6 +1,12 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
-from app.models.personal_info import PersonalInfo
+from typing import List, Optional
+from app.models.candidate import (
+    Certification,
+    Education,
+    Experience,
+    PersonalInfo,
+    Project,
+)
 
 
 class CandidateResponse(BaseModel):
@@ -13,8 +19,10 @@ class CandidateResponse(BaseModel):
         default_factory=PersonalInfo,
         description="Extracted personal details"
     )
-    education: List[Dict[str, Any]] = Field(default_factory=list, description="List of educational backgrounds")
-    experience: List[Dict[str, Any]] = Field(default_factory=list, description="List of work experiences")
+    education: List[Education] = Field(default_factory=list, description="List of educational backgrounds")
+    experience: List[Experience] = Field(default_factory=list, description="List of work experiences")
+    projects: List[Project] = Field(default_factory=list, description="List of projects")
+    certifications: List[Certification] = Field(default_factory=list, description="List of certifications")
     skills: List[str] = Field(default_factory=list, description="List of extracted skills")
     normalized_skills: List[str] = Field(
         default_factory=list,

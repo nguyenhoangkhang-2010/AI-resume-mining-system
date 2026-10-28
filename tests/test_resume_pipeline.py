@@ -1,111 +1,100 @@
 from unittest.mock import Mock
+
 import pytest
 
 from app.resume_processing.pipelines.resume_pipeline import (
-    ResumePipeline
+    ResumePipeline,
 )
 
 
+class FakeSectionDetector:
+    def __init__(self, sections=None):
+        self.sections = sections or {}
+        self.received_text = None
 
-def test_resume_pipeline():
-
-
-    pipeline = ResumePipeline()
-
-
-    pipeline.parser.extract_text = Mock(
-        return_value="""
-
-        John Doe
-
-        john@gmail.com
+    def detect(self, layout_analysis, region_analysis, cleaned_text):
+        self.received_text = cleaned_text
+        return self.sections
 
 
-        EXPERIENCE
+class FakeExtractionEngine:
+    def __init__(self):
+        self.received_sections = None
 
-        3 years experience
+    def extract_resume(self, sections):
+        self.received_sections = sections
+        return {"skills": ["python"], "sections_seen": list(sections)}
 
 
-        EDUCATION
+def build_pipeline(sections=None):
+    detector = FakeSectionDetector(sections)
+    engine = FakeExtractionEngine()
 
-        Bachelor Computer Science
-
-
-        CERTIFICATIONS
-
-        AWS Certified Cloud Practitioner
-
-        """
+    pipeline = ResumePipeline(
+        section_detector=detector,
+        extraction_engine=engine,
     )
 
+    return pipeline, detector, engine
 
-    result = pipeline.process_pdf(
-        "sample.pdf"
+
+def test_resume_pipeline_runs_all_stages(make_pdf):
+    path = make_pdf(
+        [
+            "John Doe",
+            "john@gmail.com",
+            "EXPERIENCE",
+            "3 years experience",
+        ]
     )
 
-
-    assert "contact" in result
-
-    assert "education" in result
-
-    assert "experience" in result
-
-    assert "certifications" in result
-    
-    
-def test_resume_pipeline_empty_pdf():
-    pipeline = ResumePipeline()
-
-    pipeline.parser.extract_text = Mock(return_value="")
-
-    result = pipeline.process_pdf("sample.pdf")
-
-    assert isinstance(result, dict)
-
-    assert "contact" in result
-    assert "summary" in result
-    assert "education" in result
-    assert "experience" in result
-    assert "projects" in result
-    assert "certifications" in result
-    assert "skills" in result
-    
-def test_resume_pipeline_parser_exception():
-    pipeline = ResumePipeline()
-
-    pipeline.parser.extract_text = Mock(
-        side_effect=Exception("PDF parsing failed")
+    pipeline, detector, engine = build_pipeline(
+        {"experience": ["3 years experience"]}
     )
 
-    with pytest.raises(Exception):
+    result = pipeline.process_pdf(path)
+
+    assert "John Doe" in result["raw_text"]
+    assert "John Doe" in result["cleaned_text"]
+    assert "John Doe" in detector.received_text
+    assert engine.received_sections == {
+        "experience": ["3 years experience"]
+    }
+    assert result["skills"] == ["python"]
+
+
+def test_resume_pipeline_includes_extraction_output(make_pdf):
+    path = make_pdf(["CERTIFICATIONS", "AWS Certified Cloud Practitioner"])
+
+    pipeline, _, _ = build_pipeline(
+        {"certifications": ["AWS Certified Cloud Practitioner"]}
+    )
+
+    result = pipeline.process_pdf(path)
+
+    assert result["sections_seen"] == ["certifications"]
+
+
+def test_resume_pipeline_missing_file():
+    pipeline, _, _ = build_pipeline()
+
+    with pytest.raises(FileNotFoundError):
+        pipeline.process_pdf("does_not_exist.pdf")
+
+
+def test_resume_pipeline_parser_exception(make_pdf):
+    pipeline, _, _ = build_pipeline()
+    pipeline.parser.parse = Mock(side_effect=Exception("PDF parsing failed"))
+
+    with pytest.raises(Exception, match="PDF parsing failed"):
         pipeline.process_pdf("sample.pdf")
-        
-def test_resume_pipeline_contact_only():
-    pipeline = ResumePipeline()
 
-    pipeline.parser.extract_text = Mock(
-        return_value="""
-        John Doe
-        john@gmail.com
-        +84987654321
-        """
-    )
 
-    result = pipeline.process_pdf("sample.pdf")
+def test_resume_pipeline_engine_exception_is_propagated(make_pdf):
+    path = make_pdf(["John Doe"])
 
-    assert result["contact"]["email"] == "john@gmail.com"
-    
-def test_resume_pipeline_certification_only():
-    pipeline = ResumePipeline()
+    pipeline, _, engine = build_pipeline()
+    engine.extract_resume = Mock(side_effect=RuntimeError("engine failed"))
 
-    pipeline.parser.extract_text = Mock(
-        return_value="""
-        CERTIFICATIONS
-
-        AWS Certified Cloud Practitioner
-        """
-    )
-
-    result = pipeline.process_pdf("sample.pdf")
-
-    assert len(result["certifications"]) == 1
+    with pytest.raises(RuntimeError, match="engine failed"):
+        pipeline.process_pdf(path)

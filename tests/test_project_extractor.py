@@ -1,40 +1,39 @@
-from app.extraction.projects.project_extractor import (
-    ProjectExtractor
-)
+from app.extraction.projects.project_extractor import ProjectExtractor
+from tests.fakes.fake_llm_extractor import FakeLLMExtractor
 
 
 def test_project_extraction():
-
-    text = """
-    PROJECTS
-
-    AI Resume Mining System
-
-    - Built NLP pipeline using FastAPI
-    - Used FAISS semantic search
-
-
-    EDUCATION
-
-    Bachelor Computer Science
-    """
-
-
-    result = ProjectExtractor.extract(
-        text
+    llm = FakeLLMExtractor(
+        {
+            "projects": [
+                {
+                    "title": "AI Resume Mining System",
+                    "description": ["Built NLP pipeline using FastAPI"],
+                    "technologies": ["FastAPI", "FAISS"],
+                }
+            ]
+        }
     )
 
+    result = ProjectExtractor(llm_extractor=llm).extract(
+        "PROJECTS\nAI Resume Mining System\n"
+        "- Built NLP pipeline using FastAPI"
+    )
 
     assert len(result) == 1
-
-    assert (
-        result[0]["name"]
-        ==
-        "AI Resume Mining System"
-    )
+    assert result[0]["title"] == "AI Resume Mining System"
+    assert "Built NLP pipeline using FastAPI" in result[0]["description"]
+    assert result[0]["technologies"] == ["FastAPI", "FAISS"]
 
 
-    assert (
-        "Built NLP pipeline using FastAPI"
-        in result[0]["description"]
-    )
+def test_invalid_output_returns_empty_list():
+    llm = FakeLLMExtractor("not json")
+
+    assert ProjectExtractor(llm_extractor=llm).extract("text") == []
+
+
+def test_empty_text_skips_llm():
+    llm = FakeLLMExtractor({"projects": [{"title": "X"}]})
+
+    assert ProjectExtractor(llm_extractor=llm).extract("") == []
+    assert llm.calls == []
