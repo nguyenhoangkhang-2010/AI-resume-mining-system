@@ -1,3 +1,5 @@
+import os
+
 import faiss
 import numpy as np
 from pathlib import Path
@@ -42,12 +44,40 @@ class FaissManager:
             logger.success("Created new FAISS index.")
 
     def save_index(self):
+        temporary_path = self.index_path.with_suffix(".tmp")
+
         try:
-            faiss.write_index(self._index, str(self.index_path))
+            # Write beside the target and swap, so a crash mid-write cannot
+            # leave a truncated index behind.
+            faiss.write_index(self._index, str(temporary_path))
+            os.replace(temporary_path, self.index_path)
             logger.debug(f"FAISS index saved successfully to {self.index_path}")
         except Exception as e:
             logger.error(f"Failed to save FAISS index: {e}")
             raise
+
+    def replace_all(self, ids: np.ndarray, vectors: np.ndarray):
+        """
+        Replaces the whole index with the given vectors (used when the
+        embedding text changes and every vector must be rebuilt).
+        """
+        ids = np.asarray(ids, dtype=np.int64)
+        vectors = np.ascontiguousarray(vectors, dtype=np.float32)
+
+        if len(ids) != len(vectors):
+            raise ValueError("ids and vectors must have the same length")
+
+        if len(set(ids.tolist())) != len(ids):
+            raise ValueError("faiss ids must be unique")
+
+        index = faiss.IndexIDMap(faiss.IndexFlatIP(self.dimension))
+
+        if len(ids):
+            faiss.normalize_L2(vectors)
+            index.add_with_ids(vectors, ids)
+
+        self._index = index
+        self.save_index()
 
     def add_vector(self, faiss_id: int, embedding: np.ndarray):
         vector = np.array([embedding], dtype=np.float32)

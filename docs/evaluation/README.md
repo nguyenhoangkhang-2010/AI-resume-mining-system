@@ -30,19 +30,42 @@ Two label sets are reported because they answer different questions:
 
 These are measurements on synthetic data, not real-world accuracy.
 
-- **With seniority-aware labels** the production hybrid scorer reaches nDCG@10
-  0.855 against 0.784 for BM25 (paired difference +0.072, 95% CI
-  [+0.006, +0.134]); the gap to TF-IDF is not significant. The gain comes from
-  the experience component: the hybrid without it scores 0.680, below BM25.
-- **With family-only labels** the hybrid is significantly *worse* than BM25
-  and TF-IDF (nDCG@10 0.896 versus 0.952 and 0.968). Its skills-only embedding
-  is the weakest ranker in both label sets (0.649 and 0.834).
-- Embedding the full profile text instead of just the skill list
-  (`semantic_fulltext`) beats the skills-only embedding on both label sets
-  (0.777 and 0.923), which supports enriching the embedding input.
+Rankers: `hybrid` is the production scoring path (skill coverage,
+profile-text embedding, experience). `hybrid_skills_embedding` is the same path
+with the earlier skills-only embedding, so their difference is the effect of
+the richer embedding text.
+
+| nDCG@10 | seniority-aware labels | family-only labels |
+|---|---|---|
+| bm25 | 0.784 | 0.952 |
+| tfidf | 0.786 | 0.968 |
+| hybrid_skills_embedding (before) | 0.855 | 0.896 |
+| hybrid (after) | **0.894** | 0.924 |
+
+- **Richer embedding text helps.** Replacing the skills-only embedding with the
+  profile text (roles, summary, skills, experience bullets, projects) raises
+  hybrid nDCG@10 by +0.039 (95% CI [+0.012, +0.069]) on seniority-aware labels
+  and +0.029 ([+0.004, +0.057]) on family-only labels. The embedding alone
+  improves more: 0.649 to 0.747 and 0.834 to 0.891.
+- **Against text baselines:** with seniority-aware labels the hybrid beats BM25
+  (+0.110, [+0.057, +0.164]) and TF-IDF (+0.108, [+0.051, +0.166]). With
+  family-only labels it is not distinguishable from BM25 (-0.028,
+  [-0.059, +0.001]) and still below TF-IDF (-0.043, [-0.078, -0.010]).
+- **The experience component carries much of the seniority result.** Without it
+  the hybrid scores 0.724 on seniority-aware labels, below BM25. On
+  family-only labels, where seniority is irrelevant, removing it changes
+  nothing (0.926 versus 0.924).
+- Embedding each section separately and averaging (`semantic_profile_pooled`)
+  was no better than one concatenated text (0.740 versus 0.747), so production
+  uses the simpler concatenation. The concatenated and the earlier full-text
+  variants were chosen between on this same dataset, which slightly favours
+  the reported numbers.
+- Raising the model's 128-token limit to 256 or 512 changed nothing here, but
+  the synthetic profiles are short; real resumes are longer, so the text
+  builder keeps per-section character budgets instead.
 - **Skill extraction** has precision 0.965 but recall 0.466 (F1 0.628) on the
   evaluated vocabulary. Many modern tools score 0.00 recall (for example
   airflow, azure, gcp, django, graphql, html), which points to gaps in the skill
-  taxonomy rather than to the matching logic.
+  taxonomy rather than to the matching logic. This is unchanged by this work.
 - With 30 jobs the confidence intervals are wide; differences whose paired
   interval includes 0 should not be read as real.

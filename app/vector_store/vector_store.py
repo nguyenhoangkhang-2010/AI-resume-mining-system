@@ -19,6 +19,10 @@ class VectorStore:
             logger.error(f"Failed to add candidate embedding to vector store: {e}")
             return False
 
+    def replace_all(self, faiss_ids: List[int], embeddings: np.ndarray) -> None:
+        logger.info(f"Replacing vector store contents with {len(faiss_ids)} vectors.")
+        self.faiss_manager.replace_all(np.asarray(faiss_ids), embeddings)
+
     def search_similar_candidates(self, query_embedding: np.ndarray, top_k: int = DEFAULT_TOP_K) -> List[Dict[str, Any]]:
         logger.info(f"Searching for top {top_k} similar candidates in vector store.")
         

@@ -6,6 +6,7 @@ from bson import ObjectId
 from app.matching.confidence.confidence_calculator import (
     ConfidenceCalculator,
 )
+from app.matching.embedding_text import JobTextBuilder
 from app.matching.explanation.explanation_engine import ExplanationEngine
 from app.matching.ranking.candidate_scorer import HybridCandidateScorer
 from app.matching.ranking.ranking_pipeline import RankingPipeline
@@ -404,6 +405,7 @@ def test_matching_service_returns_hybrid_ranking(monkeypatch):
     service.vector_store = vector_store
     service.ranking_pipeline = hybrid_pipeline()
     service.ranking_config = SimpleNamespace(retrieval_top_k=50)
+    service.job_text_builder = JobTextBuilder()
 
     monkeypatch.setattr(
         MatchingService,

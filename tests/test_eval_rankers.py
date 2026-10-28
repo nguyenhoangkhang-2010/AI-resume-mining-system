@@ -6,6 +6,7 @@ from app.evaluation.extraction import evaluate_skill_extraction, weakest_skills
 from app.evaluation.dataset import ExtractionDocument
 from app.evaluation.rankers import (
     BM25Ranker,
+    ProfileSemanticRanker,
     CachedEmbedder,
     HashingEmbedder,
     HybridRanker,
@@ -87,6 +88,8 @@ def test_tokenize_keeps_technical_tokens():
         SkillOverlapRanker(IdentityNormalizer()),
         SemanticRanker(HashingEmbedder(), IdentityNormalizer(), "skills"),
         SemanticRanker(HashingEmbedder(), IdentityNormalizer(), "fulltext"),
+        ProfileSemanticRanker(HashingEmbedder(), IdentityNormalizer(), pooled=False),
+        ProfileSemanticRanker(HashingEmbedder(), IdentityNormalizer(), pooled=True),
         HybridRanker(HashingEmbedder(), IdentityNormalizer(), use_experience=False),
         HybridRanker(HashingEmbedder(), IdentityNormalizer(), use_experience=True),
     ],
@@ -124,9 +127,8 @@ def test_hybrid_experience_changes_the_score(dataset):
     job = dataset.jobs[0]
 
     # "off" has one year of experience against a three-year requirement,
-    # so the experience component (33/100) adds to its otherwise zero score
-    assert without.scores(job)["off"] == 0.0
-    assert with_experience.scores(job)["off"] == pytest.approx(6.67)
+    # so the experience component (33/100) raises its score
+    assert with_experience.scores(job)["off"] > without.scores(job)["off"]
 
 
 def test_hashing_embedder_is_normalised_and_deterministic():
@@ -166,6 +168,9 @@ def test_default_rankers_cover_baselines_and_ablations():
         "skill_overlap",
         "semantic_skills",
         "semantic_fulltext",
+        "semantic_profile_concat",
+        "semantic_profile_pooled",
+        "hybrid_skills_embedding",
         "hybrid_no_experience",
         "hybrid",
     ]

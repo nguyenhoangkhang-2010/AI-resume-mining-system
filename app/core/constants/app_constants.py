@@ -13,3 +13,7 @@ SIMILARITY_THRESHOLD = 0.65
 
 # Embedding dimension (depends on sentence-transformers/all-MiniLM-L6-v2)
 EMBEDDING_DIMENSION = 384
+
+# Identifies how candidate/job vectors are built. Bump it whenever the text
+# builders change and rebuild the index with scripts/reindex_candidates.py.
+EMBEDDING_VERSION = "profile-v1"

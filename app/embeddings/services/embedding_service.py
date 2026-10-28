@@ -46,3 +46,13 @@ class EmbeddingService:
         except Exception as e:
             logger.error(f"Error generating batch embeddings: {e}")
             raise
+
+    def encode(self, texts: List[str]) -> np.ndarray:
+        """
+        Encoder interface used by ProfileEmbedder: normalised vectors,
+        one row per text.
+        """
+        if not texts:
+            return np.zeros((0, 0), dtype=np.float32)
+
+        return self.generate_batch_embeddings(texts)
