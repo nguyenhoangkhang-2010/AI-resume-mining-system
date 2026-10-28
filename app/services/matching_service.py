@@ -3,6 +3,7 @@ from bson.errors import InvalidId
 from loguru import logger
 from typing import List
 
+from app.core.exceptions import NotFoundError
 from app.database.mongodb.connection import mongo_db
 
 from app.models.job import JobModel
@@ -14,6 +15,8 @@ from app.embeddings.services.embedding_service import EmbeddingService
 
 from app.vector_store.vector_store import VectorStore
 
+from app.matching.ranking.candidate_scorer import HybridCandidateScorer
+from app.matching.ranking.ranking_config import RankingConfig
 from app.matching.ranking.ranking_pipeline import RankingPipeline
 
 
@@ -21,7 +24,10 @@ class MatchingService:
     def __init__(self):
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
-        self.ranking_pipeline = RankingPipeline()
+        self.ranking_config = RankingConfig()
+        self.ranking_pipeline = RankingPipeline(
+            candidate_scorer=HybridCandidateScorer(),
+        )
         
     @property
     def db(self):
@@ -43,8 +49,8 @@ class MatchingService:
         )
         job = self._get_job(job_id)
         if not job:
-            raise ValueError(
-                "Job not found"
+            raise NotFoundError(
+                f"Job not found: {job_id}"
             )
         job_text = " ".join(
             job.required_skills
@@ -57,7 +63,7 @@ class MatchingService:
             self.vector_store
             .search_similar_candidates(
                 embedding,
-                top_k=10
+                top_k=self.ranking_config.retrieval_top_k
             )
         )
         if not faiss_results:

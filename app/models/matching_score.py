@@ -1,5 +1,5 @@
-from dataclasses import dataclass
-from typing import Dict, Optional
+from dataclasses import dataclass, field
+from typing import Dict, List, Optional
 
 
 @dataclass(frozen=True)
@@ -19,6 +19,9 @@ class MatchingScore:
 
     skill_score: Optional[float] = None
     semantic_score: Optional[float] = None
+    experience_score: Optional[float] = None
+
+    matched_skills: List[str] = field(default_factory=list)
+    missing_skills: List[str] = field(default_factory=list)
 
     explanation: Optional[Dict[str, str]] = None
-    confidence_score: float

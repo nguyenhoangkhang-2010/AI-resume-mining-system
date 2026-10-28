@@ -16,24 +16,32 @@ class HybridMatchingStrategy(MatchingStrategy):
         self,
         candidate_id: str,
         job_id: str,
-        skill_score: float,
-        semantic_score: float,
+        skill_score: float | None,
+        semantic_score: float | None,
+        experience_score: float | None = None,
+        matched_skills: list[str] | None = None,
+        missing_skills: list[str] | None = None,
     ) -> MatchingScore:
 
         overall = self.scorer.calculate(
             skill_score,
             semantic_score,
+            experience_score,
         )
 
         confidence = self.confidence.calculate(
             skill_score,
             semantic_score,
+            experience_score,
         )
 
         explanation = self.explainer.generate(
             skill_score,
             semantic_score,
             overall,
+            experience_score=experience_score,
+            matched_skills=matched_skills,
+            missing_skills=missing_skills,
         )
 
         return MatchingScore(
@@ -41,6 +49,9 @@ class HybridMatchingStrategy(MatchingStrategy):
             job_id=job_id,
             skill_score=skill_score,
             semantic_score=semantic_score,
+            experience_score=experience_score,
+            matched_skills=list(matched_skills or []),
+            missing_skills=list(missing_skills or []),
             overall_score=overall,
             confidence_score=confidence,
             explanation=explanation,
