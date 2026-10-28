@@ -7,6 +7,7 @@ from loguru import logger
 from app.core.config.settings import settings
 from app.core.logger.logging_config import setup_logger
 from app.database.mongodb.connection import mongo_db
+from app.database.vector_db.faiss_manager import FaissManager
 from app.api.router import api_router
 
 from app.core.auth.huggingface import login_huggingface
@@ -93,6 +94,8 @@ async def lifespan(app: FastAPI):
     logger.info(
         "Shutting down API..."
     )
+
+    FaissManager.shutdown()
 
     mongo_db.close()
 

@@ -60,6 +60,8 @@ class Settings(BaseSettings):
         "faiss_index/candidate.index"
     )
 
+    FAISS_SAVE_EVERY: int = 1
+
     LOG_LEVEL: str = "INFO"
 
     hf_token: Optional[str] = None

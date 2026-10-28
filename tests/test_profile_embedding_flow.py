@@ -43,6 +43,7 @@ def make_resume_service():
     service.vector_store = RecordingVectorStore()
     service.skill_normalizer = LowercaseNormalizer()
     service.candidate_text_builder = CandidateTextBuilder()
+    service._generate_faiss_id = lambda: 7
 
     return service
 

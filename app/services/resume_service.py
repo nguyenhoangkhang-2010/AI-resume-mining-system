@@ -17,6 +17,7 @@ from app.models.resume import ResumeModel
 from app.embeddings.services.embedding_service import EmbeddingService
 from app.vector_store.vector_store import VectorStore
 from app.core.constants.app_constants import EMBEDDING_VERSION
+from app.database.mongodb.id_generator import next_faiss_id
 from app.matching.embedding_text import CandidateTextBuilder
 from app.matching.skills.factory.skill_normalizer_factory import (
     create_skill_normalizer,
@@ -146,7 +147,7 @@ class ResumeService:
                 extracted_data=extracted_data,
             )
 
-            self._insert_candidate(
+            self._save_candidate(
                 candidate
             )
 
@@ -272,10 +273,14 @@ class ResumeService:
             )
         )
 
-        self.vector_store.add_candidate_embedding(
+        if not self.vector_store.add_candidate_embedding(
             faiss_id=faiss_id,
             embedding=embedding,
-        )
+        ):
+            raise RuntimeError(
+                f"Could not add the embedding for resume {resume_id} "
+                f"to the vector index."
+            )
 
         return candidate
 
@@ -283,10 +288,8 @@ class ResumeService:
         self,
     ) -> int:
 
-        return int(
-            time.time() * 1000
-        ) % (
-            2**63 - 1
+        return next_faiss_id(
+            self.db
         )
 
     def _insert_resume(
@@ -305,21 +308,61 @@ class ResumeService:
             result.inserted_id
         )
 
-    def _insert_candidate(
+    def _save_candidate(
         self,
         candidate: CandidateModel,
     ) -> str:
+        """
+        Stores the candidate, replacing the one already saved for the same
+        resume so reprocessing a resume never leaves two candidates (and two
+        vectors) behind. If the write fails, the vector added for it is
+        removed again.
+        """
 
-        result = self.candidates_col.insert_one(
-            candidate.model_dump(
-                by_alias=True,
-                exclude={"id"},
+        document = candidate.model_dump(
+            by_alias=True,
+            exclude={"id"},
+        )
+
+        previous = self.candidates_col.find_one(
+            {
+                "resume_id": candidate.resume_id,
+            },
+            {
+                "faiss_id": 1,
+            },
+        )
+
+        try:
+            if previous:
+                self.candidates_col.replace_one(
+                    {
+                        "_id": previous["_id"],
+                    },
+                    document,
+                )
+                candidate_id = str(previous["_id"])
+            else:
+                candidate_id = str(
+                    self.candidates_col.insert_one(
+                        document
+                    ).inserted_id
+                )
+
+        except Exception:
+            self.vector_store.remove_candidate_embedding(
+                candidate.faiss_id
             )
-        )
+            raise
 
-        return str(
-            result.inserted_id
-        )
+        old_faiss_id = (previous or {}).get("faiss_id")
+
+        if old_faiss_id is not None and old_faiss_id != candidate.faiss_id:
+            self.vector_store.remove_candidate_embedding(
+                old_faiss_id
+            )
+
+        return candidate_id
 
     def _update_resume_status(
         self,
