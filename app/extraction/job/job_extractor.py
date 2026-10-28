@@ -13,8 +13,17 @@ class JobExtractor:
         text: str,
     ) -> dict:
 
+        requirements = RequirementExtractor.extract(text)
+
+        # Skills are read from the requirements section when there is one.
+        # Running the semantic matcher over the whole description also turns
+        # the title and responsibilities prose into spurious skills (for
+        # example "data science" from a data engineer posting), which then
+        # count against every candidate.
+        skill_source = requirements or text
+
         return {
-            "requirements": RequirementExtractor.extract(text),
+            "requirements": requirements,
             "responsibilities": ResponsibilityExtractor.extract(text),
-            "skills": self.skill_extractor.extract(text),
+            "skills": self.skill_extractor.extract(skill_source),
         }

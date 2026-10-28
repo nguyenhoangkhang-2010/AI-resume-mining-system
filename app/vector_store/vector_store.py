@@ -1,6 +1,6 @@
 import numpy as np
 from loguru import logger
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Set
 
 from app.database.vector_db.faiss_manager import FaissManager
 from app.core.constants.app_constants import DEFAULT_TOP_K
@@ -18,6 +18,19 @@ class VectorStore:
         except Exception as e:
             logger.error(f"Failed to add candidate embedding to vector store: {e}")
             return False
+
+    def remove_candidate_embedding(self, faiss_id: int) -> bool:
+        try:
+            return self.faiss_manager.remove_ids([faiss_id]) > 0
+        except Exception as e:
+            logger.error(f"Failed to remove vector {faiss_id} from vector store: {e}")
+            return False
+
+    def indexed_ids(self) -> Set[int]:
+        return self.faiss_manager.ids()
+
+    def flush(self) -> None:
+        self.faiss_manager.flush()
 
     def replace_all(self, faiss_ids: List[int], embeddings: np.ndarray) -> None:
         logger.info(f"Replacing vector store contents with {len(faiss_ids)} vectors.")

@@ -7,6 +7,7 @@ from loguru import logger
 
 from app.core.config.settings import settings
 from app.core.exceptions import DatabaseUnavailableError
+from app.database.mongodb.indexes import ensure_indexes
 
 
 def _mask_credentials(uri: str) -> str:
@@ -39,6 +40,8 @@ class MongoDBConnection:
             self.db = client[settings.DB_NAME]
 
             logger.info(f"Successfully connected to MongoDB database: '{settings.DB_NAME}'")
+
+            ensure_indexes(self.db)
         except ConnectionFailure as e:
             logger.error(f"Failed to connect to MongoDB: {e}")
             self._discard(client)

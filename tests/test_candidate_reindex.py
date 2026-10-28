@@ -74,12 +74,7 @@ def test_reindex_of_nothing_empties_the_index():
 
 @pytest.fixture
 def manager(tmp_path):
-    instance = FaissManager.__new__(FaissManager)
-    instance.index_path = tmp_path / "candidate.index"
-    instance.dimension = 4
-    instance._load_or_create_index()
-
-    return instance
+    return FaissManager.for_path(tmp_path / "candidate.index", dimension=4)
 
 
 def test_replace_all_replaces_contents_and_persists(manager):

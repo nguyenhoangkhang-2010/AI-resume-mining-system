@@ -43,6 +43,7 @@ def make_resume_service():
     service.vector_store = RecordingVectorStore()
     service.skill_normalizer = LowercaseNormalizer()
     service.candidate_text_builder = CandidateTextBuilder()
+    service._generate_faiss_id = lambda: 7
 
     return service
 
@@ -93,7 +94,7 @@ def test_invalid_data_does_not_leave_a_vector_behind():
     with pytest.raises(Exception):
         service._build_candidate(
             "resume-1",
-            {**EXTRACTED, "experience": [{"description": "not a list"}]},
+            {**EXTRACTED, "experience": [{"role": {"not": "a string"}}]},
         )
 
     assert service.vector_store.added == []

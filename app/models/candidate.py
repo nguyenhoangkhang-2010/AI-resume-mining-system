@@ -1,7 +1,24 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+
+
+def _as_string_list(value: Any) -> Any:
+    """
+    Older documents stored some list fields as a single string (for
+    example an experience description). Coerce them so those candidates
+    still load instead of failing validation.
+    """
+
+    if value is None:
+        return []
+
+    if isinstance(value, str):
+        return [value] if value.strip() else []
+
+    return value
 
 
 class PersonalInfo(BaseModel):
@@ -47,6 +64,11 @@ class Experience(BaseModel):
         default_factory=list
     )
 
+    @field_validator("description", "achievements", mode="before")
+    @classmethod
+    def _coerce_lists(cls, value):
+        return _as_string_list(value)
+
 
 class Project(BaseModel):
     # Field names below match ProjectExtractor's output exactly
@@ -77,6 +99,17 @@ class Project(BaseModel):
     metadata: Dict[str, Any] = Field(
         default_factory=dict
     )
+
+    @field_validator(
+        "description",
+        "technologies",
+        "responsibilities",
+        "achievements",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_lists(cls, value):
+        return _as_string_list(value)
 
 
 class Certification(BaseModel):
