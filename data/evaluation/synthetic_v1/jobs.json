@@ -1,0 +1,452 @@
+[
+  {
+    "id": "job-backend-1",
+    "title": "Junior Software Engineer",
+    "family": "backend",
+    "description": "Junior Software Engineer\n\nWe are hiring a junior software engineer with at least 1 years of experience.\n\nRequirements\n\njava\npython\ndocker\naws\ngit\nrest\nkubernetes\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "java",
+      "python",
+      "docker",
+      "aws",
+      "git",
+      "rest",
+      "kubernetes"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-backend-2",
+    "title": "Software Engineer",
+    "family": "backend",
+    "description": "Software Engineer\n\nWe are hiring a software engineer with at least 3 years of experience.\n\nRequirements\n\naws\ngit\npython\nredis\nkubernetes\nmongodb\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "aws",
+      "git",
+      "python",
+      "redis",
+      "kubernetes",
+      "mongodb"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-backend-3",
+    "title": "Senior Backend Engineer",
+    "family": "backend",
+    "description": "Senior Backend Engineer\n\nWe are hiring a senior backend engineer with at least 5 years of experience.\n\nRequirements\n\nkubernetes\npostgresql\ngit\njava\naws\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "kubernetes",
+      "postgresql",
+      "git",
+      "java",
+      "aws"
+    ],
+    "experience_years": 5
+  },
+  {
+    "id": "job-backend-4",
+    "title": "Junior Backend Developer",
+    "family": "backend",
+    "description": "Junior Backend Developer\n\nWe are hiring a junior backend developer with at least 1 years of experience.\n\nRequirements\n\ngit\nrest\ndocker\njava\naws\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "git",
+      "rest",
+      "docker",
+      "java",
+      "aws"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-backend-5",
+    "title": "Backend Engineer",
+    "family": "backend",
+    "description": "Backend Engineer\n\nWe are hiring a backend engineer with at least 3 years of experience.\n\nRequirements\n\njava\ngit\naws\nsql\nkubernetes\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "java",
+      "git",
+      "aws",
+      "sql",
+      "kubernetes"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-frontend-1",
+    "title": "Junior UI Engineer",
+    "family": "frontend",
+    "description": "Junior UI Engineer\n\nWe are hiring a junior ui engineer with at least 1 years of experience.\n\nRequirements\n\nnext.js\ngraphql\ntypescript\nhtml\njavascript\ncss\nreact\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "next.js",
+      "graphql",
+      "typescript",
+      "html",
+      "javascript",
+      "css",
+      "react"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-frontend-2",
+    "title": "Frontend Engineer",
+    "family": "frontend",
+    "description": "Frontend Engineer\n\nWe are hiring a frontend engineer with at least 3 years of experience.\n\nRequirements\n\nfigma\nhtml\ntypescript\njavascript\ngit\nnext.js\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "figma",
+      "html",
+      "typescript",
+      "javascript",
+      "git",
+      "next.js"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-frontend-3",
+    "title": "Senior Frontend Engineer",
+    "family": "frontend",
+    "description": "Senior Frontend Engineer\n\nWe are hiring a senior frontend engineer with at least 5 years of experience.\n\nRequirements\n\ntypescript\nredux\ncss\nhtml\ngit\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "typescript",
+      "redux",
+      "css",
+      "html",
+      "git"
+    ],
+    "experience_years": 5
+  },
+  {
+    "id": "job-frontend-4",
+    "title": "Junior Frontend Engineer",
+    "family": "frontend",
+    "description": "Junior Frontend Engineer\n\nWe are hiring a junior frontend engineer with at least 1 years of experience.\n\nRequirements\n\ngit\nhtml\ncss\nfigma\nredux\njavascript\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "git",
+      "html",
+      "css",
+      "figma",
+      "redux",
+      "javascript"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-frontend-5",
+    "title": "Frontend Engineer",
+    "family": "frontend",
+    "description": "Frontend Engineer\n\nWe are hiring a frontend engineer with at least 3 years of experience.\n\nRequirements\n\nhtml\nreact\nnext.js\nfigma\ngraphql\ncss\ntypescript\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "html",
+      "react",
+      "next.js",
+      "figma",
+      "graphql",
+      "css",
+      "typescript"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-data_engineering-1",
+    "title": "Junior Data Engineer",
+    "family": "data_engineering",
+    "description": "Junior Data Engineer\n\nWe are hiring a junior data engineer with at least 1 years of experience.\n\nRequirements\n\npython\nsnowflake\naws\nspark\nbigquery\nterraform\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "python",
+      "snowflake",
+      "aws",
+      "spark",
+      "bigquery",
+      "terraform"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-data_engineering-2",
+    "title": "Big Data Engineer",
+    "family": "data_engineering",
+    "description": "Big Data Engineer\n\nWe are hiring a big data engineer with at least 3 years of experience.\n\nRequirements\n\ndocker\naws\nbigquery\nsql\nspark\ndbt\nkafka\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "docker",
+      "aws",
+      "bigquery",
+      "sql",
+      "spark",
+      "dbt",
+      "kafka"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-data_engineering-3",
+    "title": "Senior Data Engineer",
+    "family": "data_engineering",
+    "description": "Senior Data Engineer\n\nWe are hiring a senior data engineer with at least 5 years of experience.\n\nRequirements\n\nbigquery\naws\ndbt\nspark\nsql\nsnowflake\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "bigquery",
+      "aws",
+      "dbt",
+      "spark",
+      "sql",
+      "snowflake"
+    ],
+    "experience_years": 5
+  },
+  {
+    "id": "job-data_engineering-4",
+    "title": "Junior Data Engineer",
+    "family": "data_engineering",
+    "description": "Junior Data Engineer\n\nWe are hiring a junior data engineer with at least 1 years of experience.\n\nRequirements\n\nsql\nspark\ndbt\naws\nsnowflake\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "sql",
+      "spark",
+      "dbt",
+      "aws",
+      "snowflake"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-data_engineering-5",
+    "title": "Big Data Engineer",
+    "family": "data_engineering",
+    "description": "Big Data Engineer\n\nWe are hiring a big data engineer with at least 3 years of experience.\n\nRequirements\n\naws\ndocker\nkafka\ndbt\npython\nsnowflake\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "aws",
+      "docker",
+      "kafka",
+      "dbt",
+      "python",
+      "snowflake"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-ml_engineering-1",
+    "title": "Junior AI Engineer",
+    "family": "ml_engineering",
+    "description": "Junior AI Engineer\n\nWe are hiring a junior ai engineer with at least 1 years of experience.\n\nRequirements\n\nnumpy\npytorch\npandas\nscikit-learn\nnlp\nmachine learning\ngit\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "numpy",
+      "pytorch",
+      "pandas",
+      "scikit-learn",
+      "nlp",
+      "machine learning",
+      "git"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-ml_engineering-2",
+    "title": "Machine Learning Engineer",
+    "family": "ml_engineering",
+    "description": "Machine Learning Engineer\n\nWe are hiring a machine learning engineer with at least 3 years of experience.\n\nRequirements\n\nnlp\npytorch\npandas\nmachine learning\nnumpy\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "nlp",
+      "pytorch",
+      "pandas",
+      "machine learning",
+      "numpy"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-ml_engineering-3",
+    "title": "Senior Machine Learning Engineer",
+    "family": "ml_engineering",
+    "description": "Senior Machine Learning Engineer\n\nWe are hiring a senior machine learning engineer with at least 5 years of experience.\n\nRequirements\n\nnumpy\ntensorflow\npython\npandas\nnlp\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "numpy",
+      "tensorflow",
+      "python",
+      "pandas",
+      "nlp"
+    ],
+    "experience_years": 5
+  },
+  {
+    "id": "job-ml_engineering-4",
+    "title": "Junior Machine Learning Engineer",
+    "family": "ml_engineering",
+    "description": "Junior Machine Learning Engineer\n\nWe are hiring a junior machine learning engineer with at least 1 years of experience.\n\nRequirements\n\npandas\nscikit-learn\npython\npytorch\ndocker\ndeep learning\nspark\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "pandas",
+      "scikit-learn",
+      "python",
+      "pytorch",
+      "docker",
+      "deep learning",
+      "spark"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-ml_engineering-5",
+    "title": "AI Engineer",
+    "family": "ml_engineering",
+    "description": "AI Engineer\n\nWe are hiring a ai engineer with at least 3 years of experience.\n\nRequirements\n\ntensorflow\ndocker\ndeep learning\npandas\npytorch\nnlp\nscikit-learn\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "tensorflow",
+      "docker",
+      "deep learning",
+      "pandas",
+      "pytorch",
+      "nlp",
+      "scikit-learn"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-devops-1",
+    "title": "Junior DevOps Engineer",
+    "family": "devops",
+    "description": "Junior DevOps Engineer\n\nWe are hiring a junior devops engineer with at least 1 years of experience.\n\nRequirements\n\ngit\nansible\njenkins\nlinux\naws\nhelm\ngrafana\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "git",
+      "ansible",
+      "jenkins",
+      "linux",
+      "aws",
+      "helm",
+      "grafana"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-devops-2",
+    "title": "DevOps Engineer",
+    "family": "devops",
+    "description": "DevOps Engineer\n\nWe are hiring a devops engineer with at least 3 years of experience.\n\nRequirements\n\nkubernetes\naws\ndocker\nprometheus\nansible\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "kubernetes",
+      "aws",
+      "docker",
+      "prometheus",
+      "ansible"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-devops-3",
+    "title": "Senior Site Reliability Engineer",
+    "family": "devops",
+    "description": "Senior Site Reliability Engineer\n\nWe are hiring a senior site reliability engineer with at least 5 years of experience.\n\nRequirements\n\ngit\nhelm\ndocker\nansible\nkubernetes\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "git",
+      "helm",
+      "docker",
+      "ansible",
+      "kubernetes"
+    ],
+    "experience_years": 5
+  },
+  {
+    "id": "job-devops-4",
+    "title": "Junior Platform Engineer",
+    "family": "devops",
+    "description": "Junior Platform Engineer\n\nWe are hiring a junior platform engineer with at least 1 years of experience.\n\nRequirements\n\nprometheus\nansible\njenkins\nci/cd\nhelm\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "prometheus",
+      "ansible",
+      "jenkins",
+      "ci/cd",
+      "helm"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-devops-5",
+    "title": "Site Reliability Engineer",
+    "family": "devops",
+    "description": "Site Reliability Engineer\n\nWe are hiring a site reliability engineer with at least 3 years of experience.\n\nRequirements\n\ngrafana\nci/cd\nansible\nhelm\nlinux\nkubernetes\ndocker\nnginx\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "grafana",
+      "ci/cd",
+      "ansible",
+      "helm",
+      "linux",
+      "kubernetes",
+      "docker",
+      "nginx"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-mobile-1",
+    "title": "Junior Mobile Engineer",
+    "family": "mobile",
+    "description": "Junior Mobile Engineer\n\nWe are hiring a junior mobile engineer with at least 1 years of experience.\n\nRequirements\n\ngit\nrest\nkotlin\nreact native\nfirebase\ngraphql\ntypescript\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "git",
+      "rest",
+      "kotlin",
+      "react native",
+      "firebase",
+      "graphql",
+      "typescript"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-mobile-2",
+    "title": "Mobile Engineer",
+    "family": "mobile",
+    "description": "Mobile Engineer\n\nWe are hiring a mobile engineer with at least 3 years of experience.\n\nRequirements\n\nios\nfirebase\nrest\nswift\ngraphql\ntypescript\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "ios",
+      "firebase",
+      "rest",
+      "swift",
+      "graphql",
+      "typescript"
+    ],
+    "experience_years": 3
+  },
+  {
+    "id": "job-mobile-3",
+    "title": "Senior Mobile Engineer",
+    "family": "mobile",
+    "description": "Senior Mobile Engineer\n\nWe are hiring a senior mobile engineer with at least 5 years of experience.\n\nRequirements\n\nrest\ngraphql\nswift\nkotlin\nreact native\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "rest",
+      "graphql",
+      "swift",
+      "kotlin",
+      "react native"
+    ],
+    "experience_years": 5
+  },
+  {
+    "id": "job-mobile-4",
+    "title": "Junior Mobile Engineer",
+    "family": "mobile",
+    "description": "Junior Mobile Engineer\n\nWe are hiring a junior mobile engineer with at least 1 years of experience.\n\nRequirements\n\nios\nandroid\ngit\nfirebase\nrest\ntypescript\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "ios",
+      "android",
+      "git",
+      "firebase",
+      "rest",
+      "typescript"
+    ],
+    "experience_years": 1
+  },
+  {
+    "id": "job-mobile-5",
+    "title": "Mobile Engineer",
+    "family": "mobile",
+    "description": "Mobile Engineer\n\nWe are hiring a mobile engineer with at least 3 years of experience.\n\nRequirements\n\ngit\nkotlin\nfirebase\nandroid\nios\ntypescript\n\nResponsibilities\n\nBuild and maintain production systems\nCollaborate with product and design teams\n",
+    "required_skills": [
+      "git",
+      "kotlin",
+      "firebase",
+      "android",
+      "ios",
+      "typescript"
+    ],
+    "experience_years": 3
+  }
+]
