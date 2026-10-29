@@ -56,16 +56,17 @@ class ExperienceCalculator:
         if start is None or start > current_year:
             return None
 
+        end: int
+
         if end_text and any(
             word in end_text.casefold()
             for word in self.PRESENT_WORDS
         ):
             end = current_year
         else:
-            end = self._first_year(end_text)
+            parsed_end = self._first_year(end_text)
 
-            if end is None:
-                end = start
+            end = start if parsed_end is None else parsed_end
 
         end = min(end, current_year)
 
@@ -94,19 +95,19 @@ class ExperienceCalculator:
     ) -> int:
 
         total = 0
-        current_start = current_end = None
+        current: Optional[Tuple[int, int]] = None
 
         for start, end in sorted(intervals):
-            if current_end is None or start > current_end:
-                if current_end is not None:
-                    total += current_end - current_start
-
-                current_start, current_end = start, end
+            if current is None:
+                current = (start, end)
+            elif start > current[1]:
+                total += current[1] - current[0]
+                current = (start, end)
             else:
-                current_end = max(current_end, end)
+                current = (current[0], max(current[1], end))
 
-        if current_end is not None:
-            total += current_end - current_start
+        if current is not None:
+            total += current[1] - current[0]
 
         return total
 

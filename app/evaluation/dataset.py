@@ -1,7 +1,7 @@
 import json
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 
 @dataclass
@@ -33,7 +33,7 @@ class EvalCandidate:
 
     # Latent attributes used only to derive relevance labels. Rankers
     # must never read them.
-    meta: Dict[str, object] = field(default_factory=dict)
+    meta: Dict[str, Any] = field(default_factory=dict)
 
     @property
     def text(self) -> str:

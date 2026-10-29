@@ -1,4 +1,5 @@
 import time
+from typing import Any
 
 from bson import ObjectId
 from loguru import logger
@@ -371,7 +372,7 @@ class ResumeService:
         data: dict | None = None,
     ) -> None:
 
-        update_data = {
+        update_data: dict[str, Any] = {
             "upload_status": status,
         }
 

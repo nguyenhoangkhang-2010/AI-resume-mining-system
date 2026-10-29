@@ -1,7 +1,6 @@
 from types import SimpleNamespace
 
 import numpy as np
-import pytest
 
 from app.evaluation.pooling import ProfileEmbedder
 from app.matching.embedding_text import (

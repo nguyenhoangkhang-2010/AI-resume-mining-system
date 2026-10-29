@@ -84,7 +84,7 @@ async def upload_resume(
                 buffer,
             )
 
-    except Exception:
+    except Exception as exc:
         logger.exception(
             "Failed to save uploaded resume: {}",
             file.filename,
@@ -93,7 +93,7 @@ async def upload_resume(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not save uploaded file.",
-        )
+        ) from exc
 
     finally:
         await file.close()
@@ -133,11 +133,11 @@ async def get_resume_status(
 
     try:
         object_id = ObjectId(resume_id)
-    except InvalidId:
+    except InvalidId as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="Invalid resume_id.",
-        )
+        ) from exc
 
     db = mongo_db.get_db()
 

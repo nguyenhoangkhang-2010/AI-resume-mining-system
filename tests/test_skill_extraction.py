@@ -1,4 +1,3 @@
-import pytest
 from app.matching.recommendation.recommendation_engine import RecommendationEngine
 from app.extraction.skills.skill_extractor import SkillExtractor
 

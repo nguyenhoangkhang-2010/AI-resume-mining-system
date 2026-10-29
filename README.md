@@ -1,5 +1,7 @@
 # AI Resume Mining & Candidate Matching System
 
+[![CI](https://github.com/nguyenhoangkhang-2010/AI-resume-mining-system/actions/workflows/ci.yml/badge.svg)](https://github.com/nguyenhoangkhang-2010/AI-resume-mining-system/actions/workflows/ci.yml)
+
 An end-to-end AI-powered recruitment platform that automatically processes resumes, extracts candidate information, generates semantic embeddings, performs intelligent candidate-job matching, and provides analytics for recruiters.
 
 ## Overview

@@ -1,4 +1,8 @@
 import re
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from loguru import Record
 
 
 EMAIL_PATTERN = re.compile(
@@ -59,7 +63,7 @@ def redact_pii(text: str) -> str:
     return PHONE_CANDIDATE_PATTERN.sub(_mask_phone, text)
 
 
-def redaction_patcher(record: dict) -> None:
+def redaction_patcher(record: "Record") -> None:
     """
     Loguru patcher applied to every log record before it
     reaches any sink.

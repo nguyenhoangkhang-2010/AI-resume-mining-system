@@ -1,5 +1,9 @@
+from pathlib import Path
+
 import fitz
 import pytest
+
+ONET_RAW_DIR = Path(__file__).resolve().parents[1] / "data" / "onet" / "raw"
 
 
 @pytest.fixture
@@ -25,3 +29,21 @@ def make_pdf(tmp_path):
         return path
 
     return _make_pdf
+
+
+def pytest_collection_modifyitems(config, items):
+    """
+    The O*NET dataset is downloaded separately and is not in git, so tests
+    that read it are skipped on a fresh checkout (and in CI).
+    """
+
+    if ONET_RAW_DIR.exists():
+        return
+
+    skip = pytest.mark.skip(
+        reason=f"O*NET data not found at {ONET_RAW_DIR}"
+    )
+
+    for item in items:
+        if "requires_onet" in item.keywords:
+            item.add_marker(skip)

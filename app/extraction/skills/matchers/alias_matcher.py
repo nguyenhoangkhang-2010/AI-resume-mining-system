@@ -1,5 +1,4 @@
 from flashtext import KeywordProcessor
-from loguru import logger
 from app.extraction.skills.matchers.base_matcher import BaseMatcher
 from app.models.skill_match import SkillMatch
 from app.extraction.skills.config.matching_config import MatchingConfig

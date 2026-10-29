@@ -10,6 +10,7 @@ from app.matching.similarity.similarity_engine import SimilarityEngine
 from app.matching.recommendation.recommendation_engine import RecommendationEngine
 from app.schemas.ranked_candidate_schema import ScoreBreakdown
 from app.schemas.ranking_result import RankingResult
+from app.schemas.ranking_schema import RankingMetadata
 from app.matching.ranking.ranking_scorer import RankingScorer
 from app.matching.ranking.ranking_sorter import RankingSorter
 
@@ -75,7 +76,7 @@ class RankingPipeline:
         self,
         job: JobModel,
         candidates: List[CandidateModel],
-        score_map: Dict[str, float],
+        score_map: Dict[int, float],
     ) -> RankingResult:
 
         ranked_list = []
@@ -116,17 +117,17 @@ class RankingPipeline:
 
         return RankingResult(
             results=ranked_list,
-            metadata={
-                "total_candidates": len(candidates),
-                "ranked_candidates": len(ranked_list),
-                "filtered_candidates": filtered_candidates,
-                "similarity_threshold": (
+            metadata=RankingMetadata(
+                total_candidates=len(candidates),
+                ranked_candidates=len(ranked_list),
+                filtered_candidates=filtered_candidates,
+                similarity_threshold=(
                     self.score_filter.threshold
                     if hybrid
                     else self.ranking_filter.config.similarity_threshold
                 ),
-                "scoring_mode": "hybrid" if hybrid else "similarity",
-            }
+                scoring_mode="hybrid" if hybrid else "similarity",
+            )
         )
 
     def _rank_hybrid(

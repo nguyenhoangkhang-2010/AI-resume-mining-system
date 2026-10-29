@@ -160,7 +160,7 @@ class PDFParser:
                         page_rect,
                     )
 
-                    for span_index, span in enumerate(
+                    for _span_index, span in enumerate(
                         line.get("spans", [])
                     ):
 

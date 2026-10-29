@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import Dict, List
 
 from app.resume_processing.layout.layout_analyzer import (
     LayoutAnalysis,
@@ -9,7 +9,6 @@ from app.resume_processing.layout.layout_analyzer import (
 )
 from app.resume_processing.layout.semantic_region_analyzer import (
     SemanticRegion,
-    SemanticRegionAnalysis,
     SemanticRegionAnalyzer,
 )
 

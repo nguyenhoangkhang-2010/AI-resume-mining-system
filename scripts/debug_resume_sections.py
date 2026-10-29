@@ -69,8 +69,6 @@ def main() -> None:
         for key, value in sections.items()
     }
 
-    full_text = "\n".join(section_texts.values())
-
     print("\nSection texts passed to extractors:")
 
     for section_name, text in section_texts.items():
