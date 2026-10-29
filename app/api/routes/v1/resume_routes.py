@@ -1,4 +1,3 @@
-import shutil
 import uuid
 from pathlib import Path
 
@@ -23,7 +22,10 @@ from fastapi import (
 from loguru import logger
 
 from app.api.dependencies import get_resume_service
+from app.core.config.settings import settings
 from app.core.constants.app_constants import ALLOWED_EXTENSIONS
+from app.core.exceptions import AppError, UnsupportedFileTypeError
+from app.services.upload_validation import save_upload
 from app.services.resume_service import ResumeService
 
 
@@ -61,12 +63,9 @@ async def upload_resume(
     ).suffix.lower()
 
     if file_ext not in ALLOWED_EXTENSIONS:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Invalid file type. "
-                f"Allowed extensions: {ALLOWED_EXTENSIONS}"
-            ),
+        raise UnsupportedFileTypeError(
+            "Invalid file type. "
+            f"Allowed extensions: {sorted(ALLOWED_EXTENSIONS)}"
         )
 
     unique_filename = (
@@ -78,11 +77,15 @@ async def upload_resume(
     )
 
     try:
-        with file_path.open("wb") as buffer:
-            shutil.copyfileobj(
-                file.file,
-                buffer,
-            )
+        save_upload(
+            file.file,
+            file_path,
+            file_ext,
+            settings.MAX_UPLOAD_MB * 1024 * 1024,
+        )
+
+    except AppError:
+        raise
 
     except Exception as exc:
         logger.exception(
@@ -162,6 +165,7 @@ async def get_resume_status(
         "pending",
         "processing",
         "processed",
+        "needs_review",
         "failed",
     }:
         logger.warning(
@@ -176,4 +180,6 @@ async def get_resume_status(
     return ResumeStatusResponse(
         resume_id=str(resume["_id"]),
         status=upload_status,
+        reason=resume.get("status_reason"),
+        warnings=resume.get("warnings") or [],
     )

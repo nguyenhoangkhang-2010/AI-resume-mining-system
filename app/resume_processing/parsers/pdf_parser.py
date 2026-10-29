@@ -1,8 +1,33 @@
+import re
+import unicodedata
 from pathlib import Path
 from typing import Any, Dict, List
 
 import fitz
 from loguru import logger
+
+from app.core.config.settings import settings
+
+
+_ZERO_WIDTH = re.compile("[​‌‍⁠﻿]")
+
+
+def clean_pdf_text(text: str) -> str:
+    """
+    Normalises text as extracted from a PDF.
+
+    NFKC composes accents that some generators store as separate combining
+    marks (common in Vietnamese) and expands ligatures such as "fi", which
+    would otherwise break matching of words and skills. Non-breaking spaces
+    become ordinary spaces, soft hyphens become hyphens, and zero-width
+    characters are removed.
+    """
+
+    text = unicodedata.normalize("NFKC", text)
+    text = text.replace("­", "-")
+    text = text.replace(" ", " ")
+
+    return _ZERO_WIDTH.sub("", text)
 
 
 class PDFParser:
@@ -122,6 +147,12 @@ class PDFParser:
             "dict"
         )
 
+        if not PDFParser._has_text(raw_dict):
+            raw_dict = PDFParser._ocr_dict(
+                page,
+                raw_dict,
+            )
+
         blocks: List[Dict[str, Any]] = []
 
         text_parts: List[str] = []
@@ -164,8 +195,8 @@ class PDFParser:
                         line.get("spans", [])
                     ):
 
-                        span_text = str(
-                            span.get("text", "")
+                        span_text = clean_pdf_text(
+                            str(span.get("text", ""))
                         )
 
                         if not span_text:
@@ -293,6 +324,61 @@ class PDFParser:
             "blocks": blocks,
             "images": images,
         }
+
+    @staticmethod
+    def _has_text(
+        raw_dict: Dict[str, Any],
+    ) -> bool:
+
+        return any(
+            span.get("text", "").strip()
+            for block in raw_dict.get("blocks", [])
+            if block.get("type") == 0
+            for line in block.get("lines", [])
+            for span in line.get("spans", [])
+        )
+
+    @staticmethod
+    def _ocr_dict(
+        page: fitz.Page,
+        raw_dict: Dict[str, Any],
+    ) -> Dict[str, Any]:
+        """
+        Text layout of an image-only page recovered with OCR. Returns the
+        original (empty) layout when OCR is disabled, the page has no image
+        or Tesseract is not available.
+        """
+
+        if not settings.OCR_ENABLED:
+            return raw_dict
+
+        if not any(
+            block.get("type") == 1
+            for block in raw_dict.get("blocks", [])
+        ):
+            return raw_dict
+
+        try:
+            textpage = page.get_textpage_ocr(
+                language=settings.OCR_LANGUAGES,
+                dpi=settings.OCR_DPI,
+                full=True,
+            )
+
+            return page.get_text(
+                "dict",
+                textpage=textpage,
+            )
+
+        except Exception as exc:
+            logger.warning(
+                "OCR failed for a page without text ({}). Is Tesseract "
+                "installed and are the '{}' language files available?",
+                type(exc).__name__,
+                settings.OCR_LANGUAGES,
+            )
+
+            return raw_dict
 
     @staticmethod
     def _normalize_bbox(

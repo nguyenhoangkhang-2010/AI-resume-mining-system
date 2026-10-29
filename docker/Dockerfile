@@ -8,6 +8,8 @@
 #                    https://download.pytorch.org/whl/cu124 for NVIDIA GPUs)
 #   WITH_LLAMA_CPP   install llama-cpp-python (compiled from source, slow);
 #                    needed for LLM_PROVIDER=llama_cpp
+#   WITH_OCR         install Tesseract (English and Vietnamese) so scanned
+#                    PDFs can be read when OCR_ENABLED=true
 ARG PYTHON_VERSION=3.11
 
 
@@ -51,9 +53,15 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     PATH="/opt/venv/bin:$PATH" \
     HF_HOME=/home/appuser/.cache/huggingface
 
+ARG WITH_OCR=false
+
 # libgomp1: OpenMP runtime used by FAISS, torch and llama.cpp.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     libgomp1 \
+    && if [ "${WITH_OCR}" = "true" ]; then \
+         apt-get install -y --no-install-recommends \
+           tesseract-ocr tesseract-ocr-eng tesseract-ocr-vie; \
+       fi \
     && rm -rf /var/lib/apt/lists/*
 
 RUN groupadd --system --gid 10001 appuser \

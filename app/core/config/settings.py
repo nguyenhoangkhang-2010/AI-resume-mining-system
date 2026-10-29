@@ -16,6 +16,17 @@ class Settings(BaseSettings):
 
     DB_NAME: str = "resume_mining_db"
 
+    MAX_UPLOAD_MB: int = 10
+
+    # OCR for scanned (image-only) PDFs. Needs the Tesseract program and its
+    # language data installed; when it is missing the page stays empty and the
+    # resume is flagged needs_review.
+    OCR_ENABLED: bool = False
+
+    OCR_LANGUAGES: str = "eng+vie"
+
+    OCR_DPI: int = 300
+
     DB_REQUIRED_AT_STARTUP: bool = False
 
     MODEL_NAME: str = (
