@@ -59,3 +59,22 @@ class ResumeStatusResponse(BaseModel):
             "(for example no_experience_found)"
         ),
     )
+
+
+class ResumeListItem(BaseModel):
+    id: str
+    filename: str
+    status: ResumeStatus
+    reason: Optional[str] = Field(
+        default=None,
+        description="Why the resume is in needs_review or failed, as a short code",
+    )
+    warnings: List[str] = Field(default_factory=list)
+    created_at: datetime
+
+
+class ResumeDetail(ResumeListItem):
+    candidate_id: Optional[str] = Field(
+        default=None,
+        description="Candidate created from this resume, if it was indexed",
+    )

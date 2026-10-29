@@ -1,4 +1,5 @@
 from pydantic import BaseModel, Field
+from datetime import datetime
 from typing import List, Optional
 from app.models.candidate import (
     Certification,
@@ -32,3 +33,21 @@ class CandidateResponse(BaseModel):
     class Config:
         from_attributes = True
         populate_by_name = True
+
+
+class CandidateSummary(BaseModel):
+    """
+    A candidate as shown in lists and search results. Contact details are
+    left out; they are only returned by the detail endpoint.
+    """
+
+    id: str
+    resume_id: str
+    full_name: Optional[str] = None
+    skills: List[str] = Field(
+        default_factory=list,
+        description="Up to ten normalised skills",
+    )
+    skill_count: int = 0
+    experience_entries: int = 0
+    created_at: Optional[datetime] = None

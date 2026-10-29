@@ -48,3 +48,9 @@ class InvalidUploadError(AppError):
     status_code = 400
     code = "invalid_upload"
     default_message = "The uploaded file is empty or damaged"
+
+
+class ConflictError(AppError):
+    status_code = 409
+    code = "conflict"
+    default_message = "The request conflicts with the current state of the resource"

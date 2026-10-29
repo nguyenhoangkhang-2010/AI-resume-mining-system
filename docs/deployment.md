@@ -15,6 +15,21 @@ on the host. To open a shell in it:
 docker compose exec mongodb mongosh -u resume_admin --authenticationDatabase admin
 ```
 
+## Using the MongoDB already on your computer
+
+`docker compose up` starts its own, empty MongoDB (with the password from
+`.env`). To use the MongoDB that is already installed on your computer instead,
+keeping its data and without a password if it has none, run only the API:
+
+```bash
+docker compose -f docker-compose.host-db.yml up --build -d
+```
+
+This also mounts your local `data/uploads` and `faiss_index` folders, so the
+container sees the same resumes and index as a locally started server. Do not
+run both at the same time: they would write the same index file. If your
+MongoDB requires a login, set `MONGO_USERNAME` and `MONGO_PASSWORD` in `.env`.
+
 ## What the stack contains
 
 | Piece | Notes |

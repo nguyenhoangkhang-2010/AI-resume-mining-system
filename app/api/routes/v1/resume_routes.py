@@ -1,12 +1,15 @@
 import uuid
 from pathlib import Path
 
-from bson import ObjectId
-from bson.errors import InvalidId
+from typing import Optional
 
 from app.database.mongodb.connection import mongo_db
+from app.schemas.page import Page
 from app.schemas.resume_schema import (
+    ResumeDetail,
+    ResumeListItem,
     ResumeResponse,
+    ResumeStatus,
     ResumeStatusResponse,
 )
 
@@ -16,15 +19,20 @@ from fastapi import (
     Depends,
     File,
     HTTPException,
+    Query,
+    Response,
     UploadFile,
     status,
 )
 from loguru import logger
 
-from app.api.dependencies import get_resume_service
+from app.api.dependencies import get_resume_catalog_service, get_resume_service
+from app.api.pagination import PageParams, page_params
 from app.core.config.settings import settings
 from app.core.constants.app_constants import ALLOWED_EXTENSIONS
-from app.core.exceptions import AppError, UnsupportedFileTypeError
+from app.core.exceptions import AppError, NotFoundError, UnsupportedFileTypeError
+from app.core.identifiers import parse_object_id
+from app.services.resume_catalog_service import KNOWN_STATUSES, ResumeCatalogService
 from app.services.upload_validation import save_upload
 from app.services.resume_service import ResumeService
 
@@ -126,21 +134,55 @@ async def upload_resume(
     )
     
 @router.get(
+    "/",
+    response_model=Page[ResumeListItem],
+)
+def list_resumes(
+    status_filter: Optional[ResumeStatus] = Query(
+        default=None,
+        alias="status",
+        description="Only resumes in this processing status",
+    ),
+    page: PageParams = Depends(page_params),
+    catalog: ResumeCatalogService = Depends(get_resume_catalog_service),
+):
+    return catalog.list_resumes(status_filter, page.limit, page.offset)
+
+
+@router.get(
+    "/{resume_id}",
+    response_model=ResumeDetail,
+)
+def get_resume(
+    resume_id: str,
+    catalog: ResumeCatalogService = Depends(get_resume_catalog_service),
+):
+    return catalog.get_resume(resume_id)
+
+
+@router.delete(
+    "/{resume_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+)
+def delete_resume(
+    resume_id: str,
+    catalog: ResumeCatalogService = Depends(get_resume_catalog_service),
+):
+    catalog.delete_resume(resume_id)
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
     "/{resume_id}/status",
     response_model=ResumeStatusResponse,
     status_code=status.HTTP_200_OK,
 )
-async def get_resume_status(
+def get_resume_status(
     resume_id: str,
 ) -> ResumeStatusResponse:
 
-    try:
-        object_id = ObjectId(resume_id)
-    except InvalidId as exc:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid resume_id.",
-        ) from exc
+    object_id = parse_object_id(resume_id, "Resume")
 
     db = mongo_db.get_db()
 
@@ -151,23 +193,14 @@ async def get_resume_status(
     )
 
     if not resume:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Resume not found: {resume_id}",
-        )
+        raise NotFoundError(f"Resume not found: {resume_id}")
 
     upload_status = resume.get(
         "upload_status",
         "pending",
     )
 
-    if upload_status not in {
-        "pending",
-        "processing",
-        "processed",
-        "needs_review",
-        "failed",
-    }:
+    if upload_status not in KNOWN_STATUSES:
         logger.warning(
             "Unknown resume status '{}' for resume {}. "
             "Falling back to 'pending'.",

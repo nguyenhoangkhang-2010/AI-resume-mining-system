@@ -25,3 +25,12 @@ class JobResponse(BaseModel):
     class Config:
         from_attributes = True
         populate_by_name = True
+
+
+class JobSummary(BaseModel):
+    id: str
+    title: str
+    occupation: Optional[str] = None
+    required_skills: List[str] = Field(default_factory=list)
+    experience_years: Optional[int] = None
+    created_at: datetime
