@@ -1,31 +1,29 @@
-fastapi
-uvicorn[standard]
-pandas
-numpy
-pymupdf
-sentence-transformers
-torch
-transformers
-faiss-cpu
-pymongo
-python-dotenv
-pydantic
-scikit-learn
-streamlit
-plotly
-loguru
-tqdm
-requests
-pytest
-pytest-timeout
-python-multipart
-python-docx
-pdfplumber
-matplotlib
-jupyter
-pydantic-settings
-torchvision
-huggingface_hub
-flashtext
-spacy
-llama-cpp-python
+# Runtime dependencies of the API, pinned to the versions the test suite
+# passes with. torch is installed from the CPU index in Docker and CI; see
+# docs/deployment.md for GPU builds.
+#
+# Optional extras live in their own files:
+#   requirements-llama.txt      local GGUF model backend (compiled from source)
+#   requirements-analytics.txt  Streamlit dashboard
+#   requirements-dev.txt        tests, linting, type checking
+
+fastapi==0.137.1
+uvicorn[standard]==0.49.0
+python-multipart==0.0.32
+pydantic==2.13.4
+pydantic-settings==2.14.1
+python-dotenv==1.2.2
+loguru==0.7.3
+
+pymongo==4.17.0
+
+numpy==2.4.6
+scikit-learn==1.9.0
+faiss-cpu==1.14.3
+torch==2.12.1
+sentence-transformers==5.6.0
+transformers==5.12.1
+huggingface_hub==1.19.0
+
+pymupdf==1.27.2.3
+flashtext==2.7

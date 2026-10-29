@@ -6,6 +6,14 @@ from pydantic_settings import BaseSettings
 class Settings(BaseSettings):
     MONGO_URI: str = "mongodb://localhost:27017"
 
+    # Credentials can be given separately from the URI, so passwords with
+    # characters such as @ or : need no URL-encoding.
+    MONGO_USERNAME: Optional[str] = None
+
+    MONGO_PASSWORD: Optional[str] = None
+
+    MONGO_AUTH_SOURCE: str = "admin"
+
     DB_NAME: str = "resume_mining_db"
 
     DB_REQUIRED_AT_STARTUP: bool = False

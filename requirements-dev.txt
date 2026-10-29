@@ -1,7 +1,11 @@
 -r requirements.txt
 
+# Tests
+pytest==9.1.0
+pytest-timeout==2.4.0
+pytest-cov==7.1.0
+httpx==0.28.1  # FastAPI TestClient
+
 # Quality gates (see .github/workflows/ci.yml)
-ruff
-mypy
-pytest-cov
-types-requests
+ruff==0.17.3
+mypy==2.4.0

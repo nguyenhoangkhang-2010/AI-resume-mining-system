@@ -1,0 +1,48 @@
+# The build context is the repository root, so this file must live here:
+# Docker ignores a .dockerignore placed next to docker/Dockerfile.
+
+.git
+.github
+.vscode
+.idea
+.venv
+venv
+__pycache__
+*.pyc
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage
+coverage.xml
+htmlcov
+
+.env
+.env.*
+!.env.example
+
+# Not needed by the running API
+tests
+notebooks
+docs
+frontend
+*.md
+*.zip
+*.log
+logs
+storage
+
+# Only the operational scripts ship in the image
+scripts/*
+!scripts/reindex_candidates.py
+!scripts/check_index_consistency.py
+
+# Large or mutable data stays out of the image (mounted as volumes)
+models
+faiss_index
+data/uploads
+data/onet
+data/resumes
+data/jobs
+data/processed
+data/evaluation
+data/esco/raw

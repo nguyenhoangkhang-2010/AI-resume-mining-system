@@ -33,7 +33,11 @@ class MongoDBConnection:
 
         try:
             logger.info(f"Connecting to MongoDB at {_mask_credentials(settings.MONGO_URI)}...")
-            client = MongoClient(settings.MONGO_URI, serverSelectionTimeoutMS=5000)
+            client = MongoClient(
+                settings.MONGO_URI,
+                serverSelectionTimeoutMS=5000,
+                **self._credentials(),
+            )
 
             client.admin.command('ping')
             self.client = client
@@ -50,6 +54,17 @@ class MongoDBConnection:
             logger.error(f"An unexpected error occurred while connecting to MongoDB: {e}")
             self._discard(client)
             raise e
+
+    @staticmethod
+    def _credentials() -> dict:
+        if not settings.MONGO_USERNAME:
+            return {}
+
+        return {
+            "username": settings.MONGO_USERNAME,
+            "password": settings.MONGO_PASSWORD,
+            "authSource": settings.MONGO_AUTH_SOURCE,
+        }
 
     @staticmethod
     def _discard(client: MongoClient | None) -> None:
