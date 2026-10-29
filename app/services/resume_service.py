@@ -18,6 +18,12 @@ from app.models.resume import ResumeModel
 from app.embeddings.services.embedding_service import EmbeddingService
 from app.vector_store.vector_store import VectorStore
 from app.core.constants.app_constants import EMBEDDING_VERSION
+from app.services.resume_quality import (
+    FAILED,
+    PROCESSED,
+    assess_extraction,
+    failure_reason,
+)
 from app.database.mongodb.id_generator import next_faiss_id
 from app.matching.embedding_text import CandidateTextBuilder
 from app.matching.skills.factory.skill_normalizer_factory import (
@@ -143,6 +149,28 @@ class ResumeService:
                 filename,
             )
 
+            assessment = assess_extraction(
+                extracted_data
+            )
+
+            if assessment.status != PROCESSED:
+                # Nothing usable was extracted: keep the result for review
+                # instead of indexing an empty candidate.
+                self._update_resume_status(
+                    resume_id,
+                    assessment.status,
+                    extracted_data,
+                    reason=assessment.reason,
+                )
+
+                logger.warning(
+                    "Resume {} needs review: {}",
+                    resume_id,
+                    assessment.reason,
+                )
+
+                return
+
             candidate = self._build_candidate(
                 resume_id=resume_id,
                 extracted_data=extracted_data,
@@ -154,8 +182,9 @@ class ResumeService:
 
             self._update_resume_status(
                 resume_id,
-                "processed",
+                PROCESSED,
                 extracted_data,
+                warnings=assessment.warnings,
             )
 
             logger.success(
@@ -174,7 +203,8 @@ class ResumeService:
             try:
                 self._update_resume_status(
                     resume_id,
-                    "failed",
+                    FAILED,
+                    reason=failure_reason(e),
                 )
             except Exception as status_error:
                 logger.exception(
@@ -370,10 +400,14 @@ class ResumeService:
         resume_id: str,
         status: str,
         data: dict | None = None,
+        reason: str | None = None,
+        warnings: list[str] | None = None,
     ) -> None:
 
         update_data: dict[str, Any] = {
             "upload_status": status,
+            "status_reason": reason,
+            "warnings": warnings or [],
         }
 
         if data is not None:

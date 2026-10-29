@@ -37,6 +37,7 @@ services:
       dockerfile: docker/Dockerfile
       args:
         WITH_LLAMA_CPP: ${WITH_LLAMA_CPP:-true}
+        WITH_OCR: ${WITH_OCR:-false}
         TORCH_INDEX_URL: ${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cpu}
     restart: unless-stopped
     ports:

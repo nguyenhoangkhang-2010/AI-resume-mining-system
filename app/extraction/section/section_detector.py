@@ -1,15 +1,21 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List, Optional, Tuple
 
 from loguru import logger
 
+from app.extraction.section.heading_lexicon import (
+    looks_like_contact,
+    split_by_headings,
+    split_contact_header,
+)
 from app.extraction.section.section_classifier import SectionClassifier
 from app.extraction.section.section_semantic_classifier import (
     SectionSemanticClassifier,
 )
 from app.resume_processing.layout.layout_analyzer import LayoutAnalysis
 from app.resume_processing.layout.semantic_region_analyzer import (
+    SemanticRegion,
     SemanticRegionAnalysis,
 )
 
@@ -56,6 +62,11 @@ class SectionDetector:
         project_regions: List[str] = []
 
         fallback_used = 0
+        heading_used = 0
+        continued = 0
+
+        # Section and region of the most recent heading found by wording.
+        last_heading: Optional[Tuple[str, SemanticRegion]] = None
 
         for region in region_analysis.regions:
 
@@ -67,63 +78,121 @@ class SectionDetector:
             if not region_text:
                 continue
 
-            section_type, confidence = (
-                self.semantic_classifier.classify(
-                    region_text
-                )
+            # Headings are recognised by their wording, whatever their style,
+            # and split the region wherever they appear.
+            segments = split_by_headings(
+                region_text
             )
 
-            if confidence < self.min_confidence:
-
-                fallback_type, fallback_confidence = (
-                    self.llm_classifier.classify_single(
-                        region_text
-                    )
+            # Text before the first heading that carries an email, phone
+            # number or profile link starts with the CV header (name and
+            # contact lines); what follows it is classified separately.
+            if (
+                last_heading is None
+                and segments
+                and segments[0][0] is None
+                and looks_like_contact(segments[0][1])
+            ):
+                header, rest = split_contact_header(
+                    segments[0][1]
                 )
 
-                logger.debug(
-                    "Fallback LLM classification for region {}: "
-                    "'{}' (embedding conf={:.2f}) -> '{}' "
-                    "(llm conf={:.2f})",
+                segments = [
+                    ("personal_info", header),
+                    *(
+                        [(None, rest)]
+                        if rest.strip()
+                        else []
+                    ),
+                    *segments[1:],
+                ]
+
+                header_forced = True
+            else:
+                header_forced = False
+
+            for position, (heading, segment_text) in enumerate(
+                segments
+            ):
+
+                if header_forced and position == 0:
+                    section_type, confidence = "personal_info", 1.0
+
+                elif heading is not None:
+                    section_type, confidence = heading, 1.0
+                    heading_used += 1
+                    last_heading = (heading, region)
+
+                elif (
+                    continued_type := self._continuation(
+                        last_heading,
+                        region,
+                    )
+                ) is not None:
+                    section_type = continued_type
+                    confidence = 1.0
+                    continued += 1
+                    last_heading = (section_type, region)
+
+                else:
+                    section_type, confidence = (
+                        self.semantic_classifier.classify(
+                            segment_text
+                        )
+                    )
+
+                    if confidence < self.min_confidence:
+
+                        fallback_type, fallback_confidence = (
+                            self.llm_classifier.classify_single(
+                                segment_text
+                            )
+                        )
+
+                        logger.debug(
+                            "Fallback LLM classification for region {}: "
+                            "'{}' (embedding conf={:.2f}) -> '{}' "
+                            "(llm conf={:.2f})",
+                            region.region_id,
+                            section_type,
+                            confidence,
+                            fallback_type,
+                            fallback_confidence,
+                        )
+
+                        section_type = fallback_type
+                        confidence = fallback_confidence
+                        fallback_used += 1
+
+                logger.info(
+                    "Region {} -> '{}' (confidence={:.2f})",
                     region.region_id,
                     section_type,
                     confidence,
-                    fallback_type,
-                    fallback_confidence,
                 )
 
-                section_type = fallback_type
-                confidence = fallback_confidence
-                fallback_used += 1
+                if section_type == "projects":
+                    project_regions.append(
+                        segment_text
+                    )
+                    continue
 
-            logger.info(
-                "Region {} -> '{}' (confidence={:.2f})",
-                region.region_id,
-                section_type,
-                confidence,
-            )
+                if section_type == "other":
+                    continue
 
-            if section_type == "projects":
-                project_regions.append(
-                    region_text
-                )
-                continue
-
-            if section_type == "other":
-                continue
-
-            sections.setdefault(
-                section_type,
-                [],
-            ).append(region_text)
+                sections.setdefault(
+                    section_type,
+                    [],
+                ).append(segment_text)
 
         if project_regions:
             sections["projects"] = project_regions
             sections["__projects_regions__"] = project_regions
 
         logger.info(
-            "Section detection complete: {} sections, "
-            "{} region(s) used LLM fallback.",
+            "Section detection complete: {} sections, {} by heading "
+            "wording, {} continued across pages, {} region(s) used LLM "
+            "fallback.",
             len(
                 [
                     key
@@ -131,10 +200,43 @@ class SectionDetector:
                     if not key.startswith("__")
                 ]
             ),
+            heading_used,
+            continued,
             fallback_used,
         )
 
         return sections
+
+    @staticmethod
+    def _continuation(
+        last_heading: Optional[Tuple[str, SemanticRegion]],
+        region: SemanticRegion,
+    ) -> Optional[str]:
+        """
+        The section a region without a heading continues: the previous
+        heading's section, when the region is on a later page and in the
+        same column. None otherwise.
+        """
+
+        if last_heading is None:
+            return None
+
+        section_type, previous = last_heading
+
+        if region.page_index <= previous.page_index:
+            return None
+
+        overlap = min(region.x1, previous.x1) - max(region.x0, previous.x0)
+
+        narrower = min(
+            region.x1 - region.x0,
+            previous.x1 - previous.x0,
+        )
+
+        if narrower > 0 and overlap / narrower >= 0.5:
+            return section_type
+
+        return None
 
     def _detect_from_plain_text(
         self,
@@ -143,6 +245,13 @@ class SectionDetector:
 
         if not text or not text.strip():
             return {}
+
+        by_wording = self._detect_by_wording(
+            text
+        )
+
+        if by_wording:
+            return by_wording
 
         lines = [
             line.strip()
@@ -218,6 +327,54 @@ class SectionDetector:
             result["__projects_regions__"] = [
                 "\n".join(result["projects"])
             ]
+
+        return result
+
+    def _detect_by_wording(
+        self,
+        text: str,
+    ) -> Dict[str, List[str]]:
+        """
+        Splits plain text at headings recognised by their wording. Returns
+        an empty mapping when the text has no such heading, so the caller
+        can fall back to the LLM.
+        """
+
+        segments = split_by_headings(
+            text
+        )
+
+        if not any(
+            heading is not None
+            for heading, _ in segments
+        ):
+            return {}
+
+        result: Dict[str, List[str]] = {}
+
+        for heading, body in segments:
+
+            section_type = heading
+
+            if section_type is None:
+                section_type, _ = (
+                    self.semantic_classifier.classify(
+                        body
+                    )
+                )
+
+            if section_type == "other":
+                continue
+
+            result.setdefault(
+                section_type,
+                [],
+            ).append(body)
+
+        if "projects" in result:
+            result["__projects_regions__"] = list(
+                result["projects"]
+            )
 
         return result
 
