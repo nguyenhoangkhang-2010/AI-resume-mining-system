@@ -44,7 +44,7 @@ class RankingEngine:
     def _build_score_map(
         self,
         faiss_results: List[Dict[str, Any]],
-    ) -> Dict[str, float]:
+    ) -> Dict[int, float]:
         return self.ranking_adapter.build_score_map(
             faiss_results
         )

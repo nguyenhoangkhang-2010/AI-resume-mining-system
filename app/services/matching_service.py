@@ -10,6 +10,7 @@ from app.models.job import JobModel
 from app.models.candidate import CandidateModel
 
 from app.schemas.matching_schema import MatchResponse
+from app.schemas.ranking_schema import RankingMetadata
 
 from app.embeddings.services.embedding_service import EmbeddingService
 
@@ -72,12 +73,12 @@ class MatchingService:
             return MatchResponse(
                 job_id=job_id,
                 results=[],
-                metadata={
-                    "total_candidates":0,
-                    "ranked_candidates":0,
-                    "filtered_candidates":0,
-                    "similarity_threshold":0
-                }
+                metadata=RankingMetadata(
+                    total_candidates=0,
+                    ranked_candidates=0,
+                    filtered_candidates=0,
+                    similarity_threshold=0,
+                )
             )
         faiss_ids = [
             item["faiss_id"]

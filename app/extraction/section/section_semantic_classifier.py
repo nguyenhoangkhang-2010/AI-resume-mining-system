@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from loguru import logger
@@ -240,7 +240,7 @@ class SectionSemanticClassifier:
     def classify_detailed(
         self,
         texts: List[str],
-    ) -> List[Dict[str, object]]:
+    ) -> List[Dict[str, Any]]:
 
         normalized_texts = self._normalize_texts(
             texts
@@ -263,7 +263,7 @@ class SectionSemanticClassifier:
         )
 
         results: List[
-            Dict[str, object]
+            Dict[str, Any]
         ] = []
 
         for text, row in zip(
@@ -325,7 +325,7 @@ class SectionSemanticClassifier:
     def classify_lines(
         self,
         lines: List[str],
-    ) -> List[Dict[str, object]]:
+    ) -> List[Dict[str, Any]]:
 
         normalized_lines = self._normalize_texts(
             lines
@@ -391,7 +391,7 @@ class SectionSemanticClassifier:
             )
 
         results: List[
-            Dict[str, object]
+            Dict[str, Any]
         ] = []
 
         for index, line in enumerate(
@@ -564,8 +564,8 @@ class SectionSemanticClassifier:
 
     def _resolve_boundary_candidates(
         self,
-        results: List[Dict[str, object]],
-    ) -> List[Dict[str, object]]:
+        results: List[Dict[str, Any]],
+    ) -> List[Dict[str, Any]]:
 
         if not results:
             return []

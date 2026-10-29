@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from bson import ObjectId
 from loguru import logger
+from pydantic import ValidationError
 from types import SimpleNamespace
 
 from app.core.constants.app_constants import EMBEDDING_VERSION
@@ -91,7 +92,7 @@ def test_non_string_summary_is_ignored():
 def test_invalid_data_does_not_leave_a_vector_behind():
     service = make_resume_service()
 
-    with pytest.raises(Exception):
+    with pytest.raises(ValidationError):
         service._build_candidate(
             "resume-1",
             {**EXTRACTED, "experience": [{"role": {"not": "a string"}}]},

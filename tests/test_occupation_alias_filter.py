@@ -10,6 +10,12 @@ from app.knowledge_base.services.occupation_alias_frequency import (
     OccupationAliasFrequencyAnalyzer
 )
 
+import pytest
+
+pytestmark = pytest.mark.requires_onet
+
+
+
 
 def test_occupation_alias_filter():
 

@@ -1,0 +1,40 @@
+[tool.ruff]
+target-version = "py310"
+extend-exclude = ["notebooks", "frontend", "models", "data", "logs", "storage"]
+
+[tool.ruff.lint]
+# Pyflakes (unused/undefined names), syntax and statement errors, and the
+# bugbear checks that catch real defects. Style rules are deliberately not
+# enabled: the codebase has not been auto-formatted.
+select = ["F", "E4", "E7", "E9", "B"]
+ignore = [
+    "B905",  # zip() without strict=: strict needs Python 3.10 semantics everywhere
+]
+
+[tool.ruff.lint.flake8-bugbear]
+extend-immutable-calls = ["fastapi.Depends", "fastapi.File"]
+
+[tool.ruff.lint.per-file-ignores]
+# Streamlit entry point adds the project root to sys.path before importing.
+"app/analytics/**" = ["E402"]
+
+[tool.mypy]
+python_version = "3.10"
+files = ["app"]
+ignore_missing_imports = true
+warn_unused_ignores = false
+
+[tool.coverage.run]
+source = ["app"]
+omit = ["app/analytics/*"]
+
+[tool.coverage.report]
+# Floor slightly under the level measured when the gate was added (71%).
+fail_under = 68
+show_missing = false
+skip_empty = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]

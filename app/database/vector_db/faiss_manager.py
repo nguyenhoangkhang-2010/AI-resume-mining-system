@@ -68,7 +68,7 @@ class FaissManager:
         self.save_every = max(1, int(save_every))
         self._lock = threading.RLock()
         self._unsaved_changes = 0
-        self._index: Optional[faiss.Index] = None
+        self._index: faiss.Index
         self._load_or_create_index()
 
     def _load_or_create_index(self):
@@ -98,7 +98,9 @@ class FaissManager:
             if self._index.ntotal == 0:
                 return set()
 
-            return {int(i) for i in faiss.vector_to_array(self._index.id_map)}
+            id_map = self._index.id_map  # type: ignore[attr-defined]
+
+            return {int(i) for i in faiss.vector_to_array(id_map)}
 
     def save_index(self):
         with self._lock:
@@ -161,13 +163,18 @@ class FaissManager:
 
         with self._lock:
             try:
-                self._index.remove_ids(ids)
+                self._remove(ids)
                 self._index.add_with_ids(vector, ids)
                 logger.debug(f"Added vector with ID {faiss_id} to FAISS.")
                 self._record_change()
             except Exception as e:
                 logger.error(f"Error adding vector to FAISS: {e}")
                 raise
+
+    def _remove(self, ids: np.ndarray) -> int:
+        # The faiss Python wrapper accepts a numpy int64 array here; the
+        # type stubs only declare IDSelector.
+        return int(self._index.remove_ids(ids))  # type: ignore[arg-type]
 
     def remove_ids(self, faiss_ids: Iterable[int]) -> int:
         ids = np.array(list(faiss_ids), dtype=np.int64)
@@ -176,7 +183,7 @@ class FaissManager:
             return 0
 
         with self._lock:
-            removed = int(self._index.remove_ids(ids))
+            removed = self._remove(ids)
 
             if removed:
                 self._record_change()

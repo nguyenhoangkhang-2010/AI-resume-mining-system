@@ -1,4 +1,3 @@
-import pytest
 from datetime import datetime
 from app.matching.similarity.similarity_engine import SimilarityEngine
 from app.matching.ranking.ranking_engine import RankingEngine

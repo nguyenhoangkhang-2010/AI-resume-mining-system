@@ -20,4 +20,7 @@ def next_faiss_id(db: Database) -> int:
         return_document=ReturnDocument.AFTER,
     )
 
+    if document is None:
+        raise RuntimeError("Could not obtain the next faiss id from MongoDB")
+
     return int(document["seq"])

@@ -29,7 +29,7 @@ class MongoDBConnection:
             logger.warning("MongoDB client is already connected.")
             return
 
-        client = None
+        client: MongoClient | None = None
 
         try:
             logger.info(f"Connecting to MongoDB at {_mask_credentials(settings.MONGO_URI)}...")
@@ -64,6 +64,9 @@ class MongoDBConnection:
                 self.connect()
             except Exception as exc:
                 raise DatabaseUnavailableError("MongoDB is not connected.") from exc
+
+        if self.db is None:
+            raise DatabaseUnavailableError("MongoDB is not connected.")
 
         return self.db
 

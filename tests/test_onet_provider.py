@@ -2,6 +2,12 @@ from pathlib import Path
 
 from app.knowledge_base.providers.onet_provider import ONETProvider
 
+import pytest
+
+pytestmark = pytest.mark.requires_onet
+
+
+
 
 def test_onet_provider_load():
     provider = ONETProvider()

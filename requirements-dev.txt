@@ -1,0 +1,7 @@
+-r requirements.txt
+
+# Quality gates (see .github/workflows/ci.yml)
+ruff
+mypy
+pytest-cov
+types-requests

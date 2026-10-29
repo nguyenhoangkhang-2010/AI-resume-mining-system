@@ -1,10 +1,11 @@
 import pytest
 
-pytestmark = pytest.mark.slow
-
 from app.knowledge_graph.enrichment.providers.huggingface_provider import (
     HuggingFaceLLMProvider,
 )
+
+
+pytestmark = pytest.mark.slow
 
 
 def test_huggingface_provider():
