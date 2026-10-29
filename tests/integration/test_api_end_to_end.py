@@ -11,7 +11,11 @@ matching, ranking and the HTTP layer) is real.
 import pytest
 from fastapi.testclient import TestClient
 
-from app.api.dependencies import get_job_service
+from app.api.dependencies import (
+    get_candidate_search_service,
+    get_job_service,
+    get_recommendation_service,
+)
 from app.core.config.settings import settings
 from app.database.vector_db.faiss_manager import FaissManager
 from app.main import app
@@ -96,13 +100,19 @@ def ingested(database, tmp_path, monkeypatch):
     return service
 
 
+def clear_service_caches():
+    get_job_service.cache_clear()
+    get_candidate_search_service.cache_clear()
+    get_recommendation_service.cache_clear()
+
+
 @pytest.fixture
 def http(ingested):
-    get_job_service.cache_clear()
+    clear_service_caches()
 
     yield TestClient(app, raise_server_exceptions=False)
 
-    get_job_service.cache_clear()
+    clear_service_caches()
 
 
 def create_job(http):
@@ -215,3 +225,49 @@ def test_legacy_candidate_with_string_description_does_not_break_matching(
     response = http.get(f"/api/v1/matches/{job['_id']}")
 
     assert response.status_code == 200, response.text
+
+
+def test_semantic_search_finds_the_matching_candidate(http):
+    response = http.post(
+        "/api/v1/search/candidates",
+        json={"query": "Data Engineer Python Spark SQL Docker", "top_k": 3},
+    )
+
+    assert response.status_code == 200, response.text
+
+    results = response.json()["results"]
+
+    assert results
+    assert "python" in [s.lower() for s in results[0]["candidate"]["skills"]]
+    assert all(0 <= hit["score"] <= 100 for hit in results)
+
+    scores = [hit["score"] for hit in results]
+
+    assert scores == sorted(scores, reverse=True)
+
+
+def test_recommendations_name_the_skills_a_candidate_lacks(http, database):
+    job = create_job(http)
+
+    junior = database["candidates"].find_one({"resume_id": "junior-data"})
+
+    response = http.get(
+        "/api/v1/recommendations/",
+        params={"job_id": job["_id"], "candidate_id": str(junior["_id"])},
+    )
+
+    assert response.status_code == 200, response.text
+
+    body = response.json()
+
+    assert {"spark", "docker"} <= set(body["missing_skills"])
+    assert "python" not in body["missing_skills"]
+    assert isinstance(body["recommendations"], list)
+
+
+def test_resume_catalog_endpoints_on_ingested_data(http, database):
+    # the ingested candidates were created without resume documents, so the
+    # candidate list is the part that can be checked end to end here
+    body = http.get("/api/v1/candidates/?skill=python").json()
+
+    assert body["total"] == 2

@@ -38,10 +38,12 @@ COPY requirements.txt requirements-llama.txt ./
 # from PyPI; the pinned version is read from requirements.txt.
 RUN grep '^torch==' requirements.txt \
         | xargs pip install --index-url "${TORCH_INDEX_URL}" \
-    && pip install -r requirements.txt \
-    && if [ "${WITH_LLAMA_CPP}" = "true" ]; then \
-         pip install -r requirements-llama.txt; \
-       fi
+    && pip install -r requirements.txt
+
+# Separate step so toggling WITH_LLAMA_CPP does not reinstall everything above.
+RUN if [ "${WITH_LLAMA_CPP}" = "true" ]; then \
+      pip install -r requirements-llama.txt; \
+    fi
 
 
 # ---------------------------------------------------------------- runtime
@@ -92,7 +94,7 @@ EXPOSE 8000
 
 # One process on purpose: the FAISS index and model singletons live in
 # process memory, so do not add --workers.
-HEALTHCHECK --interval=30s --timeout=5s --start-period=180s --retries=3 \
+HEALTHCHECK --interval=30s --timeout=5s --start-period=420s --retries=3 \
     CMD ["python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=4)"]
 
 CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000"]

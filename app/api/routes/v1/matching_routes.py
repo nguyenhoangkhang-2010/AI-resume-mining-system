@@ -8,12 +8,14 @@ router = APIRouter()
 
 
 @router.get("/{job_id}", response_model=MatchResponse, status_code=status.HTTP_200_OK)
-async def match_candidates(
+def match_candidates(
     job_id: str,
     matching_service: MatchingService = Depends(
         get_matching_service,
     ),
 ):
+    # A plain function: matching embeds text and queries MongoDB, which
+    # FastAPI runs in a worker thread rather than on the event loop.
     return matching_service.match_candidates_for_job(
         job_id
     )

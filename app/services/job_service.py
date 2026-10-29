@@ -12,7 +12,10 @@ from app.matching.skills.factory.skill_normalizer_factory import (
     create_skill_normalizer,
 )
 from app.models.job import JobModel
-from app.schemas.job_schema import JobCreateRequest, JobResponse
+from app.core.exceptions import NotFoundError
+from app.core.identifiers import parse_object_id
+from app.schemas.job_schema import JobCreateRequest, JobResponse, JobSummary
+from app.schemas.page import Page
 
 
 BULLET_PREFIX = re.compile(r"^\s*(?:[-•*·–]|\d+[.)])\s*")
@@ -69,6 +72,47 @@ class JobService:
 
         logger.success(f"Successfully created job (ID: {job_id})")
         return JobResponse.model_validate(job_model)
+
+    def list_jobs(self, limit: int, offset: int) -> Page[JobSummary]:
+        documents = (
+            self.jobs_col.find({})
+            .sort([("created_at", -1), ("_id", -1)])
+            .skip(offset)
+            .limit(limit)
+        )
+
+        return Page[JobSummary](
+            items=[
+                JobSummary(
+                    id=str(document["_id"]),
+                    title=document.get("title", ""),
+                    occupation=document.get("occupation"),
+                    required_skills=document.get("required_skills") or [],
+                    experience_years=document.get("experience_years"),
+                    created_at=document["created_at"],
+                )
+                for document in documents
+            ],
+            total=self.jobs_col.count_documents({}),
+            limit=limit,
+            offset=offset,
+        )
+
+    def get_job_response(self, job_id: str) -> JobResponse:
+        document = self.jobs_col.find_one({"_id": parse_object_id(job_id, "Job")})
+
+        if not document:
+            raise NotFoundError(f"Job not found: {job_id}")
+
+        document["_id"] = str(document["_id"])
+
+        return JobResponse.model_validate(JobModel(**document))
+
+    def delete_job(self, job_id: str) -> None:
+        result = self.jobs_col.delete_one({"_id": parse_object_id(job_id, "Job")})
+
+        if result.deleted_count == 0:
+            raise NotFoundError(f"Job not found: {job_id}")
 
     def _find_occupation(self, title: str) -> str | None:
         occupation = self.occupation_matcher.find(title)
