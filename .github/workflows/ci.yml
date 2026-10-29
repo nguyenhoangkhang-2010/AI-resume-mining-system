@@ -79,17 +79,14 @@ jobs:
             requirements.txt
             requirements-dev.txt
 
-      # The CPU build of torch is a few hundred MB instead of several GB.
-      # llama-cpp-python (compiled from source), torchvision, streamlit and
-      # jupyter are not imported by the API or the tests, so they are left out.
+      # The CPU build of torch is a few hundred MB instead of several GB. It is
+      # installed first, from its own index, at the version pinned in
+      # requirements.txt. llama-cpp-python, Streamlit and the other optional
+      # extras are not needed by the API or the tests.
       - name: Install dependencies
         run: |
-          pip install torch --index-url https://download.pytorch.org/whl/cpu
-          grep -viE '^(llama-cpp-python|torchvision|streamlit|jupyter)\b' requirements-dev.txt \
-            | grep -v '^-r ' > ci-requirements.txt
-          grep -viE '^(llama-cpp-python|torchvision|streamlit|jupyter)\b' requirements.txt \
-            >> ci-requirements.txt
-          pip install -r ci-requirements.txt
+          grep '^torch==' requirements.txt             | xargs pip install --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements-dev.txt
 
       - name: Cache Hugging Face models
         uses: actions/cache@v4

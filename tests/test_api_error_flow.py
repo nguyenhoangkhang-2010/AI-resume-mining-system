@@ -1,3 +1,5 @@
+from types import SimpleNamespace
+
 import pytest
 from fastapi.testclient import TestClient
 from pymongo.errors import ConnectionFailure
@@ -130,3 +132,57 @@ def test_mongo_uri_credentials_are_masked_in_logs():
 
     assert "secret" not in masked
     assert "user" not in masked
+
+
+class CapturingClient:
+    calls = []
+
+    def __init__(self, *args, **kwargs):
+        CapturingClient.calls.append((args, kwargs))
+
+    @property
+    def admin(self):
+        return SimpleNamespace(command=lambda name: {"ok": 1})
+
+    def __getitem__(self, name):
+        return f"db:{name}"
+
+    def close(self):
+        pass
+
+
+def test_credentials_are_passed_separately_from_the_uri(monkeypatch):
+    CapturingClient.calls = []
+
+    monkeypatch.setattr(connection_module, "MongoClient", CapturingClient)
+    monkeypatch.setattr(connection_module, "ensure_indexes", lambda db: [])
+    monkeypatch.setattr(mongo_db, "client", None)
+    monkeypatch.setattr(mongo_db, "db", None)
+    monkeypatch.setattr(connection_module.settings, "MONGO_URI", "mongodb://mongodb:27017")
+    monkeypatch.setattr(connection_module.settings, "MONGO_USERNAME", "admin")
+    monkeypatch.setattr(connection_module.settings, "MONGO_PASSWORD", "p@ss:word/1")
+
+    mongo_db.connect()
+
+    _, kwargs = CapturingClient.calls[0]
+
+    assert kwargs["username"] == "admin"
+    assert kwargs["password"] == "p@ss:word/1"
+    assert kwargs["authSource"] == "admin"
+
+
+def test_no_credentials_are_passed_when_unset(monkeypatch):
+    CapturingClient.calls = []
+
+    monkeypatch.setattr(connection_module, "MongoClient", CapturingClient)
+    monkeypatch.setattr(connection_module, "ensure_indexes", lambda db: [])
+    monkeypatch.setattr(mongo_db, "client", None)
+    monkeypatch.setattr(mongo_db, "db", None)
+    monkeypatch.setattr(connection_module.settings, "MONGO_USERNAME", None)
+
+    mongo_db.connect()
+
+    _, kwargs = CapturingClient.calls[0]
+
+    assert "username" not in kwargs
+    assert "password" not in kwargs

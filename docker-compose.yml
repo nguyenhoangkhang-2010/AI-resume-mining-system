@@ -1,0 +1,71 @@
+# Local stack: API + MongoDB.
+#
+#   cp .env.example .env        # then set MONGO_ROOT_PASSWORD
+#   docker compose up --build
+#
+# MongoDB is not published on the host. Open a shell in it with
+#   docker compose exec mongodb mongosh -u <user> --authenticationDatabase admin
+
+name: ai-resume-mining
+
+services:
+  mongodb:
+    image: mongo:7
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-resume_admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:?Set MONGO_ROOT_PASSWORD in .env}
+    volumes:
+      - mongo_data:/data/db
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          mongosh --quiet
+          -u "$$MONGO_INITDB_ROOT_USERNAME"
+          -p "$$MONGO_INITDB_ROOT_PASSWORD"
+          --authenticationDatabase admin
+          --eval "db.adminCommand({ ping: 1 }).ok" | grep -q 1
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  api:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile
+      args:
+        WITH_LLAMA_CPP: ${WITH_LLAMA_CPP:-true}
+        TORCH_INDEX_URL: ${TORCH_INDEX_URL:-https://download.pytorch.org/whl/cpu}
+    restart: unless-stopped
+    ports:
+      # Bound to localhost by default; set API_BIND=0.0.0.0 to expose it.
+      - "${API_BIND:-127.0.0.1}:${API_PORT:-8000}:8000"
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      # Values here take precedence over .env.
+      MONGO_URI: mongodb://mongodb:27017
+      MONGO_USERNAME: ${MONGO_ROOT_USER:-resume_admin}
+      MONGO_PASSWORD: ${MONGO_ROOT_PASSWORD}
+      MONGO_AUTH_SOURCE: admin
+      DB_NAME: ${DB_NAME:-resume_mining_db}
+      DB_REQUIRED_AT_STARTUP: "true"
+      FAISS_INDEX_PATH: faiss_index/candidate.index
+    volumes:
+      # GGUF model files for LLM_PROVIDER=llama_cpp (read-only).
+      - ./models:/app/models:ro
+      - uploads:/app/data/uploads
+      - faiss_data:/app/faiss_index
+      - hf_cache:/home/appuser/.cache/huggingface
+    depends_on:
+      mongodb:
+        condition: service_healthy
+
+volumes:
+  mongo_data:
+  uploads:
+  faiss_data:
+  hf_cache:
