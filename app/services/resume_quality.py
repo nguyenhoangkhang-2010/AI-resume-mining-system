@@ -10,6 +10,8 @@ empty candidate, and the reason is stored so the user can see why.
 from dataclasses import dataclass, field
 from typing import Any, Dict, List, Optional
 
+from app.core.security.prompt_safety import detect_prompt_injection
+
 PROCESSED = "processed"
 NEEDS_REVIEW = "needs_review"
 FAILED = "failed"
@@ -21,6 +23,8 @@ UNREADABLE_FILE = "unreadable_file"
 PASSWORD_PROTECTED = "password_protected"
 FILE_MISSING = "file_missing"
 PROCESSING_ERROR = "processing_error"
+
+POSSIBLE_PROMPT_INJECTION = "possible_prompt_injection"
 
 MIN_TEXT_CHARS = 40
 
@@ -65,6 +69,9 @@ def assess_extraction(extracted: Dict[str, Any]) -> ExtractionAssessment:
 
     if not (personal.get("email") or personal.get("phone")):
         warnings.append("no_contact_found")
+
+    if detect_prompt_injection(text):
+        warnings.append(POSSIBLE_PROMPT_INJECTION)
 
     return ExtractionAssessment(PROCESSED, warnings=warnings)
 

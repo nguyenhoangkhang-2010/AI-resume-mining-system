@@ -3,10 +3,17 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+from app.core.config.settings import settings
+
 
 class JobCreateRequest(BaseModel):
-    title: str = Field(..., min_length=1, description="The title of the job.")
-    description: str = Field(..., min_length=1, description="The raw job description text.")
+    title: str = Field(..., min_length=1, max_length=200, description="The title of the job.")
+    description: str = Field(
+        ...,
+        min_length=1,
+        max_length=settings.MAX_JOB_DESCRIPTION_CHARS,
+        description="The raw job description text.",
+    )
 
 
 class JobResponse(BaseModel):

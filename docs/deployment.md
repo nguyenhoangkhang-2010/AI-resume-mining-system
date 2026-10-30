@@ -67,8 +67,20 @@ docker build -f docker/Dockerfile --build-arg WITH_LLAMA_CPP=false -t ai-resume-
 - **Run a single worker.** The FAISS index and the model singletons live in
   process memory, so do not start uvicorn with `--workers`. Scaling out needs a
   shared vector store.
-- **There is no authentication yet**, which is why the port is bound to
-  `127.0.0.1` by default.
+- **Authentication is on by default.** The API refuses to start until
+  `API_KEYS` is set in `.env` (`role:key` pairs, keys at least 24 characters;
+  generate one with `python -c "import secrets; print(secrets.token_urlsafe(32))"`).
+  `AUTH_ENABLED=false` opens every endpoint and is only for a private
+  development machine. Keys are read from the environment, so changing them
+  needs a restart; there are no user accounts or JWT login.
+- Rate limits are counted in the process memory, which is correct for the
+  single worker above but resets on restart. Set `CORS_ORIGINS` to the
+  origin of your frontend (for example `http://localhost:3000`) to allow
+  browser access.
+- Keep the port bound to `127.0.0.1` unless a reverse proxy with TLS sits in
+  front: API keys are sent in headers and are readable on plain HTTP.
+- `NER_TRUST_REMOTE_CODE` stays `false`: models from the Hugging Face Hub
+  are not allowed to run their own Python code.
 - After the embedding text changes (`EMBEDDING_VERSION`), rebuild the index;
   to check or repair it, run the operational scripts inside the stack:
 

@@ -18,6 +18,28 @@ class Settings(BaseSettings):
 
     MAX_UPLOAD_MB: int = 10
 
+    # --- Security ---------------------------------------------------------
+    # API keys as comma-separated role:key pairs, e.g.
+    #   API_KEYS=admin:<long random key>,user:<another long random key>
+    # Roles: admin (everything, including delete) and user (everything else).
+    # With AUTH_ENABLED=true the API refuses to start without a valid key.
+    AUTH_ENABLED: bool = True
+
+    API_KEYS: Optional[str] = None
+
+    # Browser origins allowed to call the API, comma-separated. Empty means
+    # no cross-origin access.
+    CORS_ORIGINS: str = ""
+
+    RATE_LIMIT_ENABLED: bool = True
+
+    RATE_LIMIT_PER_MINUTE: int = 120
+
+    # Stricter limit for endpoints that run the embedding model or the LLM.
+    RATE_LIMIT_HEAVY_PER_MINUTE: int = 20
+
+    MAX_JOB_DESCRIPTION_CHARS: int = 50000
+
     # OCR for scanned (image-only) PDFs. Needs the Tesseract program and its
     # language data installed; when it is missing the page stays empty and the
     # resume is flagged needs_review.
@@ -51,7 +73,8 @@ class Settings(BaseSettings):
 
     NER_DEVICE: str = "cpu"
 
-    NER_TRUST_REMOTE_CODE: bool = True
+    # Never run code shipped with a model unless you have reviewed it.
+    NER_TRUST_REMOTE_CODE: bool = False
 
     NER_CONFIDENCE_THRESHOLD: float = 0.70
     

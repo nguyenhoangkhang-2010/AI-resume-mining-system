@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, Response, status
 
 from app.api.dependencies import get_job_service
 from app.api.pagination import PageParams, page_params
+from app.api.security import heavy_rate_limit, require_admin
 from app.schemas.job_schema import JobCreateRequest, JobResponse, JobSummary
 from app.schemas.page import Page
 from app.services.job_service import JobService
@@ -14,7 +15,12 @@ router = APIRouter()
 # instead of stalling the event loop.
 
 
-@router.post("/", response_model=JobResponse, status_code=status.HTTP_201_CREATED)
+@router.post(
+    "/",
+    response_model=JobResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(heavy_rate_limit)],
+)
 def create_job(
     request: JobCreateRequest,
     job_service: JobService = Depends(
@@ -40,7 +46,11 @@ def get_job(
     return job_service.get_job_response(job_id)
 
 
-@router.delete("/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+@router.delete(
+    "/{job_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_admin)],
+)
 def delete_job(
     job_id: str,
     job_service: JobService = Depends(get_job_service),

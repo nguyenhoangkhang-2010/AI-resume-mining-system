@@ -6,6 +6,7 @@ from typing import Any, Dict, List
 from loguru import logger
 
 from app.core.config.settings import settings
+from app.extraction.grounding import ground_entries
 from app.extraction.llm.json_recovery import recover_array_objects
 from app.extraction.llm.llm_extractor import LLMExtractor
 
@@ -86,8 +87,11 @@ class ExperienceExtractor:
             )
             return []
 
-        result = self._parse_result(
-            raw_result
+        result = ground_entries(
+            self._parse_result(raw_result),
+            ("company", "role", "location"),
+            text,
+            "experience",
         )
 
         logger.debug(
