@@ -81,6 +81,13 @@ docker build -f docker/Dockerfile --build-arg WITH_LLAMA_CPP=false -t ai-resume-
   front: API keys are sent in headers and are readable on plain HTTP.
 - `NER_TRUST_REMOTE_CODE` stays `false`: models from the Hugging Face Hub
   are not allowed to run their own Python code.
+- **Memory and speed of the local model.** `LLM_PREFIX_CACHE_MB` (default
+  1024) is extra memory for the model state after each prompt's fixed
+  instructions, so they are read once instead of for every CV; lower it on
+  a small machine or set 0 to turn it off. `EXTRACTION_RULES_FIRST` (default
+  true) reads regular sections without the model; see
+  [evaluation/extraction_speed_README.md](evaluation/extraction_speed_README.md).
+  The model is used by one request at a time (calls are serialised).
 - CV section headings the built-in vocabulary does not know ("Clinical
   Experience") are put to the language model once and the answer is kept in
   `HEADING_CACHE_PATH` (default `faiss_index/heading_cache.json`, so it lives

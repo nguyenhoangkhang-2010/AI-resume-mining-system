@@ -106,6 +106,17 @@ class Settings(BaseSettings):
 
     LLM_GGUF_GPU_LAYERS: int = 0
 
+    # Memory (MB) for the model state after the fixed instructions of each
+    # prompt, so they are read once instead of for every resume. 0 turns it off.
+    LLM_PREFIX_CACHE_MB: int = 1024
+
+    # Read regular experience/education/summary sections with rules and
+    # ask the model only when a layout is not understood.
+    EXTRACTION_RULES_FIRST: bool = True
+
+    # Answers kept in memory so an identical prompt is not run twice.
+    LLM_RESULT_CACHE_SIZE: int = 256
+
     FAISS_INDEX_PATH: str = (
         "faiss_index/candidate.index"
     )

@@ -7,6 +7,8 @@ from loguru import logger
 
 from app.core.config.settings import settings
 from app.extraction.grounding import ground_entries
+from app.extraction.rules import stats
+from app.extraction.rules.experience_rules import parse_experience
 from app.extraction.llm.json_recovery import recover_array_objects
 from app.extraction.llm.llm_extractor import LLMExtractor
 
@@ -70,6 +72,20 @@ class ExperienceExtractor:
 
         if not text or not text.strip():
             return []
+
+        # Regular layouts are read directly; only the rest needs the model.
+        if settings.EXTRACTION_RULES_FIRST:
+            by_rules = parse_experience(text)
+
+            stats.record("experience", by_rules is not None)
+
+            if by_rules is not None:
+                logger.debug(
+                    "Experience read by rules: {} entries.",
+                    len(by_rules),
+                )
+
+                return by_rules
 
         logger.debug(
             "Starting semantic experience extraction."

@@ -5,7 +5,10 @@ from typing import Any, Dict, List
 
 from loguru import logger
 
+from app.core.config.settings import settings
 from app.extraction.llm.llm_extractor import LLMExtractor
+from app.extraction.rules import stats
+from app.extraction.rules.list_rules import parse_certifications
 from app.extraction.llm.json_recovery import recover_array_objects
 
 
@@ -127,6 +130,14 @@ class CertificationExtractor:
 
         if not text or not text.strip():
             return []
+
+        if settings.EXTRACTION_RULES_FIRST:
+            by_rules = parse_certifications(text)
+
+            stats.record("certifications", by_rules is not None)
+
+            if by_rules is not None:
+                return by_rules
 
         logger.debug(
             "Starting semantic certification extraction."
