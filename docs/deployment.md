@@ -81,6 +81,11 @@ docker build -f docker/Dockerfile --build-arg WITH_LLAMA_CPP=false -t ai-resume-
   front: API keys are sent in headers and are readable on plain HTTP.
 - `NER_TRUST_REMOTE_CODE` stays `false`: models from the Hugging Face Hub
   are not allowed to run their own Python code.
+- CV section headings the built-in vocabulary does not know ("Clinical
+  Experience") are put to the language model once and the answer is kept in
+  `HEADING_CACHE_PATH` (default `faiss_index/heading_cache.json`, so it lives
+  in the same volume as the index). The first CV with a new heading takes a
+  few seconds longer; the file can be deleted at any time.
 - After the embedding text changes (`EMBEDDING_VERSION`), rebuild the index;
   to check or repair it, run the operational scripts inside the stack:
 

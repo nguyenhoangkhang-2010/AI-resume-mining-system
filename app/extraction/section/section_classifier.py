@@ -11,6 +11,9 @@ from app.extraction.llm.llm_extractor import LLMExtractor
 
 class SectionClassifier:
 
+    # A heading that says nothing about its content (see classify_heading).
+    MIXED = "mixed"
+
     CANONICAL_SECTION_TYPES = {
         "personal_info",
         "summary",
@@ -134,6 +137,96 @@ class SectionClassifier:
                 exc,
             )
             return "other", 0.0
+
+    def classify_heading(
+        self,
+        heading: str,
+    ) -> Optional[str]:
+        """
+        The canonical section a heading introduces, judged from its words
+        alone. The prompt holds only the heading, so this is much cheaper
+        than classifying the text under it. Returns None when the model
+        gives no usable answer.
+        """
+
+        if not heading or not heading.strip():
+            return None
+
+        try:
+            response = self.llm_extractor.extract_info(
+                heading.strip(),
+                self._build_heading_prompt(),
+                max_new_tokens=24,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Heading classification failed: {}",
+                exc,
+            )
+            return None
+
+        return self._parse_heading_response(response)
+
+    @staticmethod
+    def _build_heading_prompt() -> str:
+
+        return """
+    You classify the HEADING of a section of a resume or CV, written in
+    any language. Decide which one category the heading introduces:
+
+    - personal_info (contact details)
+    - summary (profile, objective, introduction)
+    - education (schools, degrees, academic background)
+    - experience (jobs, employment, internships, practice)
+    - projects (projects, portfolio, campaigns, case work)
+    - certifications (certificates, licenses, courses, awards)
+    - skills (skills, tools, technologies, competencies)
+    - other (anything else: references, interests, languages,
+      papers, talks, memberships)
+    - mixed (catch-all headings that can hold any of the above, such as
+      Additional Information, Miscellaneous, Others)
+
+    Examples:
+    Employment Record -> experience
+    Studies and Degrees -> education
+    Competence Areas -> skills
+    Portfolio of Work -> projects
+    Licences Held -> certifications
+    Career Aim -> summary
+    Papers and Talks -> other
+    More Details -> mixed
+
+    Return ONLY a JSON object such as {"section_type": "experience"}.
+
+HEADING:
+""".strip()
+
+    @classmethod
+    def _parse_heading_response(
+        cls,
+        response: str,
+    ) -> Optional[str]:
+
+        if not response:
+            return None
+
+        match = re.search(
+            r'"section_type"\s*:\s*"([^"]+)"',
+            response,
+        )
+
+        if not match:
+            return None
+
+        section_type = match.group(1).strip().casefold()
+
+        if (
+            section_type not in cls.CANONICAL_SECTION_TYPES
+            and section_type != cls.MIXED
+        ):
+            return None
+
+        return section_type
 
     @classmethod
     def _find_candidate_headings(

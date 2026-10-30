@@ -190,3 +190,10 @@ def test_no_contact_means_no_header():
 
     assert header == ""
     assert rest == "Backend Engineer\nBuilt APIs"
+
+
+def test_catch_all_headings_are_left_to_the_text_under_them():
+    # What "Additional Information" holds differs from CV to CV (in real CVs
+    # it is often the skills), so the lexicon must not file it as "other".
+    assert heading_section("Additional Information") is None
+    assert heading_section("Thông tin khác") is None
