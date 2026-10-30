@@ -5,6 +5,8 @@ from typing import Any, Dict, List
 
 from loguru import logger
 
+from app.core.config.settings import settings
+from app.extraction.llm.json_recovery import recover_array_objects
 from app.extraction.llm.llm_extractor import LLMExtractor
 
 
@@ -54,8 +56,6 @@ class ExperienceExtractor:
     - Return ONLY the JSON object.
 """
 
-    MAX_NEW_TOKENS = 180
-
     def __init__(
         self,
         llm_extractor: LLMExtractor,
@@ -77,7 +77,7 @@ class ExperienceExtractor:
         raw_result = self.llm_extractor.extract_info(
             text=text,
             prompt_template=self.EXTRACTION_PROMPT,
-            max_new_tokens=self.MAX_NEW_TOKENS,
+            max_new_tokens=settings.LLM_EXPERIENCE_MAX_TOKENS,
         )
 
         if not raw_result:
@@ -232,6 +232,19 @@ class ExperienceExtractor:
                 return json.loads(candidate)
             except json.JSONDecodeError:
                 pass
+
+        # The model stops at its token limit in the middle of the list:
+        # keep the entries that were completed instead of losing them all.
+        recovered = recover_array_objects(text, "experience")
+
+        if recovered:
+            logger.warning(
+                "LLM output appears truncated. Recovered {} complete "
+                "experience entr{}.",
+                len(recovered),
+                "y" if len(recovered) == 1 else "ies",
+            )
+            return recovered
 
         return None
 
