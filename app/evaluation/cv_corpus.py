@@ -316,6 +316,11 @@ class _Writer:
     def _register_fonts(self, page: fitz.Page) -> None:
         register_fonts(page, self.fonts)
 
+    def keep_together(self, needed: float) -> None:
+        """Starts a new page now if the next `needed` points would not fit."""
+
+        self._ensure_room(needed)
+
     def gap(self, amount: float) -> None:
         self.y += amount
 

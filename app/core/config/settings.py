@@ -112,6 +112,9 @@ class Settings(BaseSettings):
 
     FAISS_SAVE_EVERY: int = 1
 
+    # Answers for headings the lexicon does not know (kept next to the index).
+    HEADING_CACHE_PATH: str = "faiss_index/heading_cache.json"
+
     LOG_LEVEL: str = "INFO"
 
     hf_token: Optional[str] = None

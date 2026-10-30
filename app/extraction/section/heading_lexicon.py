@@ -21,6 +21,9 @@ MAX_HEADING_WORDS = 8
 MAX_PHRASE_WORDS = 5
 
 # Section name -> normalised heading phrases (no diacritics, lowercase).
+# Catch-all headings ("Additional Information") are deliberately absent:
+# what they hold differs from CV to CV (often the skills), so the text
+# under them decides, not the heading.
 HEADING_PHRASES: Dict[str, Sequence[str]] = {
     "personal_info": (
         "contact", "contacts", "contact information", "contact details",
@@ -79,8 +82,8 @@ HEADING_PHRASES: Dict[str, Sequence[str]] = {
     ),
     "other": (
         "references", "reference", "interests", "hobbies",
-        "interests and hobbies", "languages", "additional information",
-        "so thich", "nguoi tham chieu", "ngoai ngu", "thong tin khac",
+        "interests and hobbies", "languages",
+        "so thich", "nguoi tham chieu", "ngoai ngu",
     ),
 }
 
@@ -162,9 +165,11 @@ def heading_section(line: str) -> Optional[str]:
     if any(char.isdigit() for char in stripped):
         return None
 
+    # A phrase may contain a filler word ("additional information"), so the
+    # words are tried as written before the fillers are dropped.
     core = [word for word in words if word not in FILLER_WORDS]
 
-    sections = _segment(core)
+    sections = _segment(words) or _segment(core)
 
     if not sections:
         return None

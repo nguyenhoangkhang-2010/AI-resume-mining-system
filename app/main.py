@@ -1,4 +1,5 @@
 from contextlib import asynccontextmanager
+from pathlib import Path
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
@@ -21,6 +22,8 @@ from app.extraction.section.section_classifier import SectionClassifier
 from app.extraction.section.section_semantic_classifier import (
     SectionSemanticClassifier,
 )
+from app.extraction.section.heading_cache import HeadingCache
+from app.extraction.section.heading_classifier import HeadingClassifier
 from app.extraction.section.section_detector import SectionDetector
 from app.extraction.extraction_engine import ExtractionEngine
 from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
@@ -68,6 +71,8 @@ async def lifespan(app: FastAPI):
     section_detector = SectionDetector(
         semantic_classifier=semantic_classifier,
         llm_classifier=section_classifier,
+        heading_classifier=HeadingClassifier(),
+        heading_cache=HeadingCache(Path(settings.HEADING_CACHE_PATH)),
     )
 
     extraction_engine = ExtractionEngine(

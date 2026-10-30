@@ -4,7 +4,9 @@ Line-level evaluation of section detection against a labelled CV corpus.
 Each body line of a document has a true section. The detector's output is a
 mapping from section name to the text it assigned; a line is correct when it
 appears under its true section. Lines the detector dropped (or assigned to
-the ignored "other" section) count as misses for their true section.
+the ignored "other" section) count as misses for their true section, except
+for lines whose true section is "other": dropping those is correct, and
+placing them in a real section is a leak.
 """
 
 import re
@@ -15,6 +17,7 @@ from typing import Dict, Iterable, List, Mapping, Sequence
 from app.evaluation.cv_corpus import CorpusDocument
 
 MISSING = "missing"
+IGNORED = "other"
 
 
 def _normalise(line: str) -> str:
@@ -73,6 +76,11 @@ def score_document(
 
     for truth in document.truth:
         guess = predicted.get(_normalise(truth.text), MISSING)
+
+        # Sections that are not extracted ("other") are dropped by the
+        # detector, so a dropped line is the right outcome for them.
+        if truth.section == IGNORED and guess == MISSING:
+            guess = IGNORED
 
         result.confusion[(truth.section, guess)] += 1
 

@@ -4,10 +4,19 @@ from typing import Dict, List, Optional, Tuple
 
 from loguru import logger
 
+from app.extraction.section.heading_cache import HeadingCache
+from app.extraction.section.heading_classifier import HeadingClassifier
 from app.extraction.section.heading_lexicon import (
     looks_like_contact,
     split_by_headings,
     split_contact_header,
+)
+from app.extraction.section.heading_style import (
+    StyledLine,
+    header_zone_end,
+    learn_heading_style,
+    split_styled,
+    styled_lines_from_block,
 )
 from app.extraction.section.section_classifier import SectionClassifier
 from app.extraction.section.section_semantic_classifier import (
@@ -20,6 +29,10 @@ from app.resume_processing.layout.semantic_region_analyzer import (
 )
 
 
+# Answer for catch-all headings; the text under the heading decides.
+MIXED_HEADING = SectionClassifier.MIXED
+
+
 class SectionDetector:
 
     def __init__(
@@ -27,8 +40,14 @@ class SectionDetector:
         semantic_classifier: SectionSemanticClassifier,
         llm_classifier: Optional[SectionClassifier] = None,
         min_confidence: float = 0.55,
+        heading_classifier: Optional[HeadingClassifier] = None,
+        heading_cache: Optional[HeadingCache] = None,
+        use_heading_style: bool = True,
     ) -> None:
         self.semantic_classifier = semantic_classifier
+        self.heading_classifier = heading_classifier
+        self.heading_cache = heading_cache
+        self.use_heading_style = use_heading_style
 
         self.llm_classifier = (
             llm_classifier
@@ -63,7 +82,32 @@ class SectionDetector:
 
         fallback_used = 0
         heading_used = 0
+        styled_used = 0
         continued = 0
+
+        # Headings whose words are unknown are found by their look: the
+        # style of the known headings is learned from this document.
+        region_lines = self._index_region_lines(
+            layout_analysis,
+            region_analysis,
+        )
+
+        document_lines = [
+            line
+            for region in region_analysis.regions
+            for line in region_lines.get(region.region_id, [])
+        ]
+
+        heading_style = (
+            learn_heading_style(
+                document_lines,
+                protected=header_zone_end(document_lines),
+            )
+            if self.use_heading_style
+            else None
+        )
+
+        header_checked = False
 
         # Section and region of the most recent heading found by wording.
         last_heading: Optional[Tuple[str, SemanticRegion]] = None
@@ -79,10 +123,42 @@ class SectionDetector:
                 continue
 
             # Headings are recognised by their wording, whatever their style,
-            # and split the region wherever they appear.
-            segments = split_by_headings(
-                region_text
-            )
+            # and by their look when the wording is unknown. They split the
+            # region wherever they appear.
+            styled = region_lines.get(region.region_id)
+
+            if styled:
+                protected = 0 if header_checked else header_zone_end(styled)
+                header_checked = True
+
+                segments = [
+                    (
+                        part.section,
+                        part.text,
+                        part.heading if part.unknown_heading else None,
+                    )
+                    for part in split_styled(
+                        styled,
+                        heading_style,
+                        protected,
+                    )
+                ]
+
+                if self.heading_classifier is not None:
+                    self.heading_classifier.prefetch(
+                        [
+                            heading
+                            for _, _, heading in segments
+                            if heading
+                        ]
+                    )
+            else:
+                segments = [
+                    (heading, text, None)
+                    for heading, text in split_by_headings(
+                        region_text
+                    )
+                ]
 
             # Text before the first heading that carries an email, phone
             # number or profile link starts with the CV header (name and
@@ -91,6 +167,7 @@ class SectionDetector:
                 last_heading is None
                 and segments
                 and segments[0][0] is None
+                and segments[0][2] is None
                 and looks_like_contact(segments[0][1])
             ):
                 header, rest = split_contact_header(
@@ -98,9 +175,9 @@ class SectionDetector:
                 )
 
                 segments = [
-                    ("personal_info", header),
+                    ("personal_info", header, None),
                     *(
-                        [(None, rest)]
+                        [(None, rest, None)]
                         if rest.strip()
                         else []
                     ),
@@ -111,11 +188,22 @@ class SectionDetector:
             else:
                 header_forced = False
 
-            for position, (heading, segment_text) in enumerate(
+            for position, (heading, segment_text, unknown) in enumerate(
                 segments
             ):
 
-                if header_forced and position == 0:
+                if unknown is not None:
+                    if not segment_text.strip():
+                        continue
+
+                    section_type, confidence = self._resolve_heading(
+                        unknown,
+                        segment_text,
+                    )
+                    styled_used += 1
+                    last_heading = (section_type, region)
+
+                elif header_forced and position == 0:
                     section_type, confidence = "personal_info", 1.0
 
                 elif heading is not None:
@@ -191,8 +279,8 @@ class SectionDetector:
 
         logger.info(
             "Section detection complete: {} sections, {} by heading "
-            "wording, {} continued across pages, {} region(s) used LLM "
-            "fallback.",
+            "wording, {} by heading style, {} continued across pages, "
+            "{} region(s) used LLM fallback.",
             len(
                 [
                     key
@@ -201,11 +289,111 @@ class SectionDetector:
                 ]
             ),
             heading_used,
+            styled_used,
             continued,
             fallback_used,
         )
 
         return sections
+
+    def _resolve_heading(
+        self,
+        heading: str,
+        body: str,
+    ) -> Tuple[str, float]:
+        """
+        The section started by a heading whose words are not in the lexicon.
+
+        A remembered answer is used first, then the language model is asked
+        about the heading alone (cheap, and remembered for next time). If
+        the model is unavailable, the heading's wording and the text under
+        it are compared with the sections; when they disagree the text under
+        the heading is trusted, since that is what ends up in the section.
+        """
+
+        mixed = False
+
+        if self.heading_cache is not None:
+            remembered = self.heading_cache.get(heading)
+
+            if remembered == MIXED_HEADING:
+                mixed = True
+            elif remembered is not None:
+                return remembered, 1.0
+
+        ask_heading = getattr(self.llm_classifier, "classify_heading", None)
+
+        if ask_heading is not None and not mixed:
+            answered = ask_heading(heading)
+
+            if answered is not None:
+                if self.heading_cache is not None:
+                    self.heading_cache.put(heading, answered)
+
+                if answered == MIXED_HEADING:
+                    mixed = True
+                else:
+                    return answered, 1.0
+
+        # A catch-all heading ("Additional Information") says nothing about
+        # what it holds: only the text under it can tell.
+        by_wording = (
+            self.heading_classifier.classify(heading)
+            if self.heading_classifier is not None and not mixed
+            else None
+        )
+
+        by_body, confidence = self.semantic_classifier.classify(body)
+
+        if by_wording is not None and (
+            confidence < self.min_confidence or by_body == by_wording
+        ):
+            return by_wording, 1.0
+
+        if confidence >= self.min_confidence:
+            return by_body, confidence
+
+        fallback_type, fallback_confidence = (
+            self.llm_classifier.classify_single(body)
+        )
+
+        return fallback_type, fallback_confidence
+
+    @staticmethod
+    def _index_region_lines(
+        layout_analysis: LayoutAnalysis,
+        region_analysis: SemanticRegionAnalysis,
+    ) -> Dict[str, List[StyledLine]]:
+        """The lines of each region with their typography, in region order."""
+
+        blocks = {
+            block.block_id: block
+            for page in layout_analysis.pages
+            for block in page.blocks
+        }
+
+        result: Dict[str, List[StyledLine]] = {}
+
+        for region in region_analysis.regions:
+            lines: List[StyledLine] = []
+            bottom = None
+
+            for block_id in region.block_ids:
+                block = blocks.get(block_id)
+
+                if block is None:
+                    continue
+
+                block_lines, bottom = styled_lines_from_block(
+                    getattr(block, "lines", None) or [],
+                    bottom,
+                )
+                lines.extend(block_lines)
+
+            if lines:
+                result[region.region_id] = lines
+
+        return result
 
     @staticmethod
     def _continuation(
