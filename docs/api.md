@@ -42,7 +42,7 @@ Swagger UI). `/`, `/health` and the docs stay open. Keys are configured with
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/resumes/upload` | Upload a PDF or DOCX; returns 202 and processes it in the background |
+| POST | `/resumes/upload` | Upload a PDF; returns 202 and processes it in the background. `.docx` passes validation but cannot be parsed yet (status `failed`, reason `unreadable_file`) |
 | GET | `/resumes/` | List resumes; filter with `?status=pending\|processing\|processed\|needs_review\|failed` |
 | GET | `/resumes/{id}` | Resume detail, including the `candidate_id` once indexed |
 | GET | `/resumes/{id}/status` | Status with `reason` and `warnings` |

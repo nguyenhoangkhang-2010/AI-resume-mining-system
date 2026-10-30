@@ -2,323 +2,233 @@
 
 [![CI](https://github.com/nguyenhoangkhang-2010/AI-resume-mining-system/actions/workflows/ci.yml/badge.svg)](https://github.com/nguyenhoangkhang-2010/AI-resume-mining-system/actions/workflows/ci.yml)
 
-An end-to-end AI-powered recruitment platform that automatically processes resumes, extracts candidate information, generates semantic embeddings, performs intelligent candidate-job matching, and provides analytics for recruiters.
+A backend that reads CVs in many layouts and languages, turns them into
+structured candidate profiles, and ranks candidates against a job description
+with a score that can be explained.
 
-## Overview
+It is a portfolio project: the emphasis is on measuring each part
+(section detection, extraction speed, ranking quality) rather than on feature
+count. Every number below comes from a script in this repository and links to
+its report; the limits of each measurement are stated next to it.
 
-Recruitment teams often spend significant time manually reviewing resumes and matching candidates to job requirements.
+## What it does
 
-This project leverages Natural Language Processing (NLP), Embedding Models, Vector Search, and Machine Learning techniques to automate candidate screening and recommendation.
+1. **Reads a CV** (PDF): text, page layout, columns, and the sections
+   (experience, education, skills, projects ...) in English and Vietnamese,
+   whatever the heading style.
+2. **Extracts a profile**: name and contact details, skills (normalised against
+   the ESCO taxonomy), jobs, schools, certificates, projects. Regular sections
+   are read with rules; a local LLM handles the rest.
+3. **Indexes it**: a multilingual sentence embedding goes into FAISS, the
+   profile into MongoDB.
+4. **Matches and ranks** candidates for a job: skill coverage, semantic
+   similarity and experience, with a per-component breakdown, plus the skills a
+   candidate lacks and ways to learn them.
+5. **Protects the data**: API keys with admin/user roles, rate limits, CORS
+   allow-list, and defences against prompt injection hidden in CVs.
 
-The system can:
-
-* Parse Resume PDFs
-* Extract Skills, Education, and Experience
-* Generate Semantic Embeddings
-* Store Candidate Vectors using FAISS
-* Match Candidates to Job Descriptions
-* Rank Candidates by Similarity Score
-* Identify Missing Skills (Skill Gap Analysis)
-* Visualize Recruitment Insights
-
----
-
-## Features
-
-### Resume Processing
-
-* PDF Resume Parsing
-* Text Extraction
-* Resume Cleaning & Normalization
-* Structured Candidate Profile Generation
-
-### Information Extraction
-
-* Skill Extraction
-* Education Extraction
-* Experience Extraction
-* Keyword Extraction
-
-### AI Matching Engine
-
-* Sentence Transformer Embeddings
-* Semantic Similarity Search
-* Candidate Ranking
-* Job-Candidate Matching
-
-### Analytics
-
-* Candidate Statistics
-* Skill Distribution Analysis
-* Recruitment Reports
-* Interactive Dashboards
-
-### API Services
-
-* Resume Upload API
-* Candidate Search API
-* Job Matching API
-* Recommendation API
-
----
-
-## System Architecture
+## Architecture
 
 ```text
-Resume PDF
-    │
-    ▼
-Resume Parser
-    │
-    ▼
-Text Cleaning
-    │
-    ▼
-Information Extraction
-(Skills, Education, Experience)
-    │
-    ▼
-Sentence Transformer
-    │
-    ▼
-Embedding Vector
-    │
- ┌──┴─────┐
- │        │
- ▼        ▼
-MongoDB  FAISS
- │        │
- └──┬─────┘
-    ▼
-Matching Engine
-    ▼
-Ranking Engine
-    ▼
-Analytics Dashboard
+CV (PDF)
+   │  validation, size and type checks
+   ▼
+Parsing ── PyMuPDF (+ optional OCR) ── text cleaning
+   │
+   ▼
+Layout analysis ── blocks, columns, reading order, regions
+   │
+   ▼
+Section detection
+   heading lexicon (EN/VI) → heading style learned from the CV
+   → embedding classifier → cached LLM answer per unfamiliar heading
+   │
+   ▼
+Extraction
+   rules first (jobs, schools, summary, certificates, projects)
+   → local LLM (Mistral 7B GGUF) when a layout is unclear
+   + NER for names, ESCO-normalised skills
+   │
+   ▼
+Candidate profile ──► MongoDB
+   │
+   └─► multilingual MiniLM embedding ──► FAISS (cosine)
+
+Job description ──► parsed the same way ──► hybrid matching
+   skills 0.6 / semantic 0.4, experience 20% when the job states a requirement
+   ──► ranking with explanation, skill gaps, learning suggestions
 ```
 
----
+Single process by design: the FAISS index and the models live in memory, so run
+one uvicorn worker (see [deployment](docs/deployment.md)).
 
-## Project Structure
+## Results
 
-```text
-AI_ResumeMining_CandidateMatchingSystem
-│
-├── app
-│   ├── analytics
-│   ├── api
-│   ├── core
-│   ├── database
-│   ├── embeddings
-│   ├── extraction
-│   ├── matching
-│   ├── resume_processing
-│   ├── models
-│   ├── schemas
-│   ├── services
-│   ├── utils
-│   └── vector_store
-│
-├── data
-├── faiss_index
-├── docker
-├── logs
-├── notebooks
-├── tests
-│
-├── requirements.txt
-├── README.md
-└── run.py
-```
+All figures are on **synthetic data generated by this repository** (seeded and
+reproducible), because there is no labelled real data. They show how the
+system behaves under the noise and layouts the generators model, not accuracy
+on real hiring data.
 
----
+| Area | Result | Report |
+|---|---|---|
+| Ranking | hybrid nDCG@10 0.894 vs BM25 0.784 and TF-IDF 0.786 (seniority-aware labels, 30 jobs, 300 candidates, paired bootstrap CIs; on family-only labels the hybrid is not distinguishable from BM25) | [evaluation/](docs/evaluation/README.md) |
+| Section detection | line accuracy 0.978 on 144 CVs across 6 industries, 6 page layouts and 2 languages with the LLM answering unfamiliar headings (0.860 without the LLM) | [section detection](docs/evaluation/section_detection_README.md) |
+| Extraction speed | 407 s → 42 s per CV on CPU (4 CVs); companies, roles and degrees found 1/9, 1/7, 2/4 → 9/9, 7/7, 4/4 | [extraction speed](docs/evaluation/extraction_speed_README.md) |
+| Code quality | about 760 tests, 81% coverage, ruff and mypy clean in CI | [CI](https://github.com/nguyenhoangkhang-2010/AI-resume-mining-system/actions/workflows/ci.yml) |
 
-## Documentation
+## Quick start
 
-### Architecture
-
-The project documentation is organized under the `docs/` directory.
-
-Current documentation:
-
-- `docs/architecture/skill_normalization.md` — Skill Normalization Layer architecture, normalization pipeline, repository pattern, and extension guide.
-
-More architecture documents will be added as the project evolves.
-
----
-
-## Tech Stack
-
-### Backend
-
-* Python
-* FastAPI
-* Uvicorn
-
-### Database
-
-* MongoDB
-* PyMongo
-
-### NLP & AI
-
-* PyTorch
-* Transformers
-* Sentence Transformers
-
-### Vector Search
-
-* FAISS
-
-### Data Processing
-
-* Pandas
-* NumPy
-* Scikit-Learn
-
-### Visualization
-
-* Streamlit
-* Plotly
-
-### Utilities
-
-* Loguru
-* Python Dotenv
-
----
-
-## Installation
-
-### Clone Repository
+### With Docker
 
 ```bash
-git clone https://github.com/your-username/AI-Resume-Mining-System.git
-
-cd AI-Resume-Mining-System
+cp .env.example .env     # set MONGO_ROOT_PASSWORD and API_KEYS
+docker compose up --build
 ```
 
-### Create Environment
+`API_KEYS` is required: the API refuses to start without keys (or set
+`AUTH_ENABLED=false` on a private development machine). Generate a key with
 
 ```bash
-conda create -n ai_resume python=3.11
-
-conda activate ai_resume
+python -c "import secrets; print('API_KEYS=admin:' + secrets.token_urlsafe(32))"
 ```
 
-### Install Dependencies
+The API is on `http://127.0.0.1:8000` (`/docs` for Swagger UI, `/health` for
+status). To use a MongoDB already installed on your computer, or to run the
+stack without Docker, see [docs/deployment.md](docs/deployment.md).
+
+### Without Docker
+
+Python 3.11 and a running MongoDB are needed.
 
 ```bash
+conda create -n ai_resume python=3.11 && conda activate ai_resume
 pip install -r requirements.txt
+cp .env.example .env     # set API_KEYS (or AUTH_ENABLED=false), MONGO_URI
+uvicorn app.main:app     # one worker; do not pass --workers
 ```
 
----
+For the local LLM, install `requirements-llama.txt`, put a GGUF file (for
+example `mistral-7b-instruct-v0.2.Q5_K_M.gguf`) in `models/` and set
+`LLM_PROVIDER=llama_cpp`. Without it, the `huggingface` provider downloads the
+model on first use.
 
-## Environment Variables
-
-Create a `.env` file:
-
-```env
-MONGO_URI=mongodb://localhost:27017
-
-DB_NAME=resume_mining_db
-
-MODEL_NAME=sentence-transformers/all-MiniLM-L6-v2
-
-FAISS_INDEX_PATH=faiss_index/candidate.index
-```
-
----
-
-## Running the Project
-
-### Start FastAPI Server
+### Try it
 
 ```bash
-uvicorn app.main:app --reload
+KEY=<one of your API keys>
+
+# upload a CV (returns 202; processing continues in the background)
+curl -H "X-API-Key: $KEY" -F "file=@cv.pdf" http://127.0.0.1:8000/api/v1/resumes/upload
+
+# create a job, then rank candidates for it
+curl -H "X-API-Key: $KEY" -H "Content-Type: application/json" \
+     -d '{"title": "Backend Engineer", "description": "Python, FastAPI, SQL ..."}' \
+     http://127.0.0.1:8000/api/v1/jobs/
+curl -H "X-API-Key: $KEY" http://127.0.0.1:8000/api/v1/matches/<job_id>
 ```
 
-### Start Dashboard
+## API
+
+All routes are under `/api/v1` and need an API key (`X-API-Key` or
+`Authorization: Bearer`). Full reference: [docs/api.md](docs/api.md).
+
+| Area | Endpoints |
+|---|---|
+| Resumes | `POST /resumes/upload`, `GET /resumes/`, `GET /resumes/{id}`, `GET /resumes/{id}/status`, `DELETE /resumes/{id}` |
+| Jobs | `POST /jobs/`, `GET /jobs/`, `GET /jobs/{id}`, `DELETE /jobs/{id}` |
+| Candidates | `GET /candidates/`, `GET /candidates/{id}` |
+| Matching | `GET /matches/{job_id}`, `POST /search/candidates`, `GET /recommendations/?job_id=...&candidate_id=...` |
+
+A CV that cannot be read (for example a scanned PDF without OCR) is stored as
+`needs_review` with a reason code instead of being indexed as an empty
+candidate. `.docx` files pass upload validation but cannot be parsed yet: they
+end as `failed` with reason `unreadable_file`.
+
+## Configuration
+
+Everything is set through environment variables; [.env.example](.env.example)
+lists them with explanations. The ones to know:
+
+| Variable | Purpose |
+|---|---|
+| `API_KEYS`, `AUTH_ENABLED` | `role:key` pairs (`admin` may delete); auth on by default |
+| `MONGO_URI`, `DB_NAME` | database |
+| `LLM_PROVIDER`, `LLM_GGUF_MODEL_PATH` | local GGUF model or Hugging Face |
+| `EXTRACTION_RULES_FIRST` | read regular sections with rules, model as fallback |
+| `LLM_PREFIX_CACHE_MB` | memory for reusing the model state after each prompt's instructions |
+| `OCR_ENABLED` | read scanned PDFs (needs Tesseract) |
+| `CORS_ORIGINS`, `RATE_LIMIT_*` | browser access and request limits |
+
+## Project layout
+
+```text
+app/
+  api/                 routes, auth, rate limits, error handlers
+  resume_processing/   PDF parsing, text cleaning, layout and region analysis
+  extraction/          section detection, rule parsers, LLM extractors, NER, skills
+  embeddings/  vector_store/  database/   embeddings, FAISS, MongoDB
+  matching/            scoring, ranking, explanations, recommendations
+  knowledge_graph/     ontology and skill relations
+  services/            use cases called by the routes
+  evaluation/          synthetic CV and ranking corpora, metrics
+  analytics/           optional Streamlit dashboard
+docs/                  API, deployment, evaluation reports
+scripts/               evaluation, benchmarks, index maintenance
+tests/                 unit tests; tests/integration needs MongoDB
+docker/                Dockerfile
+frontend/              Vite scaffold, not yet connected to the API
+```
+
+## Development
 
 ```bash
-streamlit run app/analytics/dashboards/dashboard.py
+pip install -r requirements.txt -r requirements-dev.txt
+ruff check .
+mypy
+pytest                      # unit tests; slow and integration tests are skipped
+pytest -m integration       # needs MongoDB (MONGO_URI)
 ```
 
----
+Reproduce the reports:
 
-## API Endpoints
+```bash
+python -m scripts.run_evaluation --dataset data/evaluation/synthetic_v1 --out docs/evaluation/synthetic_v1.md
+python -m scripts.evaluate_sections                      # section detection, no LLM
+python -m scripts.benchmark_extraction --documents 4     # needs the GGUF model
+```
 
-### Resume APIs
+The optional dashboard (`pip install -r requirements-analytics.txt`):
+`streamlit run app/analytics/dashboards/main_dashboard.py`.
 
-| Method | Endpoint               |
-| ------ | ---------------------- |
-| POST   | /api/v1/resumes/upload |
-| GET    | /api/v1/resumes        |
-| GET    | /api/v1/resumes/{id}   |
+## Limitations
 
-### Matching APIs
+- **No real labelled data.** Every evaluation uses synthetic CVs and
+  candidates, so the numbers are not hiring accuracy. A labelled set of real
+  CVs is the next piece of evidence to build.
+- **Languages:** headings, dates and job-title rules cover English and
+  Vietnamese. Other languages fall back to the LLM, which is slower and
+  unmeasured.
+- **Speed on unusual layouts:** the 42 s figure is for CVs the rules can read.
+  On 78 real CVs the experience rules answered only 7 of 64 (50 shared one
+  header they deliberately do not guess); the rest use the CPU LLM and take
+  minutes.
+- **Skills:** recall on the evaluated vocabulary is 0.47; many modern tools are
+  missing from the taxonomy.
+- **Formats:** PDF only; DOCX parsing is not implemented.
+- **Scale and auth:** one process, in-memory rate limits, static API keys; no
+  user accounts or JWT. Scanned CVs need Tesseract.
+- **Fairness** has not been audited yet.
 
-| Method | Endpoint                |
-| ------ | ----------------------- |
-| POST   | /api/v1/match           |
-| GET    | /api/v1/rankings        |
-| GET    | /api/v1/recommendations |
+## Roadmap
 
----
-
-## Machine Learning Pipeline
-
-### Resume Processing
-
-1. Upload Resume
-2. Extract Text
-3. Clean Text
-4. Extract Information
-
-### Embedding Pipeline
-
-1. Candidate Profile
-2. Sentence Transformer
-3. Embedding Generation
-4. FAISS Storage
-
-### Matching Pipeline
-
-1. Job Description Embedding
-2. Candidate Embedding
-3. Cosine Similarity
-4. Ranking
-5. Recommendation
-
----
-
-## Future Improvements
-
-* RAG-based Candidate Search
-* LLM-powered Candidate Summarization
-* Multi-language Resume Support
-* Real-time Candidate Recommendations
-* Cloud Deployment
-* Kubernetes Support
-* AWS/GCP Integration
-
----
+Real-CV benchmark and per-CV confidence, a reranker, a bias audit, a background
+worker queue, metrics and tracing, more languages and OCR, and a working
+front end.
 
 ## Author
 
-Nguyen Hoang Khang
-
-Information Technology Student
-
-Interested in:
-
-* Data Engineering
-* Artificial Intelligence
-* Machine Learning
-* NLP
-* Backend Development
-
----
+Nguyen Hoang Khang — information technology student interested in applied NLP,
+retrieval, and backend systems.
 
 ## License
 
