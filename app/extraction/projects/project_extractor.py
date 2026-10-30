@@ -2,11 +2,13 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 from loguru import logger
 
 from app.extraction.llm.llm_extractor import LLMExtractor
+from app.core.config.settings import settings
+from app.extraction.llm.json_recovery import recover_array_objects
 
 
 class ProjectExtractor:
@@ -195,7 +197,7 @@ class ProjectExtractor:
         raw_result = self.llm_extractor.extract_info(
             text=text,
             prompt_template=self.EXTRACTION_PROMPT,
-            max_new_tokens=768,
+            max_new_tokens=settings.LLM_PROJECTS_MAX_TOKENS,
         )
 
         if not raw_result:
@@ -474,7 +476,7 @@ class ProjectExtractor:
             except json.JSONDecodeError:
                 pass
 
-        recovered = cls._recover_array_objects(
+        recovered = recover_array_objects(
             text,
             "projects",
         )
@@ -489,120 +491,6 @@ class ProjectExtractor:
             return recovered
 
         return None
-
-    @staticmethod
-    def _recover_array_objects(
-        text: str,
-        array_key: str,
-    ) -> Optional[List[Dict[str, Any]]]:
-
-        key_index = text.find(
-            f'"{array_key}"'
-        )
-
-        if key_index < 0:
-            return None
-
-        array_start = text.find(
-            "[",
-            key_index,
-        )
-
-        if array_start < 0:
-            return None
-
-        objects: List[Dict[str, Any]] = []
-
-        bracket_depth = 0
-        brace_depth = 0
-
-        object_start: Optional[int] = None
-
-        in_string = False
-        escaped = False
-
-        for index in range(
-            array_start,
-            len(text),
-        ):
-
-            char = text[index]
-
-            if in_string:
-
-                if escaped:
-                    escaped = False
-                    continue
-
-                if char == "\\":
-                    escaped = True
-                    continue
-
-                if char == '"':
-                    in_string = False
-
-                continue
-
-            if char == '"':
-                in_string = True
-                continue
-
-            if char == "[":
-                bracket_depth += 1
-                continue
-
-            if char == "]":
-                bracket_depth -= 1
-
-                if bracket_depth == 0:
-                    break
-
-                continue
-
-            if char == "{":
-
-                if (
-                    brace_depth == 0
-                    and bracket_depth == 1
-                ):
-                    object_start = index
-
-                brace_depth += 1
-                continue
-
-            if char == "}":
-                brace_depth -= 1
-
-                if (
-                    brace_depth == 0
-                    and object_start is not None
-                ):
-
-                    candidate = text[
-                        object_start:index + 1
-                    ]
-
-                    try:
-                        parsed_object = json.loads(
-                            candidate
-                        )
-
-                        if isinstance(
-                            parsed_object,
-                            dict,
-                        ):
-                            objects.append(
-                                parsed_object
-                            )
-
-                    except json.JSONDecodeError:
-                        pass
-
-                    object_start = None
-
-                continue
-
-        return objects if objects else None
 
     @staticmethod
     def _strip_code_fence(

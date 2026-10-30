@@ -65,6 +65,14 @@ class Settings(BaseSettings):
 
     LLM_MAX_INPUT_CHARS: int = 12000
 
+    # Output limits per extractor. Too low and the model's JSON is cut
+    # off, which loses entries; generation time grows with the limit.
+    LLM_EXPERIENCE_MAX_TOKENS: int = 360
+
+    LLM_EDUCATION_MAX_TOKENS: int = 256
+
+    LLM_PROJECTS_MAX_TOKENS: int = 768
+
     LLM_GGUF_MODEL_PATH: str = (
         "models/mistral-7b-instruct-v0.2.Q5_K_M.gguf"
     )

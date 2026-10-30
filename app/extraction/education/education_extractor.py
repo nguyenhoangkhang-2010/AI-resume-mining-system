@@ -5,6 +5,8 @@ from typing import Any, Dict, List
 
 from loguru import logger
 
+from app.core.config.settings import settings
+from app.extraction.llm.json_recovery import recover_array_objects
 from app.extraction.llm.llm_extractor import LLMExtractor
 
 
@@ -106,7 +108,7 @@ class EducationExtractor:
         raw_result = self.llm_extractor.extract_info(
             text=text,
             prompt_template=self.EXTRACTION_PROMPT,
-            max_new_tokens=192,
+            max_new_tokens=settings.LLM_EDUCATION_MAX_TOKENS,
         )
 
         if not raw_result:
@@ -146,11 +148,23 @@ class EducationExtractor:
             parsed = json.loads(text)
 
         except json.JSONDecodeError as exc:
+            recovered = recover_array_objects(text, "education")
+
+            if not recovered:
+                logger.warning(
+                    "Failed to parse education LLM output as JSON: {}",
+                    exc,
+                )
+                return []
+
             logger.warning(
-                "Failed to parse education LLM output as JSON: {}",
-                exc,
+                "LLM output appears truncated. Recovered {} complete "
+                "education entr{}.",
+                len(recovered),
+                "y" if len(recovered) == 1 else "ies",
             )
-            return []
+
+            parsed = {"education": recovered}
 
         if not isinstance(parsed, dict):
             return []
