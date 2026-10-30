@@ -7,8 +7,16 @@ class AppError(Exception):
     status_code = 500
     code = "internal_error"
 
-    def __init__(self, message: str | None = None):
+    # Extra response headers (for example Retry-After).
+    headers: dict[str, str] | None = None
+
+    def __init__(
+        self,
+        message: str | None = None,
+        headers: dict[str, str] | None = None,
+    ):
         self.message = message or self.default_message
+        self.headers = headers or type(self).headers
         super().__init__(self.message)
 
     default_message = "Internal server error"
@@ -54,3 +62,22 @@ class ConflictError(AppError):
     status_code = 409
     code = "conflict"
     default_message = "The request conflicts with the current state of the resource"
+
+
+class UnauthorizedError(AppError):
+    status_code = 401
+    code = "unauthorized"
+    default_message = "A valid API key is required"
+    headers = {"WWW-Authenticate": "Bearer"}
+
+
+class ForbiddenError(AppError):
+    status_code = 403
+    code = "forbidden"
+    default_message = "Your API key is not allowed to do this"
+
+
+class RateLimitedError(AppError):
+    status_code = 429
+    code = "rate_limited"
+    default_message = "Too many requests"

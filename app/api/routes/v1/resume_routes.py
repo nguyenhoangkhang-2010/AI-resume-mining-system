@@ -28,6 +28,7 @@ from loguru import logger
 
 from app.api.dependencies import get_resume_catalog_service, get_resume_service
 from app.api.pagination import PageParams, page_params
+from app.api.security import heavy_rate_limit, require_admin
 from app.core.config.settings import settings
 from app.core.constants.app_constants import ALLOWED_EXTENSIONS
 from app.core.exceptions import AppError, NotFoundError, UnsupportedFileTypeError
@@ -46,6 +47,7 @@ UPLOAD_DIR = Path("data/uploads")
     "/upload",
     response_model=ResumeResponse,
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[Depends(heavy_rate_limit)],
 )
 async def upload_resume(
     background_tasks: BackgroundTasks,
@@ -163,6 +165,7 @@ def get_resume(
 @router.delete(
     "/{resume_id}",
     status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_admin)],
 )
 def delete_resume(
     resume_id: str,

@@ -6,6 +6,10 @@ from typing import Any, Dict, List, Optional
 from loguru import logger
 
 from app.core.config.settings import settings
+from app.core.security.prompt_safety import (
+    sanitize_untrusted_text,
+    strip_control_tokens,
+)
 
 
 class LLMExtractor:
@@ -279,7 +283,7 @@ class LLMExtractor:
             12000,
         )
 
-        text = text.strip()
+        text = sanitize_untrusted_text(text).strip()
 
         if len(text) > max_chars:
             logger.warning(
@@ -516,7 +520,9 @@ class LLMExtractor:
         generation_limit: int,
     ) -> str:
 
-        wrapped_prompt = f"[INST] {prompt} [/INST]"
+        # The prompt may contain resume text: it must not be able to close
+        # the instruction block or open a new one.
+        wrapped_prompt = f"[INST] {strip_control_tokens(prompt)} [/INST]"
 
         response = self._llama(
             wrapped_prompt,

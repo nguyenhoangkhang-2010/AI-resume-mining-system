@@ -1,4 +1,5 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, Depends
+from app.api.security import authenticate, rate_limit
 from app.api.routes.v1 import (
     candidate_routes,
     job_routes,
@@ -8,7 +9,9 @@ from app.api.routes.v1 import (
     search_routes,
 )
 
-api_router = APIRouter()
+# Every route needs a valid API key (unless AUTH_ENABLED=false) and is
+# rate limited. /health and the documentation are outside this router.
+api_router = APIRouter(dependencies=[Depends(authenticate), Depends(rate_limit)])
 
 api_router.include_router(resume_routes.router, prefix="/resumes", tags=["Resumes"])
 api_router.include_router(job_routes.router, prefix="/jobs", tags=["Jobs"])

@@ -108,10 +108,17 @@ def test_recovery_ignores_braces_and_brackets_inside_strings():
 # --------------------------------------------------------- the extractors
 
 
+# The extractors keep only names that appear in the section they were given.
+SECTION_TEXT = (
+    "Acme Backend Engineer. Globex Data Engineer. Initech Intern. "
+    "University A. University B."
+)
+
+
 def run(extractor_class, text, **kwargs):
     llm = FakeLLMExtractor(text)
 
-    return extractor_class(llm, **kwargs).extract("section text"), llm
+    return extractor_class(llm, **kwargs).extract(SECTION_TEXT), llm
 
 
 def test_experience_keeps_completed_entries_when_cut():

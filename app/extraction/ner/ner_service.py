@@ -54,12 +54,17 @@ class NERService:
             f"Loading NER model: {model_name}"
         )
 
+        # Repository code is never executed unless explicitly enabled.
+        trust = settings.NER_TRUST_REMOTE_CODE
+
         tokenizer = AutoTokenizer.from_pretrained(
-            model_name
+            model_name,
+            trust_remote_code=trust,
         )
 
         model = AutoModelForTokenClassification.from_pretrained(
-            model_name
+            model_name,
+            trust_remote_code=trust,
         )
 
         return pipeline(

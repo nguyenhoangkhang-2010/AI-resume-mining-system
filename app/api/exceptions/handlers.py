@@ -10,6 +10,7 @@ def _error_response(
     status_code: int,
     detail: str,
     code: str,
+    headers: dict[str, str] | None = None,
 ) -> JSONResponse:
     return JSONResponse(
         status_code=status_code,
@@ -17,6 +18,7 @@ def _error_response(
             "detail": detail,
             "code": code,
         },
+        headers=headers,
     )
 
 
@@ -39,6 +41,7 @@ def register_exception_handlers(app: FastAPI) -> None:
             exc.status_code,
             exc.message,
             exc.code,
+            exc.headers,
         )
 
     @app.exception_handler(ConnectionFailure)

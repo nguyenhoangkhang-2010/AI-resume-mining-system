@@ -6,6 +6,26 @@ import pytest
 ONET_RAW_DIR = Path(__file__).resolve().parents[1] / "data" / "onet" / "raw"
 
 
+@pytest.fixture(autouse=True)
+def open_api_by_default(monkeypatch):
+    """
+    Most tests exercise endpoints, not authentication, so the API is open and
+    unthrottled unless a test (tests/test_api_security.py) turns it on.
+    """
+
+    from app.core.config.settings import settings
+    from app.core.security.rate_limit import limiter
+
+    monkeypatch.setattr(settings, "AUTH_ENABLED", False)
+    monkeypatch.setattr(settings, "RATE_LIMIT_ENABLED", False)
+
+    limiter.reset()
+
+    yield
+
+    limiter.reset()
+
+
 @pytest.fixture
 def make_pdf(tmp_path):
     """

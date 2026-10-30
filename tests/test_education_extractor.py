@@ -41,7 +41,7 @@ def test_extract_multiple_entries():
         }
     )
 
-    result = EducationExtractor(llm).extract("two degrees")
+    result = EducationExtractor(llm).extract("University A and University B")
 
     assert [item["institution"] for item in result] == [
         "University A",

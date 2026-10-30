@@ -1,11 +1,13 @@
 from contextlib import asynccontextmanager
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
+from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
 from loguru import logger
 
 from app.core.config.settings import settings
 from app.core.logger.logging_config import setup_logger
+from app.core.security.startup import validate_security_settings
 from app.database.mongodb.connection import mongo_db
 from app.database.vector_db.faiss_manager import FaissManager
 from app.api.router import api_router
@@ -33,6 +35,10 @@ async def lifespan(app: FastAPI):
     logger.info(
         "Starting up AI Resume Mining System API..."
     )
+
+    # Before any model is loaded: stop at once if authentication is
+    # required but not configured.
+    validate_security_settings(settings)
 
     login_huggingface()
 
@@ -108,6 +114,39 @@ app = FastAPI(
 )
 
 register_exception_handlers(app)
+
+
+@app.middleware("http")
+async def add_security_headers(request: Request, call_next):
+    response = await call_next(request)
+
+    response.headers.setdefault("X-Content-Type-Options", "nosniff")
+    response.headers.setdefault("X-Frame-Options", "DENY")
+    response.headers.setdefault("Referrer-Policy", "no-referrer")
+
+    # Responses carry personal data: do not let browsers or proxies keep them.
+    if request.url.path.startswith("/api/"):
+        response.headers.setdefault("Cache-Control", "no-store")
+
+    return response
+
+
+cors_origins = [
+    origin.strip()
+    for origin in settings.CORS_ORIGINS.split(",")
+    if origin.strip()
+]
+
+# Added last so it is the outermost middleware and answers preflight
+# requests itself. Keys travel in headers, so no cookies are needed.
+if cors_origins:
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=cors_origins,
+        allow_credentials=False,
+        allow_methods=["GET", "POST", "DELETE", "OPTIONS"],
+        allow_headers=["Authorization", "Content-Type", "X-API-Key"],
+    )
 
 app.include_router(api_router, prefix="/api/v1")
 
