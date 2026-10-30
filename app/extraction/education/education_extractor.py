@@ -7,6 +7,8 @@ from loguru import logger
 
 from app.core.config.settings import settings
 from app.extraction.grounding import ground_entries
+from app.extraction.rules import stats
+from app.extraction.rules.education_rules import parse_education
 from app.extraction.llm.json_recovery import recover_array_objects
 from app.extraction.llm.llm_extractor import LLMExtractor
 
@@ -100,6 +102,19 @@ class EducationExtractor:
 
         if not text:
             return []
+
+        if settings.EXTRACTION_RULES_FIRST:
+            by_rules = parse_education(text)
+
+            stats.record("education", by_rules is not None)
+
+            if by_rules is not None:
+                logger.debug(
+                    "Education read by rules: {} entries.",
+                    len(by_rules),
+                )
+
+                return by_rules
 
         logger.debug(
             "Starting semantic education extraction | input_chars={}",

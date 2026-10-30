@@ -9,6 +9,8 @@ from loguru import logger
 from app.extraction.llm.llm_extractor import LLMExtractor
 from app.core.config.settings import settings
 from app.extraction.llm.json_recovery import recover_array_objects
+from app.extraction.rules import stats
+from app.extraction.rules.list_rules import parse_projects
 
 
 class ProjectExtractor:
@@ -189,6 +191,14 @@ class ProjectExtractor:
 
         if not text or not text.strip():
             return []
+
+        if settings.EXTRACTION_RULES_FIRST:
+            by_rules = parse_projects(text)
+
+            stats.record("projects", by_rules is not None)
+
+            if by_rules is not None:
+                return by_rules
 
         logger.debug(
             "Starting semantic project extraction."

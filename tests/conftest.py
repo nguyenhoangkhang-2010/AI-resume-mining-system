@@ -26,6 +26,18 @@ def open_api_by_default(monkeypatch):
     limiter.reset()
 
 
+@pytest.fixture(autouse=True)
+def model_reads_extraction_sections(monkeypatch):
+    """
+    The extractor tests drive the model-backed path with a fake model, so the
+    rules that answer before the model are off unless a test turns them on.
+    """
+
+    from app.core.config.settings import settings
+
+    monkeypatch.setattr(settings, "EXTRACTION_RULES_FIRST", False)
+
+
 @pytest.fixture
 def make_pdf(tmp_path):
     """
