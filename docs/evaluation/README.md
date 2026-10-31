@@ -11,7 +11,8 @@ python -m scripts.run_evaluation --dataset data/evaluation/synthetic_v1 --out do
 `--embedding hashing` runs without downloading the sentence-transformer model
 (semantic rows are then not meaningful) and `--skip-extraction` skips the
 skill-extraction benchmark. The full report is in
-[synthetic_v1.md](synthetic_v1.md).
+[synthetic_v1.md](synthetic_v1.md). Evaluation on real CVs (private labels,
+aggregate results only) is described in [real_cv_README.md](real_cv_README.md).
 
 ## How the data and labels are built
 

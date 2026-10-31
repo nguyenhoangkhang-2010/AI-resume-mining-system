@@ -180,3 +180,5 @@ coverage/
 # Model
 # =========================
 models/
+# Private evaluation set of real CVs (personal data)
+/data/real_cv_eval/

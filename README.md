@@ -202,9 +202,10 @@ The optional dashboard (`pip install -r requirements-analytics.txt`):
 
 ## Limitations
 
-- **No real labelled data.** Every evaluation uses synthetic CVs and
-  candidates, so the numbers are not hiring accuracy. A labelled set of real
-  CVs is the next piece of evidence to build.
+- **No published real-CV result yet.** Every figure above uses synthetic CVs
+  and candidates, so none is hiring accuracy. Tooling to label and score a
+  private set of real CVs exists ([real-CV evaluation](docs/evaluation/real_cv_README.md));
+  the available CVs are too similar to each other to support a claim yet.
 - **Languages:** headings, dates and job-title rules cover English and
   Vietnamese. Other languages fall back to the LLM, which is slower and
   unmeasured.
