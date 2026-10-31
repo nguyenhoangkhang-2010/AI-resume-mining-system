@@ -61,7 +61,7 @@ recruiter should read it.
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/jobs/` | Create a job from a description; skills, experience and responsibilities are extracted |
+| POST | `/jobs/` | Create a job from a description (optional `location`); skills, experience and responsibilities are extracted and the job's vector is indexed so it can be recommended |
 | GET | `/jobs/` | List jobs (summaries) |
 | GET | `/jobs/{id}` | Job detail (same shape as the create response) |
 | DELETE | `/jobs/{id}` | Delete a job |
@@ -72,6 +72,34 @@ recruiter should read it.
 |---|---|---|
 | GET | `/candidates/` | List candidate summaries; `?skill=python` filters by normalised skill, ignoring case |
 | GET | `/candidates/{id}` | Full candidate profile |
+| GET | `/candidates/{id}/jobs` | Jobs that fit this candidate, best first, with reasons (see below) |
+
+## Recommending jobs to a candidate
+
+`GET /candidates/{id}/jobs` (or `GET /resumes/{id}/jobs`, which finds the
+candidate built from a resume and answers 409 until it has been processed)
+returns the jobs that fit a profile best. Typical flow for a candidate:
+upload a CV, poll `GET /resumes/{id}/status` until `processed`, then call
+`GET /resumes/{id}/jobs`.
+
+| Parameter | Default | Meaning |
+|---|---|---|
+| `top_k` | 10 | jobs to return (1-50) |
+| `min_score` | 50 | leave out jobs scoring below this (0-100) |
+| `location` | none | only jobs whose location contains this text, ignoring case |
+
+Each result has the job (`title`, `location`, `experience_years`,
+`required_skills`), a `score` (0-100) that orders the list, `skill_gaps` (the
+required skills the profile does not show) and a `score_breakdown` with the
+skill, semantic and experience scores, the matched skills and a sentence
+explaining each. Scores use the same hybrid scorer and weights as ranking
+candidates for a job, so a job and a candidate get the same score whichever
+is the query. The `metadata` says how many jobs were retrieved, left out by
+the score and location filters, and how many jobs have no vector yet
+(`unindexed_jobs`; they cannot be recommended until `scripts/reindex_jobs.py`
+has been run). Jobs with no semantic similarity to the profile are not
+retrieved at all. The score is a suggestion for the candidate, not a judgement
+of ability.
 
 ## Matching, search and recommendations
 

@@ -123,6 +123,12 @@ class Settings(BaseSettings):
 
     FAISS_SAVE_EVERY: int = 1
 
+    # Vector index of the jobs, used to recommend jobs to a candidate.
+    JOB_FAISS_INDEX_PATH: str = "faiss_index/job.index"
+
+    # Index a job's vector when it is created (turn off for tools and tests).
+    JOB_INDEXING_ENABLED: bool = True
+
     # Answers for headings the lexicon does not know (kept next to the index).
     HEADING_CACHE_PATH: str = "faiss_index/heading_cache.json"
 

@@ -11,6 +11,7 @@ class JobModel(BaseModel):
     required_skills: List[str] = Field(default_factory=list)
     normalized_skills: List[str] = Field(default_factory=list)
     experience_years: Optional[int] = None
+    location: Optional[str] = None
     responsibilities: List[str] = Field(default_factory=list)
     occupation: Optional[str] = None
     faiss_id: Optional[int] = Field(default=None, description="Index ID for Job vector in FAISS")

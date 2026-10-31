@@ -26,13 +26,19 @@ from fastapi import (
 )
 from loguru import logger
 
-from app.api.dependencies import get_resume_catalog_service, get_resume_service
+from app.api.dependencies import (
+    get_job_recommendation_service,
+    get_resume_catalog_service,
+    get_resume_service,
+)
 from app.api.pagination import PageParams, page_params
 from app.api.security import heavy_rate_limit, require_admin
 from app.core.config.settings import settings
 from app.core.constants.app_constants import ALLOWED_EXTENSIONS
 from app.core.exceptions import AppError, NotFoundError, UnsupportedFileTypeError
 from app.core.identifiers import parse_object_id
+from app.schemas.job_match_schema import JobMatchResponse
+from app.services.job_recommendation_service import JobRecommendationService
 from app.services.resume_catalog_service import KNOWN_STATUSES, ResumeCatalogService
 from app.services.upload_validation import save_upload
 from app.services.resume_service import ResumeService
@@ -160,6 +166,28 @@ def get_resume(
     catalog: ResumeCatalogService = Depends(get_resume_catalog_service),
 ):
     return catalog.get_resume(resume_id)
+
+
+@router.get(
+    "/{resume_id}/jobs",
+    response_model=JobMatchResponse,
+    dependencies=[Depends(heavy_rate_limit)],
+)
+def recommend_jobs_for_resume(
+    resume_id: str,
+    top_k: int = Query(default=10, ge=1, le=50, description="Jobs to return"),
+    min_score: Optional[float] = Query(default=None, ge=0, le=100),
+    location: Optional[str] = Query(default=None, max_length=120),
+    service: JobRecommendationService = Depends(get_job_recommendation_service),
+):
+    """
+    Jobs that fit the candidate built from this resume. Returns 409 until
+    the resume has been processed.
+    """
+
+    return service.recommend_for_resume(
+        resume_id, top_k=top_k, min_score=min_score, location=location
+    )
 
 
 @router.delete(

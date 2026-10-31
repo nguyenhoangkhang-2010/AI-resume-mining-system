@@ -93,6 +93,11 @@ docker build -f docker/Dockerfile --build-arg WITH_LLAMA_CPP=false -t ai-resume-
   `HEADING_CACHE_PATH` (default `faiss_index/heading_cache.json`, so it lives
   in the same volume as the index). The first CV with a new heading takes a
   few seconds longer; the file can be deleted at any time.
+- Jobs have their own vector index (`JOB_FAISS_INDEX_PATH`, default
+  `faiss_index/job.index`, in the same volume as the candidate index). Jobs created
+  before job recommendation existed have no vector; stop the API and run
+  `docker compose exec api python -m scripts.reindex_jobs` (or run it locally)
+  once to index them.
 - After the embedding text changes (`EMBEDDING_VERSION`), rebuild the index;
   to check or repair it, run the operational scripts inside the stack:
 
