@@ -4,17 +4,17 @@ Mode: **full pipeline with the local language model**. 9 reviewed real CVs. Only
 
 Intervals are 95% bootstrap intervals over CVs; with this few CVs they are wide, and a difference smaller than the interval is not evidence of anything.
 
-**Core entity F1 (name, companies, roles, schools, degrees, certificates): 0.608 [0.545, 0.678]**
+**Core entity F1 (name, companies, roles, schools, degrees, certificates): 0.620 [0.534, 0.752]**
 
 ## Fields
 
 | Field | Precision | Recall | F1 | F1 interval | Expected | Found |
 |---|---|---|---|---|---|---|
 | name | 0.750 | 0.667 | 0.706 | [0.444, 1.000] | 9 | 8 |
-| companies | 0.750 | 0.353 | 0.480 | [0.000, 0.727] | 17 | 8 |
-| roles | 0.846 | 0.632 | 0.723 | [0.559, 0.894] | 19 | 13 |
-| schools | 0.800 | 0.857 | 0.828 | [0.727, 0.952] | 14 | 15 |
-| degrees | 0.643 | 0.692 | 0.667 | [0.400, 0.909] | 13 | 14 |
+| companies | 0.889 | 0.471 | 0.615 | [0.333, 0.889] | 17 | 9 |
+| roles | 0.857 | 0.684 | 0.761 | [0.571, 0.957] | 19 | 14 |
+| schools | 0.857 | 0.857 | 0.857 | [0.757, 0.960] | 14 | 14 |
+| degrees | 0.500 | 0.615 | 0.552 | [0.345, 0.766] | 13 | 18 |
 | skills | 0.105 | 0.328 | 0.159 | [0.093, 0.237] | 137 | 429 |
 | certifications | 0.182 | 0.167 | 0.174 | [0.000, 0.381] | 12 | 11 |
 
@@ -35,34 +35,34 @@ Intervals are 95% bootstrap intervals over CVs; with this few CVs they are wide,
 
 | language | CVs | Core entity F1 |
 |---|---|---|
-| en | 7 | 0.616 |
-| other (fewer than 3 each) | 2 | 0.581 |
+| en | 7 | 0.641 |
+| other (fewer than 3 each) | 2 | 0.533 |
 
 ## By layout
 
 | layout | CVs | Core entity F1 |
 |---|---|---|
-| multi_column | 4 | 0.590 |
-| single | 5 | 0.628 |
+| multi_column | 4 | 0.550 |
+| single | 5 | 0.688 |
 
 ## By industry
 
 | industry | CVs | Core entity F1 |
 |---|---|---|
-| software | 5 | 0.610 |
-| other (fewer than 3 each) | 4 | 0.607 |
+| software | 5 | 0.681 |
+| other (fewer than 3 each) | 4 | 0.572 |
 
 ## Time
 
-Seconds per CV: mean 132.5, median 150.0, max 276.4.
+Seconds per CV: mean 161.6, median 177.7, max 383.8.
 
 ## Sections read by rules or by the model
 
 | Section | Rules | Model |
 |---|---|---|
 | certifications | 1 | 2 |
-| education | 6 | 3 |
-| experience | 3 | 5 |
-| projects | 3 | 3 |
+| education | 3 | 6 |
+| experience | 4 | 4 |
+| projects | 2 | 4 |
 | summary | 4 | 1 |
 

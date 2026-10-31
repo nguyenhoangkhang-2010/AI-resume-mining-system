@@ -1,105 +1,84 @@
 """
-Vocabulary that tells a job title from an employer, and a school from a
-degree. It is a hint for splitting a line like "Staff Nurse - St Mary
-Hospital", never a list of valid titles: a line the vocabulary cannot split
-is left to the language model.
+Tells a job title from an employer, a school from a degree, and a place from
+either, using the vocabulary files (see vocabulary.py).
+
+This is a hint for reading a line such as "Staff Nurse - St Mary Hospital",
+never a list of valid titles: a line the vocabulary cannot place is left to the
+language model.
 """
 
 import re
-from typing import Iterable, Tuple
+from typing import Optional, Tuple
 
+from app.extraction.rules.vocabulary import get_vocabulary
 from app.extraction.section.heading_lexicon import normalise
 
-ROLE_WORDS = frozenset(
-    """
-    engineer developer programmer manager analyst nurse teacher accountant
-    intern assistant specialist director lead officer consultant designer
-    architect administrator coordinator supervisor technician executive
-    representative scientist researcher instructor lecturer auditor advisor
-    adviser head chief president associate trainee founder tester qa sre
-    devops secretary clerk cashier salesperson marketer writer editor
-    producer operator mechanic physician doctor surgeon pharmacist therapist
-    tutor professor planner buyer agent recruiter controller strategist
-    ceo cto cfo coo vp owner partner
-    """.split()
-)
+_SEPARATORS = (" | ", " - ", " – ", " — ", " @ ", " at ", " tại ", ", ")
 
-ROLE_PHRASES = (
-    "ky su", "lap trinh vien", "lap trinh", "chuyen vien", "quan ly",
-    "truong phong", "truong nhom", "giam doc", "nhan vien", "dieu duong",
-    "giao vien", "ke toan", "thuc tap", "tro ly", "giang vien", "tu van",
-    "bac si", "duoc si", "chuyen gia", "phien dich", "kiem toan",
-    "ky thuat vien", "giam sat", "cong tac vien", "thu ky", "quan tri",
-    "tro giang", "dieu phoi",
-)
+# "Mountain View, CA"  "Georgetown, TX": a place name and a two-letter state.
+_CITY_STATE = re.compile(r"^[^\W\d_][\w .'’-]*,\s*[A-Z]{2}\.?$")
 
-COMPANY_WORDS = frozenset(
-    """
-    inc ltd llc corp corporation company group bank hospital clinic
-    school university college labs lab systems software solutions agency
-    studio technologies technology partners capital insurance institute
-    centre center foundation industries works consulting holdings
-    analytics ventures
-    """.split()
-)
-
-# "truong" is left out on purpose: it means "school" but also "head of"
-# (trưởng phòng, trưởng nhóm), which are job titles.
-COMPANY_PHRASES = (
-    "cong ty", "tap doan", "ngan hang", "benh vien", "phong kham",
-    "trung tam",
-)
-
-INSTITUTION_WORDS = frozenset(
-    "university college institute school academy polytechnic universite".split()
-)
-
-INSTITUTION_PHRASES = (
-    "dai hoc", "hoc vien", "truong", "cao dang", "trung tam dao tao",
-)
-
-DEGREE_WORDS = frozenset(
-    """
-    bsc ba bs be beng bachelor bachelors master masters msc ma ms mba meng
-    med bed mphil phd doctorate doctoral diploma associate degree gcse
-    """.split()
-)
-
-DEGREE_PHRASES = (
-    "cu nhan", "ky su", "thac si", "tien si", "cao dang", "trung cap",
-    "bang cap",
-)
-
-
-def _contains(words: Iterable[str], phrases: Iterable[str], text: str) -> bool:
-    normalised = normalise(text)
-    tokens = set(normalised.split())
-
-    if any(word in tokens for word in words):
-        return True
-
-    padded = f" {normalised} "
-
-    return any(f" {phrase} " in padded for phrase in phrases)
+_TRAILING_PARENTHESIS = re.compile(r"^(?P<name>.*?)\s*\((?P<inside>[^()]*)\)\W*$")
 
 
 def role_score(text: str) -> int:
-    return int(_contains(ROLE_WORDS, ROLE_PHRASES, text))
+    """How many job-title words or phrases the text contains."""
+
+    return get_vocabulary().roles.count(text)
 
 
 def company_score(text: str) -> int:
-    return int(_contains(COMPANY_WORDS, COMPANY_PHRASES, text))
+    """How many employer words or phrases the text contains."""
+
+    return get_vocabulary().companies.count(text)
 
 
 def is_institution(text: str) -> bool:
-    return _contains(INSTITUTION_WORDS, INSTITUTION_PHRASES, text)
+    return get_vocabulary().institutions.count(text) > 0
 
 
 def is_degree(text: str) -> bool:
-    return _contains(DEGREE_WORDS, DEGREE_PHRASES, text)
+    return get_vocabulary().degrees.count(text) > 0
 
 
-_SEPARATORS = (" | ", " - ", " – ", " — ", " @ ", " at ", " tại ", ", ")
+def is_location(text: str) -> bool:
+    """A line that is only a place: "Mountain View, CA", "Hanoi, Vietnam", "Remote"."""
+
+    stripped = text.strip().rstrip(".")
+
+    if not stripped or len(stripped.split()) > 8 or any(c.isdigit() for c in stripped):
+        return False
+
+    if _CITY_STATE.match(stripped):
+        return True
+
+    places = get_vocabulary().places
+    parts = [part.strip() for part in stripped.split(",") if part.strip()]
+
+    # Every comma-separated part is made of known place names, nothing else.
+    return bool(parts) and all(places.covers(part) for part in parts)
+
+
+def split_location(text: str) -> Tuple[str, Optional[str]]:
+    """
+    "Shockelasrull (Luxembourg)." -> ("Shockelasrull", "Luxembourg"). Other
+    parentheses, such as "(BAT)", stay in the name.
+    """
+
+    match = _TRAILING_PARENTHESIS.match(text.strip())
+
+    if match and match.group("name") and is_location(match.group("inside")):
+        return match.group("name").strip(), match.group("inside").strip()
+
+    return text.strip(), None
+
+
+def ends_with_company_suffix(text: str) -> bool:
+    """"... Ltd." and "... Inc." end with a full stop that belongs to the name."""
+
+    words = normalise(text).split()
+
+    return bool(words) and words[-1] in get_vocabulary().company_suffixes
 
 
 def split_pair(text: str) -> Tuple[str, str] | None:

@@ -1,0 +1,43 @@
+{
+  "language": "vi",
+  "roles": {
+    "words": ["intern", "freelancer"],
+    "phrases": [
+      "kỹ sư", "lập trình viên", "lập trình", "chuyên viên", "quản lý",
+      "trưởng phòng", "trưởng nhóm", "giám đốc", "nhân viên", "điều dưỡng",
+      "giáo viên", "kế toán", "thực tập", "trợ lý", "giảng viên", "tư vấn",
+      "bác sĩ", "dược sĩ", "chuyên gia", "phiên dịch", "kiểm toán",
+      "kỹ thuật viên", "giám sát", "cộng tác viên", "thư ký", "quản trị",
+      "trợ giảng", "điều phối", "thành viên", "tình nguyện viên", "phó phòng",
+      "phó giám đốc", "tổng giám đốc", "chủ tịch", "nghiên cứu viên"
+    ]
+  },
+  "companies": {
+    "words": [],
+    "phrases": [
+      "công ty", "tập đoàn", "ngân hàng", "bệnh viện", "phòng khám",
+      "trung tâm", "tổng công ty", "văn phòng", "cửa hàng", "doanh nghiệp",
+      "câu lạc bộ", "hiệp hội", "viện nghiên cứu"
+    ]
+  },
+  "company_suffixes": [],
+  "institutions": {
+    "words": [],
+    "phrases": ["đại học", "học viện", "trường", "cao đẳng", "trung tâm đào tạo"]
+  },
+  "degrees": {
+    "words": [],
+    "phrases": ["cử nhân", "kỹ sư", "thạc sĩ", "tiến sĩ", "cao đẳng", "trung cấp", "bằng cấp"]
+  },
+  "months": ["tháng"],
+  "present": ["nay", "hiện tại", "hiện nay", "đến nay"],
+  "range_words": ["đến"],
+  "places": {
+    "words": [],
+    "phrases": [
+      "việt nam", "hà nội", "hồ chí minh", "tp hcm", "tp.hcm", "đà nẵng",
+      "cần thơ", "hải phòng", "thủ đức", "đường", "phường", "quận", "huyện",
+      "tỉnh", "thành phố", "xã"
+    ]
+  }
+}

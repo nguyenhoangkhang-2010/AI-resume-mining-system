@@ -2,34 +2,51 @@
 Reads the experience section of a CV without the language model, when its
 layout is regular enough to do so reliably.
 
-Each job in a typical CV has a date range, a title/employer header next to
-it and bullet points below. The date ranges mark where jobs start; the
-header lines beside each range hold the role and the company; the lines
-under it are the description. This is what the language model was being
-asked to do at about a minute per CV.
+Each job in a typical CV has a date range, a few header lines near it (the
+title, the employer, perhaps a place) and bullet points. The date ranges mark
+where jobs are. The header lines are the short non-bullet lines just before and
+just after a date range; each one is typed as a title, an employer or a place
+from the vocabulary files, and a job is understood when exactly one title and
+one employer (or just one of them) come out and nothing is left over.
 
-The parser answers only when every job it finds is fully understood. If
-anything is unclear (no date ranges, a header it cannot split into role and
-company, text before the first job) it returns None and the caller asks the
-model, so a CV with an unusual layout is no worse off than before.
+The parser answers only when every job it finds is understood. If anything is
+unclear (no date ranges, header lines it cannot type, text before the first
+job) it raises Unclear and the caller asks the language model, so a CV with an
+unusual layout is no worse off than before.
 """
 
 import re
-from typing import Any, Dict, List, Optional
+from dataclasses import dataclass
+from typing import Any, Dict, List, Optional, Set, Tuple
 
 from app.extraction.rules.dates import DateRange, find_range
 from app.extraction.rules.titles import (
     company_score,
+    ends_with_company_suffix,
+    is_location,
     order_role_company,
     role_score,
+    split_location,
     split_pair,
 )
 
-BULLET = re.compile(r"^\s*(?:[-•*▪●◦·–—]|\d{1,2}[.)])\s*")
+# Characters that start a bullet point, as opposed to a sentence.
+_BULLET_CHARS = "-•*▪●◦·–—⋄◆◇■□►▶❖✓✔∙‣⁃○◉➢➤★☆→"
+BULLET = re.compile(rf"^\s*(?:[{re.escape(_BULLET_CHARS)}]|\d{{1,2}}[.)](?=\s))\s*")
 _EDGE_SEPARATORS = " \t|,;:-–—"
 
 MAX_HEADER_WORDS = 12
-MAX_HEADER_LINES = 2
+MAX_HEADER_PARTS = 3
+MAX_VALUE_WORDS = 12
+HEADER_MARKER_WORDS = 5
+
+
+class Unclear(Exception):
+    """The layout is not understood; `reason` says why (for logs and stats)."""
+
+    def __init__(self, reason: str) -> None:
+        super().__init__(reason)
+        self.reason = reason
 
 
 def _is_bullet(line: str) -> bool:
@@ -42,7 +59,10 @@ def _is_header_like(line: str) -> bool:
     if not text or _is_bullet(text) or find_range(text):
         return False
 
-    if text.endswith((".", ";")) or len(text.split()) > MAX_HEADER_WORDS:
+    if len(text.split()) > MAX_HEADER_WORDS or re.search(r":\s*\S", text):
+        return False
+
+    if text.endswith((".", ";")) and not _may_end_with_stop(text):
         return False
 
     first_letter = next((c for c in text if c.isalpha()), "")
@@ -50,38 +70,171 @@ def _is_header_like(line: str) -> bool:
     return not first_letter or first_letter.isupper()
 
 
-def _clean_header(text: str) -> str:
-    return " ".join(text.strip(_EDGE_SEPARATORS).split())
+def _may_end_with_stop(text: str) -> bool:
+    """A full stop that belongs to the name: "Acme Ltd." or "Acme (France)."."""
+
+    stripped = text.rstrip(".;")
+
+    return stripped.endswith(")") or ends_with_company_suffix(stripped)
 
 
-def _role_and_company(parts: List[str]) -> Optional[Dict[str, Optional[str]]]:
-    parts = [_clean_header(part) for part in parts if _clean_header(part)]
+def _clean_value(text: str) -> str:
+    cleaned = " ".join(text.strip(_EDGE_SEPARATORS).split())
 
-    if len(parts) == 1:
-        pair = split_pair(parts[0])
+    if cleaned.endswith(".") and not ends_with_company_suffix(cleaned):
+        cleaned = cleaned.rstrip(".").strip()
 
-        if pair:
-            ordered = order_role_company(*pair)
+    return cleaned
 
-            if ordered is None:
-                return None
 
-            return {"role": ordered[0], "company": ordered[1]}
+# ------------------------------------------------------------ bullet markers
 
-        if role_score(parts[0]) > company_score(parts[0]):
-            return {"role": parts[0], "company": None}
 
-        return {"role": None, "company": parts[0]}
+def _header_markers(lines: List[str], anchors: List[int]) -> Set[str]:
+    """
+    Marker characters that introduce employer names rather than descriptions.
 
-    if len(parts) == 2:
-        ordered = order_role_company(parts[0], parts[1])
+    Some CVs mark each employer with one symbol ("• Google") and each duty
+    with another ("◦ Built ..."). A marker is a header marker when every line
+    that carries it is short, it is used at least twice, no two of its lines
+    follow each other (duties come in runs, employers do not), and every one
+    of its lines sits just above a date range. Anything less certain leaves
+    the symbol a bullet, and a section that then starts with one is left to the
+    model.
+    """
 
-        if ordered is None:
-            return None
+    by_marker: Dict[str, List[int]] = {}
 
-        return {"role": ordered[0], "company": ordered[1]}
+    for index, line in enumerate(lines):
+        if _is_bullet(line):
+            by_marker.setdefault(line.strip()[0], []).append(index)
+
+    markers = set()
+
+    for marker, indexes in by_marker.items():
+        if len(indexes) < 2:
+            continue
+
+        texts = [BULLET.sub("", lines[i], count=1) for i in indexes]
+
+        if any(len(t.split()) > HEADER_MARKER_WORDS or re.search(r"[.:;]", t) for t in texts):
+            continue
+
+        if any(later - earlier == 1 for earlier, later in zip(indexes, indexes[1:])):
+            continue
+
+        near = sum(any(0 < a - i <= MAX_HEADER_PARTS + 1 for a in anchors) for i in indexes)
+
+        if near == len(indexes):
+            markers.add(marker)
+
+    return markers
+
+
+# ----------------------------------------------------------- reading a header
+
+
+@dataclass
+class Header:
+    role: Optional[str]
+    company: Optional[str]
+    location: Optional[str]
+
+
+def _type_of(text: str) -> str:
+    role, company = role_score(text), company_score(text)
+
+    if role > company:
+        return "role"
+
+    if company > role:
+        return "company"
+
+    return "unknown"
+
+
+def _read_header(parts: List[str]) -> Optional[Header]:
+    """Role, company and place out of the header lines of one job, or None."""
+
+    location: Optional[str] = None
+    names: List[str] = []
+
+    for part in parts:
+        text = _clean_value(part)
+
+        if not text:
+            continue
+
+        if is_location(text):
+            location = location or text
+            continue
+
+        text, place = split_location(text)
+        location = location or place
+        text = _clean_value(text)
+
+        if text:
+            names.append(text)
+
+    if not names or any(len(name.split()) > MAX_VALUE_WORDS for name in names):
+        return None
+
+    if len(names) == 1:
+        return _read_single(names[0], location)
+
+    # A line holding both ("Backend Engineer - Acme") cannot share the header.
+    if any(_complete_pair(name) is not None for name in names):
+        return None
+
+    kinds = [_type_of(name) for name in names]
+    roles = [n for n, k in zip(names, kinds) if k == "role"]
+    companies = [n for n, k in zip(names, kinds) if k == "company"]
+    unknown = [n for n, k in zip(names, kinds) if k == "unknown"]
+
+    if len(roles) > 1 or len(companies) > 1:
+        return None
+
+    if roles and companies and not unknown:
+        return Header(roles[0], companies[0], location)
+
+    if len(unknown) == 1 and (roles or companies) and len(roles) + len(companies) == 1:
+        if roles:
+            return Header(roles[0], unknown[0], location)
+
+        return Header(unknown[0], companies[0], location)
 
     return None
+
+
+def _complete_pair(text: str) -> Optional[Tuple[str, str]]:
+    """(role, company) when one line holds both and the vocabulary can tell which is which."""
+
+    pair = split_pair(text)
+    ordered = order_role_company(*pair) if pair else None
+
+    # An employer word on one side is not enough to call the other a title
+    # ("Big Bank Plc - Head Office"): the title side needs a title word.
+    return ordered if ordered and role_score(ordered[0]) > 0 else None
+
+
+def _read_single(text: str, location: Optional[str]) -> Optional[Header]:
+    ordered = _complete_pair(text)
+
+    if ordered:
+        return Header(_clean_value(ordered[0]), _clean_value(ordered[1]), location)
+
+    if split_pair(text):
+        # Two parts the vocabulary cannot tell apart ("BAT - British American
+        # Tobacco"): guessing which is the employer would be wrong half the time.
+        return None
+
+    if _type_of(text) == "role":
+        return Header(text, None, location)
+
+    return Header(None, text, location)
+
+
+# -------------------------------------------------------------------- jobs
 
 
 def _description(lines: List[str]) -> List[str]:
@@ -106,14 +259,6 @@ def _description(lines: List[str]) -> List[str]:
             items.append(text)
 
     return [item for item in items if item]
-
-
-class Unclear(Exception):
-    """The layout is not understood; `reason` says why (for logs and stats)."""
-
-    def __init__(self, reason: str) -> None:
-        super().__init__(reason)
-        self.reason = reason
 
 
 def parse_experience(text: str) -> Optional[List[Dict[str, Any]]]:
@@ -150,120 +295,126 @@ def read_experience(text: str) -> List[Dict[str, Any]]:
     if not anchors:
         raise Unclear("no date range")
 
+    # A symbol that marks employers is not a bullet.
+    for marker in _header_markers(lines, anchors):
+        lines = [
+            BULLET.sub("", line, count=1) if _is_bullet(line) and line.strip()[0] == marker else line
+            for line in lines
+        ]
+
     ranges: Dict[int, DateRange] = {
         index: date for index in anchors if (date := find_range(lines[index]))
     }
 
-    header_first = _header_precedes(lines, anchors)
-
-    spans = []  # (first line of the job, last line of its header/date block)
-    headers: List[List[str]] = []
-
-    for position, anchor in enumerate(anchors):
-        previous_anchor = anchors[position - 1] if position else -1
-        parts = [ranges[anchor].rest] if ranges[anchor].rest else []
-        first = last = anchor
-
-        step = -1 if header_first else 1
-        index = anchor + step
-        limit = previous_anchor if header_first else len(lines)
-
-        while (
-            (index > limit if header_first else index < limit)
-            and len(parts) < MAX_HEADER_LINES
-            and _is_header_like(lines[index])
-            and index not in ranges
-        ):
-            if not _complete_header(parts) and not _plausible_header(lines[index], parts):
-                raise Unclear("header unclear")
-
-            if header_first:
-                parts.insert(0, lines[index])
-                first = index
-            else:
-                parts.append(lines[index])
-                last = index
-
-            index += step
-
-            if _complete_header(parts):
-                break
-
-        # A third header line cannot be told from the job's description.
-        if (
-            (index > limit if header_first else index < limit)
-            and not _complete_header(parts)
-            and _is_header_like(lines[index])
-            and index not in ranges
-        ):
-            raise Unclear("header of three lines")
-
-        spans.append((first, last))
-        headers.append(parts)
-
-    if spans[0][0] > 0:
-        raise Unclear("text before the first job")
+    before = {anchor: _lines_before(lines, anchor, anchors, ranges) for anchor in anchors}
+    claimed = {index for indexes in before.values() for index in indexes}
+    after = {anchor: _lines_after(lines, anchor, anchors, claimed) for anchor in anchors}
 
     jobs: List[Dict[str, Any]] = []
+    starts: List[int] = []
+    ends: List[int] = []
 
-    for position, (_, last) in enumerate(spans):
-        following = spans[position + 1][0] if position + 1 < len(spans) else len(lines)
-        names = _role_and_company(headers[position])
+    for anchor in anchors:
+        positions = [*before[anchor], anchor, *after[anchor]]
+        parts = [lines[i] for i in positions if i != anchor]
 
-        if names is None or not (names["role"] or names["company"]):
+        if ranges[anchor].rest:
+            parts.insert(len(before[anchor]), ranges[anchor].rest)
+
+        header = _read_header(parts)
+
+        if header is None or not (header.role or header.company):
             raise Unclear("role and company not told apart")
 
-        dates = ranges[anchors[position]]
+        starts.append(positions[0])
+        ends.append(positions[-1])
 
+        dates = ranges[anchor]
         jobs.append(
             {
-                "company": names["company"],
-                "role": names["role"],
+                "company": header.company,
+                "role": header.role,
                 "start_date": dates.start,
                 "end_date": dates.end,
-                "description": _description(lines[last + 1: following]),
+                "description": [],
                 "employment_type": None,
-                "location": None,
+                "location": header.location,
                 "achievements": [],
             }
         )
 
+    if starts[0] > 0:
+        raise Unclear("text before the first job")
+
+    for position, job in enumerate(jobs):
+        following = starts[position + 1] if position + 1 < len(jobs) else len(lines)
+        job["description"] = _description(lines[ends[position] + 1: following])
+
     return jobs
 
 
-def _complete_header(parts: List[str]) -> bool:
-    """True when the header lines so far already give a role and a company."""
+def _looks_like_header_line(lines: List[str], index: int) -> bool:
+    """
+    A header-like line right under a bullet could be the wrapped end of that
+    bullet; it counts as a header only if it carries some sign of one.
+    """
 
-    cleaned = [_clean_header(part) for part in parts if _clean_header(part)]
+    text = lines[index]
 
-    if len(cleaned) == 2:
-        return order_role_company(cleaned[0], cleaned[1]) is not None
-
-    if len(cleaned) == 1:
-        pair = split_pair(cleaned[0])
-
-        return pair is not None and order_role_company(*pair) is not None
-
-    return False
-
-
-def _plausible_header(line: str, parts: List[str]) -> bool:
-    """A line that can be part of a header: it has title/employer words or a split."""
-
-    if not parts:
+    if index == 0 or not (_is_bullet(lines[index - 1]) or lines[index - 1] == ""):
         return True
 
-    return role_score(line) > 0 or company_score(line) > 0 or split_pair(line) is not None
+    return bool(
+        role_score(text)
+        or company_score(text)
+        or is_location(text)
+        or split_pair(text)
+        or ends_with_company_suffix(text)
+    )
 
 
-def _header_precedes(lines: List[str], anchors: List[int]) -> bool:
-    """True for "header, dates, bullets"; False for "dates, header, bullets"."""
+def _lines_before(
+    lines: List[str],
+    anchor: int,
+    anchors: List[int],
+    ranges: Dict[int, DateRange],
+) -> List[int]:
+    previous = max((a for a in anchors if a < anchor), default=-1)
+    found: List[int] = []
+    index = anchor - 1
 
-    first = anchors[0]
-    before = first > 0 and _is_header_like(lines[first - 1])
-    after = first + 1 < len(lines) and _is_header_like(lines[first + 1])
+    while (
+        index > previous
+        and len(found) < MAX_HEADER_PARTS
+        and _is_header_like(lines[index])
+        and index not in ranges
+    ):
+        if not _looks_like_header_line(lines, index):
+            break
 
-    if before:
-        return True
+        found.insert(0, index)
+        index -= 1
 
-    return not after
+    return found
+
+
+def _lines_after(
+    lines: List[str],
+    anchor: int,
+    anchors: List[int],
+    claimed: Set[int],
+) -> List[int]:
+    found: List[int] = []
+    index = anchor + 1
+
+    while (
+        index < len(lines)
+        and len(found) < MAX_HEADER_PARTS
+        and index not in claimed
+        and index not in anchors
+        and _is_header_like(lines[index])
+    ):
+        found.append(index)
+        index += 1
+
+    return found
