@@ -74,9 +74,11 @@ docker build -f docker/Dockerfile --build-arg WITH_LLAMA_CPP=false -t ai-resume-
   development machine. Keys are read from the environment, so changing them
   needs a restart; there are no user accounts or JWT login.
 - Rate limits are counted in the process memory, which is correct for the
-  single worker above but resets on restart. Set `CORS_ORIGINS` to the
-  origin of your frontend (for example `http://localhost:3000`) to allow
-  browser access.
+  single worker above but resets on restart. The interface in `frontend/`
+  needs no CORS setting in development (its dev server proxies `/api`); if you
+  serve it from another origin, set `CORS_ORIGINS` to that origin (for example
+  `https://ui.example.com`). The key it needs is entered in the page and kept in
+  `sessionStorage` only.
 - Keep the port bound to `127.0.0.1` unless a reverse proxy with TLS sits in
   front: API keys are sent in headers and are readable on plain HTTP.
 - `NER_TRUST_REMOTE_CODE` stays `false`: models from the Hugging Face Hub
