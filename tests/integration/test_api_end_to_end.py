@@ -17,6 +17,7 @@ from app.api.dependencies import (
     get_recommendation_service,
 )
 from app.core.config.settings import settings
+from app.core.constants.app_constants import EMBEDDING_VERSION
 from app.database.vector_db.faiss_manager import FaissManager
 from app.main import app
 from app.services.resume_service import ResumeService
@@ -137,7 +138,7 @@ def test_ingestion_stores_candidates_and_vectors(database, ingested):
     documents = list(database["candidates"].find({}))
 
     assert len(documents) == len(RESUMES)
-    assert {d["embedding_version"] for d in documents} == {"profile-v1"}
+    assert {d["embedding_version"] for d in documents} == {EMBEDDING_VERSION}
     assert sorted(d["faiss_id"] for d in documents) == [1, 2, 3]
     assert ingested.vector_store.indexed_ids() == {1, 2, 3}
 
