@@ -12,14 +12,18 @@ from app.models.candidate import (
     Experience,
     Project,
 )
+from app.core.config.settings import settings
 from app.schemas.resume_schema import ResumeResponse
 from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
 from app.models.resume import ResumeModel
 from app.embeddings.services.embedding_service import EmbeddingService
 from app.vector_store.vector_store import VectorStore
 from app.core.constants.app_constants import EMBEDDING_VERSION
+from app.services.confidence import assess_confidence
 from app.services.resume_quality import (
     FAILED,
+    LOW_CONFIDENCE,
+    NEEDS_REVIEW,
     PROCESSED,
     assess_extraction,
     failure_reason,
@@ -153,6 +157,27 @@ class ResumeService:
                 extracted_data
             )
 
+            confidence = assess_confidence(
+                extracted_data
+            ).to_dict()
+
+            if (
+                assessment.status == PROCESSED
+                and confidence["score"]
+                < settings.REVIEW_BELOW_CONFIDENCE
+            ):
+                assessment.status = NEEDS_REVIEW
+                assessment.reason = LOW_CONFIDENCE
+
+            elif (
+                assessment.status == PROCESSED
+                and confidence["score"]
+                < settings.LOW_CONFIDENCE_WARNING
+            ):
+                assessment.warnings.append(
+                    LOW_CONFIDENCE
+                )
+
             if assessment.status != PROCESSED:
                 # Nothing usable was extracted: keep the result for review
                 # instead of indexing an empty candidate.
@@ -161,6 +186,7 @@ class ResumeService:
                     assessment.status,
                     extracted_data,
                     reason=assessment.reason,
+                    confidence=confidence,
                 )
 
                 logger.warning(
@@ -185,6 +211,7 @@ class ResumeService:
                 PROCESSED,
                 extracted_data,
                 warnings=assessment.warnings,
+                confidence=confidence,
             )
 
             logger.success(
@@ -402,6 +429,7 @@ class ResumeService:
         data: dict | None = None,
         reason: str | None = None,
         warnings: list[str] | None = None,
+        confidence: dict | None = None,
     ) -> None:
 
         update_data: dict[str, Any] = {
@@ -414,6 +442,11 @@ class ResumeService:
             update_data[
                 "extracted_data"
             ] = data
+
+        if confidence is not None:
+            update_data[
+                "confidence"
+            ] = confidence
 
         self.resumes_col.update_one(
             {

@@ -16,6 +16,7 @@ from app.extraction.rules.titles import (
     role_score,
     split_location,
 )
+from app.extraction.section.heading_lexicon import heading_section
 from app.extraction.rules.vocabulary import (
     BUILTIN_DIRECTORY,
     Terms,
@@ -25,21 +26,23 @@ from app.extraction.rules.vocabulary import (
     read_file,
 )
 
-FRENCH = {
-    "language": "fr",
-    "roles": {"words": ["ingénieur", "développeur"], "phrases": ["chef de projet"]},
-    "companies": {"words": ["sarl"], "phrases": ["société", "groupe"]},
-    "institutions": {"words": ["université", "école"]},
-    "degrees": {"words": ["licence", "master"]},
-    "months": ["janvier", "février", "mars"],
-    "present": ["aujourd'hui", "à ce jour"],
-    "places": {"words": ["france"], "phrases": ["paris"]},
+ITALIAN = {
+    "language": "it",
+    "roles": {"words": ["ingegnere", "sviluppatore"], "phrases": ["capo progetto"]},
+    "companies": {"words": ["srl", "spa"], "phrases": ["società", "gruppo"]},
+    "institutions": {"words": ["università", "scuola"]},
+    "degrees": {"words": ["laurea", "master"]},
+    "months": ["gennaio", "febbraio", "marzo"],
+    "present": ["oggi", "ad oggi"],
+    "places": {"words": ["italia"], "phrases": ["roma"]},
+    "headings": {"experience": ["esperienza lavorativa"], "education": ["istruzione"]},
+    "filler_words": ["e"],
 }
 
 
 @pytest.fixture
-def french(tmp_path, monkeypatch):
-    (tmp_path / "fr.json").write_text(json.dumps(FRENCH), encoding="utf-8")
+def italian(tmp_path, monkeypatch):
+    (tmp_path / "it.json").write_text(json.dumps(ITALIAN), encoding="utf-8")
     monkeypatch.setattr(settings, "VOCABULARY_DIR", str(tmp_path))
     vocabulary.clear_cache()
 
@@ -51,10 +54,10 @@ def french(tmp_path, monkeypatch):
 # ----------------------------------------------------------------- loading
 
 
-def test_the_built_in_files_cover_english_and_vietnamese():
+def test_the_built_in_files_cover_the_supported_languages():
     built_in = get_vocabulary()
 
-    assert {"en", "vi"} <= set(built_in.languages)
+    assert {"en", "vi", "fr", "es", "de", "pt", "ru"} <= set(built_in.languages)
     assert role_score("Senior Backend Engineer") >= 1
     assert role_score("Kỹ sư phần mềm") >= 1
     assert company_score("Công ty Cổ phần ABC") >= 1
@@ -134,44 +137,89 @@ def test_a_missing_directory_is_ignored(tmp_path):
 # --------------------------------------------- a language added as data only
 
 
-def test_another_language_is_added_with_a_file_and_no_code(french):
+def test_another_language_is_added_with_a_file_and_no_code(italian):
     vocab = get_vocabulary()
 
-    assert "fr" in vocab.languages
-    assert role_score("Ingénieur logiciel") == 1
-    assert role_score("Chef de projet") == 1
-    assert is_institution("Université de Lyon") and is_degree("Licence d'informatique")
-    assert is_location("Paris, France")
+    assert "it" in vocab.languages
+    assert role_score("Ingegnere software") == 1
+    assert role_score("Capo progetto") == 1
+    assert is_institution("Università di Roma") and is_degree("Laurea in informatica")
+    assert is_location("Roma, Italia")
 
 
-def test_the_extra_language_reads_dates_and_jobs(french):
-    assert find_range("janvier 2020 - aujourd'hui").end == "aujourd'hui"
-    assert is_present("à ce jour")
+def test_the_extra_language_reads_dates_and_jobs(italian):
+    assert find_range("gennaio 2020 - oggi").end == "oggi"
+    assert is_present("ad oggi")
 
     jobs = parse_experience(
-        "Ingénieur logiciel - Société Dupont\njanvier 2020 - aujourd'hui\n"
-        "- Développement d'API\n"
-        "Chef de projet - Groupe Martin\nmars 2017 - février 2019\n- Pilotage"
+        "Ingegnere software - Società Rossi\ngennaio 2020 - oggi\n"
+        "- Sviluppo di API\n"
+        "Capo progetto - Gruppo Bianchi\nmarzo 2017 - febbraio 2019\n- Coordinamento"
     )
 
     assert [(job["role"], job["company"]) for job in jobs] == [
-        ("Ingénieur logiciel", "Société Dupont"),
-        ("Chef de projet", "Groupe Martin"),
+        ("Ingegnere software", "Società Rossi"),
+        ("Capo progetto", "Gruppo Bianchi"),
     ]
-    assert jobs[0]["end_date"] == "aujourd'hui"
+    assert jobs[0]["end_date"] == "oggi"
 
 
-def test_the_extra_language_reads_education(french):
-    entries = parse_education("Licence d'informatique\nUniversité de Lyon\n2012 - 2015")
+def test_the_extra_language_reads_education(italian):
+    entries = parse_education("Laurea in informatica\nUniversità di Roma\n2012 - 2015")
 
-    assert entries[0]["institution"] == "Université de Lyon"
-    assert entries[0]["degree_level"] == ["Licence d'informatique"]
+    assert entries[0]["institution"] == "Università di Roma"
+    assert entries[0]["degree_level"] == ["Laurea in informatica"]
 
 
-def test_without_the_file_the_same_french_text_is_not_understood():
+def test_the_extra_language_brings_its_headings_and_filler_words(italian):
+    assert heading_section("Esperienza lavorativa") == "experience"
+    assert heading_section("ISTRUZIONE E ESPERIENZA LAVORATIVA") == "education"
+
+
+def test_without_the_file_the_same_italian_text_is_not_understood():
     assert parse_experience(
-        "Ingénieur logiciel - Société Dupont\njanvier 2020 - aujourd'hui\n- API"
+        "Ingegnere software - Società Rossi\ngennaio 2020 - oggi\n- API"
     ) is None
+    assert heading_section("Esperienza lavorativa") is None
+
+
+@pytest.mark.parametrize(
+    "heading, section",
+    [
+        ("Expérience professionnelle", "experience"),
+        ("FORMATION", "education"),
+        ("Experiencia laboral", "experience"),
+        ("Competencias técnicas", "skills"),
+        ("Berufserfahrung", "experience"),
+        ("Ausbildung und Studium", "education"),
+        ("Experiência profissional", "experience"),
+        ("Опыт работы", "experience"),
+        ("Образование", "education"),
+    ],
+)
+def test_built_in_headings_of_other_languages(heading, section):
+    assert heading_section(heading) == section
+
+
+@pytest.mark.parametrize("title", ["Resume", "Résumé", "Curriculum Vitae", "Lebenslauf", "Резюме"])
+def test_a_document_title_is_not_taken_for_a_section(title):
+    assert heading_section(title) is None
+
+
+def test_dates_in_other_languages():
+    assert find_range("mars 2020 – aujourd'hui").end == "aujourd'hui"
+    assert find_range("enero de 2018 - actualidad").end == "actualidad"
+    assert find_range("März 2019 – heute").start == "März 2019"
+    assert find_range("março de 2020 - atualmente").end == "atualmente"
+    assert find_range("март 2020 – по настоящее время").end == "по настоящее время"
+
+
+def test_headings_in_a_vocabulary_file_must_name_a_known_section(tmp_path):
+    path = tmp_path / "bad.json"
+    path.write_text(json.dumps({"headings": {"hobbies": ["x"]}}), encoding="utf-8")
+
+    with pytest.raises(ValueError, match="unknown sections"):
+        read_file(path)
 
 
 # ------------------------------------------------------------- date formats

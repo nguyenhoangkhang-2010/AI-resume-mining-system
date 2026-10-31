@@ -173,6 +173,51 @@ def test_usable_result_is_indexed_and_keeps_warnings(monkeypatch):
     assert "no_experience_found" in last["warnings"]
 
 
+def test_confidence_is_stored_with_the_result(monkeypatch):
+    service, resumes = make_service(
+        monkeypatch, {"raw_text": LONG_TEXT, "skills": ["python"]}
+    )
+
+    service.process_resume(str(ObjectId()))
+
+    stored = resumes.updates[-1]["confidence"]
+
+    assert 0.0 <= stored["score"] <= 1.0
+    assert stored["level"] in {"low", "medium", "high"}
+    assert "experience_missing" in stored["reasons"]
+
+
+def test_a_low_confidence_result_is_indexed_with_a_warning(monkeypatch):
+    service, resumes = make_service(
+        monkeypatch, {"raw_text": LONG_TEXT, "skills": ["python"]}
+    )
+
+    service.process_resume(str(ObjectId()))
+
+    assert len(service.saved) == 1
+    assert "low_confidence" in resumes.updates[-1]["warnings"]
+
+
+def test_a_result_below_the_review_threshold_is_held_for_review(monkeypatch):
+    monkeypatch.setattr(settings, "REVIEW_BELOW_CONFIDENCE", 0.9)
+    service, resumes = make_service(
+        monkeypatch, {"raw_text": LONG_TEXT, "skills": ["python"]}
+    )
+
+    service.process_resume(str(ObjectId()))
+
+    last = resumes.updates[-1]
+
+    assert service.saved == []
+    assert last["upload_status"] == NEEDS_REVIEW
+    assert last["status_reason"] == "low_confidence"
+    assert last["confidence"]["score"] < 0.9
+
+
+def test_the_review_threshold_is_off_by_default():
+    assert settings.REVIEW_BELOW_CONFIDENCE == 0.0
+
+
 def test_failure_stores_a_reason_and_still_raises(monkeypatch):
     service, resumes = make_service(monkeypatch, error=FileDataError("broken"))
 
@@ -212,6 +257,7 @@ def test_status_endpoint_returns_reason_and_warnings(monkeypatch):
         "status": "needs_review",
         "reason": "no_text_extracted",
         "warnings": [],
+        "confidence": None,
     }
 
 

@@ -129,7 +129,9 @@ def test_resume_list_hides_paths_and_extracted_text(database, client, tmp_path):
 
     item = client.get("/api/v1/resumes/").json()["items"][0]
 
-    assert set(item) == {"id", "filename", "status", "reason", "warnings", "created_at"}
+    assert set(item) == {
+        "id", "filename", "status", "reason", "warnings", "confidence", "created_at"
+    }
     assert "secret" not in str(item)
 
 
@@ -174,6 +176,40 @@ def test_resume_detail_includes_the_candidate_id(database, client, tmp_path):
 
     assert body["id"] == str(resume["_id"])
     assert body["candidate_id"] == str(candidate["_id"])
+
+
+def test_confidence_is_shown_in_the_list_the_detail_and_the_status(database, client, tmp_path):
+    use_catalog(database, tmp_path)
+    confidence = {
+        "score": 0.62,
+        "level": "medium",
+        "components": {"completeness": 0.8},
+        "sections": {"experience": 0.9},
+        "reasons": ["read_by_ocr"],
+    }
+    resume = resume_doc(1, confidence=confidence)
+    database["resumes"].documents = [resume, resume_doc(2)]
+
+    items = client.get("/api/v1/resumes/").json()["items"]
+    by_name = {item["filename"]: item for item in items}
+
+    assert by_name["cv-1.pdf"]["confidence"]["score"] == 0.62
+    assert by_name["cv-1.pdf"]["confidence"]["reasons"] == ["read_by_ocr"]
+    assert by_name["cv-2.pdf"]["confidence"] is None
+
+    detail = client.get(f"/api/v1/resumes/{resume['_id']}").json()
+    status = client.get(f"/api/v1/resumes/{resume['_id']}/status").json()
+
+    assert detail["confidence"]["level"] == "medium"
+    assert status["confidence"]["level"] == "medium"
+
+
+def test_a_malformed_stored_confidence_is_left_out(database, client, tmp_path):
+    use_catalog(database, tmp_path)
+    resume = resume_doc(1, confidence={"score": "high"})
+    database["resumes"].documents = [resume]
+
+    assert client.get(f"/api/v1/resumes/{resume['_id']}").json()["confidence"] is None
 
 
 def test_resume_detail_without_candidate(database, client, tmp_path):

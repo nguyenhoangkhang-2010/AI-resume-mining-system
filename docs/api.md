@@ -42,14 +42,36 @@ Swagger UI). `/`, `/health` and the docs stay open. Keys are configured with
 
 | Method | Path | Purpose |
 |---|---|---|
-| POST | `/resumes/upload` | Upload a PDF or a Word `.docx`; returns 202 and processes it in the background. A `.docx` that is not a Word document is refused with 400 |
+| POST | `/resumes/upload` | Upload a PDF or a Word `.docx` (also PNG or JPEG when `OCR_ENABLED=true`); returns 202 and processes it in the background. A `.docx` that is not a Word document, or an image that cannot be opened, is refused with 400 |
 | GET | `/resumes/` | List resumes; filter with `?status=pending\|processing\|processed\|needs_review\|failed` |
 | GET | `/resumes/{id}` | Resume detail, including the `candidate_id` once indexed |
-| GET | `/resumes/{id}/status` | Status with `reason` and `warnings` |
+| GET | `/resumes/{id}/status` | Status with `reason`, `warnings` and `confidence` |
 | DELETE | `/resumes/{id}` | Delete the resume, its candidate, its vector and the uploaded file (409 while processing) |
 
 `needs_review` means the file was readable but nothing usable was extracted
 (for example a scanned PDF without OCR); `reason` says why.
+
+`confidence` (in the list, the detail and the status; absent until the resume
+has been processed) says how far the extraction can be trusted:
+
+```json
+{
+  "score": 0.82,
+  "level": "high",
+  "components": {"completeness": 0.85, "structure": 1.0, "extraction": 0.9, "fields": 0.7},
+  "sections": {"experience": 1.0, "education": 1.0, "skills": 0.7},
+  "reasons": ["dates_not_matched_to_entries"]
+}
+```
+
+`score` is 0 to 1 and is not a probability; `level` is `high` (0.9 and up),
+`medium` (0.5 and up) or `low`. `reasons` are short codes for what lowered it
+(for example `read_by_ocr`, `experience_section_guessed`,
+`experience_read_by_model`, `experience_without_dates`, `education_missing`).
+Below `LOW_CONFIDENCE_WARNING` (default 0.5) the resume gets the warning
+`low_confidence`; below `REVIEW_BELOW_CONFIDENCE` (default 0, off) it is held as
+`needs_review` with that reason instead of being indexed. How well the score
+follows the real accuracy is in [evaluation/confidence.md](evaluation/confidence.md).
 
 `warnings` may contain `possible_prompt_injection`: the resume text contains
 phrases that try to instruct the language model (for example "ignore all

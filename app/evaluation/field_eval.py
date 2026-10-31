@@ -116,6 +116,26 @@ def same_entity(expected: str, found: str) -> bool:
     return distinctive and f" {shorter} " in f" {longer} "
 
 
+def _degree_words(text: str) -> set:
+    """The words of the text that name a kind of degree (bachelor, master, licence ...)."""
+
+    from app.extraction.rules.vocabulary import get_vocabulary
+
+    return set(normalise(text).split()) & get_vocabulary().degrees.words
+
+
+def same_degree(expected: str, found: str) -> bool:
+    """
+    Degrees are written at different lengths: "Bachelor" and "Bachelor of
+    Science in Computer Science" name the same degree. Two values match when
+    they are the same entity or share a word that names a kind of degree.
+    """
+
+    return same_entity(expected, found) or bool(
+        _degree_words(expected) & _degree_words(found)
+    )
+
+
 def _distinct(values: Sequence[str]) -> List[str]:
     """The values without repeats, comparing them as same_entity does."""
 
@@ -134,8 +154,10 @@ def score_fields(
         wanted = _distinct(expected.get(name, []))
         got = _distinct(extracted.get(name, []))
 
-        hits = sum(any(same_entity(w, g) for g in got) for w in wanted)
-        correct = sum(any(same_entity(w, g) for w in wanted) for g in got)
+        matches = same_degree if name == "degrees" else same_entity
+
+        hits = sum(any(matches(w, g) for g in got) for w in wanted)
+        correct = sum(any(matches(w, g) for w in wanted) for g in got)
 
         precision = correct / len(got) if got else 0.0
         recall = hits / len(wanted) if wanted else 0.0

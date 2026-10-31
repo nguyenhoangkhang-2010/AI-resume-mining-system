@@ -197,3 +197,13 @@ def test_catch_all_headings_are_left_to_the_text_under_them():
     # it is often the skills), so the lexicon must not file it as "other".
     assert heading_section("Additional Information") is None
     assert heading_section("Thông tin khác") is None
+
+
+def test_normalise_keeps_letters_of_other_scripts():
+    assert normalise("Опыт работы:") == "опыт работы"
+    assert normalise("工作经历") == "工作经历"
+    assert normalise("कार्य अनुभव") == "कार्य अनुभव"
+
+
+def test_normalise_still_strips_accents_of_latin_letters():
+    assert normalise("Éducation, Straße") == "education strasse"

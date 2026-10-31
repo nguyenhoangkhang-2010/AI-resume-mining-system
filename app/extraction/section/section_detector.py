@@ -32,6 +32,9 @@ from app.resume_processing.layout.semantic_region_analyzer import (
 # Answer for catch-all headings; the text under the heading decides.
 MIXED_HEADING = SectionClassifier.MIXED
 
+# Confidence given to a region placed by its position under a heading.
+COLUMN_CONFIDENCE = 0.6
+
 
 class SectionDetector:
 
@@ -43,11 +46,13 @@ class SectionDetector:
         heading_classifier: Optional[HeadingClassifier] = None,
         heading_cache: Optional[HeadingCache] = None,
         use_heading_style: bool = True,
+        use_column_continuation: bool = True,
     ) -> None:
         self.semantic_classifier = semantic_classifier
         self.heading_classifier = heading_classifier
         self.heading_cache = heading_cache
         self.use_heading_style = use_heading_style
+        self.use_column_continuation = use_column_continuation
 
         self.llm_classifier = (
             llm_classifier
@@ -109,8 +114,15 @@ class SectionDetector:
 
         header_checked = False
 
+        # "section:how:confidence" for every segment, so a later stage can
+        # tell a section found by its heading from one guessed by a model.
+        provenance: List[str] = []
+
         # Section and region of the most recent heading found by wording.
         last_heading: Optional[Tuple[str, SemanticRegion]] = None
+
+        # Every heading seen so far, to place regions that have none.
+        anchors: List[Tuple[str, SemanticRegion]] = []
 
         for region in region_analysis.regions:
 
@@ -202,14 +214,19 @@ class SectionDetector:
                     )
                     styled_used += 1
                     last_heading = (section_type, region)
+                    anchors.append(last_heading)
+                    how = "heading_style"
 
                 elif header_forced and position == 0:
                     section_type, confidence = "personal_info", 1.0
+                    how = "contact_header"
 
                 elif heading is not None:
                     section_type, confidence = heading, 1.0
                     heading_used += 1
                     last_heading = (heading, region)
+                    anchors.append(last_heading)
+                    how = "heading_words"
 
                 elif (
                     continued_type := self._continuation(
@@ -221,6 +238,7 @@ class SectionDetector:
                     confidence = 1.0
                     continued += 1
                     last_heading = (section_type, region)
+                    how = "continued"
 
                 else:
                     section_type, confidence = (
@@ -228,6 +246,7 @@ class SectionDetector:
                             segment_text
                         )
                     )
+                    how = "semantic"
 
                     if confidence < self.min_confidence:
 
@@ -251,6 +270,26 @@ class SectionDetector:
                         section_type = fallback_type
                         confidence = fallback_confidence
                         fallback_used += 1
+                        how = "model_guess"
+
+                        # Neither the text nor the model could tell: a region
+                        # that sits under a heading in the same column is
+                        # part of that heading's section (the pieces of a
+                        # designed template are separate regions).
+                        if (
+                            confidence < self.min_confidence
+                            and self.use_column_continuation
+                            and (
+                                below := self._below_heading(
+                                    anchors,
+                                    region,
+                                )
+                            )
+                            is not None
+                        ):
+                            section_type = below
+                            confidence = COLUMN_CONFIDENCE
+                            how = "column"
 
                 logger.info(
                     "Region {} -> '{}' (confidence={:.2f})",
@@ -258,6 +297,8 @@ class SectionDetector:
                     section_type,
                     confidence,
                 )
+
+                provenance.append(f"{section_type}:{how}:{confidence:.2f}")
 
                 if section_type == "projects":
                     project_regions.append(
@@ -276,6 +317,8 @@ class SectionDetector:
         if project_regions:
             sections["projects"] = project_regions
             sections["__projects_regions__"] = project_regions
+
+        sections["__provenance__"] = provenance
 
         logger.info(
             "Section detection complete: {} sections, {} by heading "
@@ -426,6 +469,43 @@ class SectionDetector:
 
         return None
 
+    @staticmethod
+    def _below_heading(
+        anchors: List[Tuple[str, SemanticRegion]],
+        region: SemanticRegion,
+    ) -> Optional[str]:
+        """
+        The section of the closest heading above a region: same page, same
+        column, starting at or below the heading. None if there is none.
+        """
+
+        best: Optional[Tuple[str, SemanticRegion]] = None
+
+        for section_type, previous in anchors:
+            if section_type == "personal_info":
+                continue
+
+            if (
+                region.page_index != previous.page_index
+                or region.y0 < previous.y0
+            ):
+                continue
+
+            overlap = min(region.x1, previous.x1) - max(region.x0, previous.x0)
+
+            narrower = min(
+                region.x1 - region.x0,
+                previous.x1 - previous.x0,
+            )
+
+            if narrower <= 0 or overlap / narrower < 0.5:
+                continue
+
+            if best is None or previous.y0 >= best[1].y0:
+                best = (section_type, previous)
+
+        return best[0] if best else None
+
     def _detect_from_plain_text(
         self,
         text: str,
@@ -439,7 +519,11 @@ class SectionDetector:
         )
 
         if by_wording:
-            return by_wording
+            return self._with_provenance(
+                by_wording,
+                "heading_words",
+                1.0,
+            )
 
         lines = [
             line.strip()
@@ -516,7 +600,27 @@ class SectionDetector:
                 "\n".join(result["projects"])
             ]
 
-        return result
+        return self._with_provenance(
+            result,
+            "model_guess",
+            0.5,
+        )
+
+    @staticmethod
+    def _with_provenance(
+        sections: Dict[str, List[str]],
+        how: str,
+        confidence: float,
+    ) -> Dict[str, List[str]]:
+        """Marks sections found without page layout, one entry each."""
+
+        sections["__provenance__"] = [
+            f"{name}:{how}:{confidence:.2f}"
+            for name in sections
+            if not name.startswith("__")
+        ]
+
+        return sections
 
     def _detect_by_wording(
         self,

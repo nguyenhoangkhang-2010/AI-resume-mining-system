@@ -25,6 +25,7 @@ FILE_MISSING = "file_missing"
 PROCESSING_ERROR = "processing_error"
 
 POSSIBLE_PROMPT_INJECTION = "possible_prompt_injection"
+LOW_CONFIDENCE = "low_confidence"
 
 MIN_TEXT_CHARS = 40
 

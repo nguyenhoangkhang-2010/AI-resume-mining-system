@@ -7,7 +7,11 @@ from app.core.exceptions import ConflictError, NotFoundError
 from app.core.identifiers import parse_object_id
 from app.database.mongodb.connection import mongo_db
 from app.schemas.page import Page
-from app.schemas.resume_schema import ResumeDetail, ResumeListItem
+from app.schemas.resume_schema import (
+    ConfidenceInfo,
+    ResumeDetail,
+    ResumeListItem,
+)
 
 KNOWN_STATUSES = {"pending", "processing", "processed", "needs_review", "failed"}
 
@@ -134,5 +138,6 @@ class ResumeCatalogService:
             status=status if status in KNOWN_STATUSES else "pending",
             reason=document.get("status_reason"),
             warnings=document.get("warnings") or [],
+            confidence=ConfidenceInfo.from_document(document),
             created_at=document["created_at"],
         )
