@@ -40,6 +40,14 @@ class Settings(BaseSettings):
 
     MAX_JOB_DESCRIPTION_CHARS: int = 50000
 
+    # Confidence of an extracted CV (0..1, see docs/evaluation/confidence.md).
+    # Below LOW_CONFIDENCE_WARNING the resume gets the "low_confidence"
+    # warning; below REVIEW_BELOW_CONFIDENCE it is held as needs_review
+    # instead of being indexed (0 keeps every readable CV indexed).
+    LOW_CONFIDENCE_WARNING: float = 0.5
+
+    REVIEW_BELOW_CONFIDENCE: float = 0.0
+
     # OCR for scanned (image-only) PDFs. Needs the Tesseract program and its
     # language data installed; when it is missing the page stays empty and the
     # resume is flagged needs_review.

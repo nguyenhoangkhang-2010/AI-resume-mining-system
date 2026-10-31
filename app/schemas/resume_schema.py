@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import List, Literal, Optional
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
 
@@ -11,6 +11,43 @@ ResumeStatus = Literal[
     "needs_review",
     "failed",
 ]
+
+
+class ConfidenceInfo(BaseModel):
+    score: float = Field(
+        ...,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "How far the extraction can be trusted, 0 to 1. Not a probability: "
+            "see docs/evaluation/confidence.md"
+        ),
+    )
+    level: Literal["low", "medium", "high"]
+    components: Dict[str, float] = Field(
+        default_factory=dict,
+        description="completeness, structure, extraction and fields, each 0 to 1",
+    )
+    sections: Dict[str, float] = Field(
+        default_factory=dict,
+        description="How surely each section was found, 0 to 1",
+    )
+    reasons: List[str] = Field(
+        default_factory=list,
+        description="Short codes for what lowered the score (for example read_by_ocr)",
+    )
+
+    @classmethod
+    def from_document(cls, document: Dict[str, Any]) -> Optional["ConfidenceInfo"]:
+        stored = document.get("confidence")
+
+        if not isinstance(stored, dict):
+            return None
+
+        try:
+            return cls.model_validate(stored)
+        except ValueError:
+            return None
 
 
 class ResumeResponse(BaseModel):
@@ -59,6 +96,10 @@ class ResumeStatusResponse(BaseModel):
             "(for example no_experience_found)"
         ),
     )
+    confidence: Optional[ConfidenceInfo] = Field(
+        default=None,
+        description="Absent until the resume has been processed",
+    )
 
 
 class ResumeListItem(BaseModel):
@@ -70,6 +111,7 @@ class ResumeListItem(BaseModel):
         description="Why the resume is in needs_review or failed, as a short code",
     )
     warnings: List[str] = Field(default_factory=list)
+    confidence: Optional[ConfidenceInfo] = None
     created_at: datetime
 
 

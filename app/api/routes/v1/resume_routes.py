@@ -6,6 +6,7 @@ from typing import Optional
 from app.database.mongodb.connection import mongo_db
 from app.schemas.page import Page
 from app.schemas.resume_schema import (
+    ConfidenceInfo,
     ResumeDetail,
     ResumeListItem,
     ResumeResponse,
@@ -34,13 +35,12 @@ from app.api.dependencies import (
 from app.api.pagination import PageParams, page_params
 from app.api.security import heavy_rate_limit, require_admin
 from app.core.config.settings import settings
-from app.core.constants.app_constants import ALLOWED_EXTENSIONS
 from app.core.exceptions import AppError, NotFoundError, UnsupportedFileTypeError
 from app.core.identifiers import parse_object_id
 from app.schemas.job_match_schema import JobMatchResponse
 from app.services.job_recommendation_service import JobRecommendationService
 from app.services.resume_catalog_service import KNOWN_STATUSES, ResumeCatalogService
-from app.services.upload_validation import save_upload
+from app.services.upload_validation import allowed_extensions, save_upload
 from app.services.resume_service import ResumeService
 
 
@@ -78,10 +78,12 @@ async def upload_resume(
         file.filename
     ).suffix.lower()
 
-    if file_ext not in ALLOWED_EXTENSIONS:
+    allowed = allowed_extensions()
+
+    if file_ext not in allowed:
         raise UnsupportedFileTypeError(
             "Invalid file type. "
-            f"Allowed extensions: {sorted(ALLOWED_EXTENSIONS)}"
+            f"Allowed extensions: {sorted(allowed)}"
         )
 
     unique_filename = (
@@ -246,4 +248,5 @@ def get_resume_status(
         status=upload_status,
         reason=resume.get("status_reason"),
         warnings=resume.get("warnings") or [],
+        confidence=ConfidenceInfo.from_document(resume),
     )

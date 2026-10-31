@@ -7,26 +7,32 @@ job title, which an employer, which a school or a degree, how months are spelled
 which words mean "until now", which names are places. Those words are data, in
 JSON files, not code.
 
-Built in: [en.json](../app/extraction/rules/vocabulary/en.json) and
-[vi.json](../app/extraction/rules/vocabulary/vi.json). Every `*.json` file in
-that folder is loaded and merged.
+Built in, one file per language in
+[app/extraction/rules/vocabulary/](../app/extraction/rules/vocabulary/): English,
+Vietnamese, French, Spanish, German, Portuguese and Russian. Every `*.json` file
+in that folder is loaded and merged. The French, Spanish, German, Portuguese and
+Russian files were written for this project and checked on a handful of invented
+CVs only ([multilingual_README.md](evaluation/multilingual_README.md)); treat them as a start
+that real CVs will extend.
 
 ## Adding a language, or a field's own words
 
 Write a file in the same format and point `VOCABULARY_DIR` at its folder (in
 Docker, mount the folder and set the variable). Files there are merged with the
-built-in ones; nothing in the code changes. Example for French:
+built-in ones; nothing in the code changes. Example for Italian:
 
 ```json
 {
-  "language": "fr",
-  "roles": {"words": ["ingénieur", "développeur"], "phrases": ["chef de projet"]},
-  "companies": {"words": ["sarl"], "phrases": ["société", "groupe"]},
-  "institutions": {"words": ["université", "école"]},
-  "degrees": {"words": ["licence", "master"]},
-  "months": ["janvier", "février", "mars"],
-  "present": ["aujourd'hui", "à ce jour"],
-  "places": {"words": ["france"], "phrases": ["paris"]}
+  "language": "it",
+  "roles": {"words": ["ingegnere", "sviluppatore"], "phrases": ["capo progetto"]},
+  "companies": {"words": ["srl", "spa"], "phrases": ["società", "gruppo"]},
+  "institutions": {"words": ["università", "scuola"]},
+  "degrees": {"words": ["laurea", "master"]},
+  "months": ["gennaio", "febbraio", "marzo"],
+  "present": ["oggi", "ad oggi"],
+  "places": {"words": ["italia"], "phrases": ["roma"]},
+  "headings": {"experience": ["esperienza lavorativa"], "education": ["istruzione"]},
+  "filler_words": ["e"]
 }
 ```
 
@@ -37,11 +43,23 @@ built-in ones; nothing in the code changes. Example for French:
 | `months` | month names, full and abbreviated (used in "Mar 2021", "Tháng 3/2021") |
 | `present` | words for "until now" ("present", "nay", "aujourd'hui") |
 | `range_words` | words that join the two ends of a range besides dashes ("to", "đến") |
+| `headings` | section headings of the language, by section (`personal_info`, `summary`, `experience`, `education`, `skills`, `projects`, `certifications`, `other`) |
+| `filler_words` | small words that may surround a heading ("and", "de", "und") |
 
 Entries may be written naturally, with capitals and accents; they are
 normalised when loaded, the same way the text is, so `Kỹ sư`, `KY SU` and
 `ky su` are one entry. A file that cannot be read, has an unknown key or a
 value of the wrong type stops the load with an error naming the file.
+
+Letters of other scripts (Cyrillic, Greek, Arabic, Devanagari ...) are kept when
+text is normalised; only the accents of Latin letters are removed. Languages
+written without spaces between words (Chinese, Japanese, Thai) work for
+headings, which are one token, but not for the word lists of job titles and
+employers, which are matched word by word.
+
+A heading that is also the title of the document is left out on purpose
+("Resume", "Résumé", "Lebenslauf", "Резюме"): the name and contact lines
+below it would otherwise be read as a summary.
 
 ## What the vocabulary is for, and what it is not
 

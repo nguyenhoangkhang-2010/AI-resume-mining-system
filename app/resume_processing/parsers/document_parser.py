@@ -4,6 +4,7 @@ from pathlib import Path
 from typing import Any, Dict
 
 from app.resume_processing.parsers.docx_parser import DocxParser, UnreadableFileError
+from app.resume_processing.parsers.image_parser import IMAGE_EXTENSIONS, ImageParser
 from app.resume_processing.parsers.pdf_parser import PDFParser
 
 
@@ -18,5 +19,8 @@ class DocumentParser:
 
         if suffix == ".pdf":
             return PDFParser.parse(file_path, password=password)
+
+        if suffix in IMAGE_EXTENSIONS:
+            return ImageParser.parse(file_path)
 
         raise UnreadableFileError(f"Unsupported file type '{suffix}'.")

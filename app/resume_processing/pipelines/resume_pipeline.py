@@ -15,6 +15,7 @@ from app.resume_processing.layout.semantic_region_analyzer import (
 )
 from app.extraction.section.section_detector import SectionDetector
 from app.extraction.extraction_engine import ExtractionEngine
+from app.extraction.rules import stats
 
 
 class ResumePipeline:
@@ -164,11 +165,18 @@ class ResumePipeline:
 
             start = time.perf_counter()
 
-            extracted_data = (
-                self.extraction_engine.extract_resume(
-                    sections
+            counting = stats.begin_document()
+
+            try:
+                extracted_data = (
+                    self.extraction_engine.extract_resume(
+                        sections
+                    )
                 )
-            )
+            finally:
+                methods = stats.end_document(
+                    counting
+                )
 
             elapsed = time.perf_counter() - start
 
@@ -185,10 +193,26 @@ class ResumePipeline:
             # 6. BUILD RESULT
             # ==================================================
 
+            pages = parsed.get("pages") or []
+
             resume_data = {
                 "raw_text": raw_text,
                 "cleaned_text": cleaned_text,
                 **extracted_data,
+                # What the pipeline observed about its own work, for the
+                # confidence score (see app/services/confidence.py).
+                "signals": {
+                    "sections": list(
+                        sections.get("__provenance__") or []
+                    ),
+                    "methods": methods,
+                    "pages": len(pages),
+                    "ocr_pages": sum(
+                        1
+                        for page in pages
+                        if page.get("ocr")
+                    ),
+                },
             }
 
             # ==================================================

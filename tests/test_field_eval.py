@@ -6,6 +6,7 @@ from app.evaluation.field_eval import (
     aggregate_fields,
     entities_from_extraction,
     field_table,
+    same_degree,
     same_entity,
     score_fields,
 )
@@ -115,3 +116,24 @@ def test_corpus_entities_score_perfectly_against_themselves(tmp_path):
 
     assert all(score.f1 == 1.0 for score in scores.values())
     assert "| companies |" in field_table(scores)
+
+
+def test_a_short_degree_matches_the_full_line_of_the_same_kind():
+    assert same_degree("Bachelor of Science in Computer Science", "Bachelor")
+    assert same_degree("Cử nhân Khoa học Máy tính", "Cử nhân Khoa học Máy tính")
+    assert same_degree("Master en Informatique", "master")
+
+
+def test_degrees_of_different_kinds_do_not_match():
+    assert not same_degree("Bachelor of Science", "Master of Science")
+    assert not same_degree("Bachelor of Science", "Science")
+
+
+def test_degrees_are_scored_by_kind_but_other_fields_are_not():
+    scores = score_fields(
+        {"degrees": ["Bachelor of Science in Physics"], "roles": ["Backend Engineer"]},
+        {"degrees": ["Bachelor"], "roles": ["Engineer"]},
+    )
+
+    assert scores["degrees"].f1 == 1.0
+    assert scores["roles"].f1 == 0.0

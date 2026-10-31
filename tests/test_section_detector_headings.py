@@ -136,7 +136,10 @@ def test_region_without_heading_uses_the_classifier_then_the_llm():
         llm=llm,
     )
 
-    assert sections == {"education": ["Some text without any heading wording"]}
+    assert sections["education"] == ["Some text without any heading wording"]
+    assert not {name for name in sections if not name.startswith("__")} - {
+        "education"
+    }
     assert len(llm.calls) == 1
 
 
@@ -227,3 +230,149 @@ def test_plain_text_without_headings_still_goes_to_the_llm():
 
     assert sections == {}
     assert len(llm.calls) == 1
+
+
+def test_provenance_says_how_each_section_was_found():
+    sections, _, _ = detect(
+        [
+            "Nguyen Van An\nan@example.com\n+84 912 345 678\n"
+            "Work Experience\nBackend Engineer\nSkills\nPython"
+        ]
+    )
+
+    assert sections["__provenance__"] == [
+        "personal_info:contact_header:1.00",
+        "experience:heading_words:1.00",
+        "skills:heading_words:1.00",
+    ]
+
+
+def test_provenance_marks_a_section_guessed_by_the_model():
+    sections, _, _ = detect(
+        ["Some text without any heading wording"],
+        classifier=FakeClassifier(label="projects", confidence=0.3),
+        llm=FakeLLM(label="education"),
+    )
+
+    assert sections["__provenance__"] == ["education:model_guess:0.90"]
+
+
+class UnsureLLM(FakeLLM):
+    """A model that cannot tell what a fragment is."""
+
+    def classify_single(self, text):
+        self.calls.append(text)
+        return "other", 0.0
+
+
+def placed(index, x0, y0, x1, y1, page=0):
+    return SemanticRegion(
+        region_id=f"r{index}",
+        page_index=page,
+        block_ids=[f"b{index}"],
+        x0=x0,
+        y0=y0,
+        x1=x1,
+        y1=y1,
+    )
+
+
+def detect_placed(texts, regions, llm=None, **options):
+    detector = SectionDetector(
+        FakeClassifier(),
+        llm or UnsureLLM(),
+        **options,
+    )
+
+    return detector.detect(
+        make_layout(texts),
+        SemanticRegionAnalysis(regions=regions),
+        "",
+    )
+
+
+HEADING = "Work Experience\nBackend Engineer"
+LOOSE = "Built payment services for banks."
+
+
+def test_a_region_under_a_heading_in_the_same_column_joins_its_section():
+    sections = detect_placed(
+        [HEADING, LOOSE],
+        [placed(0, 200, 100, 320, 130), placed(1, 210, 200, 500, 260)],
+    )
+
+    assert sections["experience"] == ["Backend Engineer", LOOSE]
+    assert "experience:column:0.60" in sections["__provenance__"]
+
+
+def test_the_closest_heading_above_decides_not_the_last_one_read():
+    # The regions are read column by column, so "Education" comes last.
+    sections = detect_placed(
+        [HEADING, "Education\nBSc", LOOSE],
+        [
+            placed(0, 200, 100, 320, 130),
+            placed(1, 20, 400, 140, 430),
+            placed(2, 210, 200, 500, 260),
+        ],
+    )
+
+    assert LOOSE in sections["experience"]
+    assert LOOSE not in sections.get("education", [])
+
+
+def test_a_region_in_another_column_is_not_placed_by_position():
+    sections = detect_placed(
+        [HEADING, LOOSE],
+        [placed(0, 200, 100, 320, 130), placed(1, 400, 200, 560, 260)],
+    )
+
+    assert sections["experience"] == ["Backend Engineer"]
+
+
+def test_a_region_above_the_heading_is_not_placed_by_position():
+    sections = detect_placed(
+        [HEADING, LOOSE],
+        [placed(0, 200, 300, 320, 330), placed(1, 210, 100, 500, 160)],
+    )
+
+    assert sections["experience"] == ["Backend Engineer"]
+
+
+def test_a_region_on_another_page_is_not_placed_by_position():
+    sections = detect_placed(
+        [HEADING, LOOSE],
+        [placed(0, 200, 100, 320, 130), placed(1, 210, 200, 500, 260, page=1)],
+    )
+
+    # the cross-page rule handles this case; the column rule must not.
+    assert sections["experience"] == ["Backend Engineer", LOOSE]
+    assert "experience:continued:1.00" in sections["__provenance__"]
+
+
+def test_the_header_block_is_not_extended_by_position():
+    sections = detect_placed(
+        ["Nguyen Van An\nan@example.com\n+84 912 345 678", LOOSE],
+        [placed(0, 200, 50, 400, 90), placed(1, 210, 200, 500, 260)],
+    )
+
+    assert LOOSE not in sections.get("personal_info", [])
+
+
+def test_a_confident_model_answer_wins_over_position():
+    sections = detect_placed(
+        [HEADING, LOOSE],
+        [placed(0, 200, 100, 320, 130), placed(1, 210, 200, 500, 260)],
+        llm=FakeLLM(label="education"),
+    )
+
+    assert sections["education"] == [LOOSE]
+
+
+def test_column_placement_can_be_switched_off():
+    sections = detect_placed(
+        [HEADING, LOOSE],
+        [placed(0, 200, 100, 320, 130), placed(1, 210, 200, 500, 260)],
+        use_column_continuation=False,
+    )
+
+    assert sections["experience"] == ["Backend Engineer"]

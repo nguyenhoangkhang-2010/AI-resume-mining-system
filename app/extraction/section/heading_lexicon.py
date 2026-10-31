@@ -1,14 +1,16 @@
 """
 Recognises resume section headings from their wording.
 
-Headings are matched on text alone, in English and Vietnamese, so they are
-found whatever the visual style (uppercase, bold, same size as the body,
-different colour) and wherever the PDF puts line breaks. A line counts as a
-heading only if all of its words are heading vocabulary, so ordinary body
-lines such as "Skills in Python and SQL" are not mistaken for one.
+Headings are matched on text alone, so they are found whatever the visual
+style (uppercase, bold, same size as the body, different colour) and wherever
+the PDF puts line breaks. A line counts as a heading only if all of its words
+are heading vocabulary, so ordinary body lines such as "Skills in Python and
+SQL" are not mistaken for one.
 
-Vietnamese is matched without diacritics ("Kinh nghiệm" and "Kinh nghiem"
-are the same), which also covers text extracted with broken accents.
+English and Vietnamese are built in; other languages come from the `headings`
+key of the vocabulary files (app/extraction/rules/vocabulary/). Words are
+matched without diacritics ("Kinh nghiệm" and "Kinh nghiem" are the same),
+which also covers text extracted with broken accents.
 """
 
 import re
@@ -100,25 +102,64 @@ _NUMBERING = re.compile(r"^\s*(?:\d{1,2}|[ivxlc]{1,4})\s*[.)\-:]\s+", re.IGNOREC
 
 
 def normalise(text: str) -> str:
-    """Lowercase, strip diacritics (including Vietnamese đ) and punctuation."""
+    """
+    Lowercase, strip diacritics (including Vietnamese đ) and punctuation.
+
+    Letters of other scripts (Cyrillic, Greek, Arabic, CJK ...) are kept as
+    they are: only the accents of Latin letters are removed, because in
+    those scripts a combining mark can be part of the letter.
+    """
 
     text = text.replace("đ", "d").replace("Đ", "D")
     text = unicodedata.normalize("NFD", text)
-    text = "".join(char for char in text if not unicodedata.combining(char))
-    text = re.sub(r"[^0-9a-zA-Z]+", " ", text.casefold())
 
-    return " ".join(text.split())
+    kept: List[str] = []
+
+    for char in text.casefold():
+        if unicodedata.category(char).startswith("M"):
+            if kept and _is_latin(kept[-1]):
+                continue
+
+            kept.append(char)
+        else:
+            kept.append(char if char.isalnum() else " ")
+
+    return " ".join("".join(kept).split())
+
+
+def _is_latin(char: str) -> bool:
+    return char.isascii() or unicodedata.name(char, "").startswith("LATIN")
 
 
 @lru_cache(maxsize=1)
 def _phrase_index() -> Dict[str, str]:
+    """The built-in phrases (English, Vietnamese) plus those of vocabulary files."""
+
+    from app.extraction.rules.vocabulary import get_vocabulary
+
     index: Dict[str, str] = {}
 
     for section, phrases in HEADING_PHRASES.items():
         for phrase in phrases:
             index.setdefault(phrase, section)
 
+    for section, phrases in get_vocabulary().headings:
+        for phrase in phrases:
+            index.setdefault(phrase, section)
+
     return index
+
+
+@lru_cache(maxsize=1)
+def _fillers() -> frozenset:
+    from app.extraction.rules.vocabulary import get_vocabulary
+
+    return FILLER_WORDS | get_vocabulary().filler_words
+
+
+def clear_cache() -> None:
+    _phrase_index.cache_clear()
+    _fillers.cache_clear()
 
 
 def _segment(words: List[str]) -> Optional[List[str]]:
@@ -167,7 +208,8 @@ def heading_section(line: str) -> Optional[str]:
 
     # A phrase may contain a filler word ("additional information"), so the
     # words are tried as written before the fillers are dropped.
-    core = [word for word in words if word not in FILLER_WORDS]
+    fillers = _fillers()
+    core = [word for word in words if word not in fillers]
 
     sections = _segment(words) or _segment(core)
 

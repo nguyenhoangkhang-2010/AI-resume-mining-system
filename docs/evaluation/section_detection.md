@@ -1,6 +1,6 @@
 # Section detection on synthetic multi-format CV corpora
 
-Generated 2026-10-30 by `scripts/evaluate_sections.py` (seeds 42/42).
+Generated 2026-10-31 by `scripts/evaluate_sections.py` (seeds 42/42).
 
 Each body line has a known true section; a line is correct when the detector placed it in that section (lines of sections that are not extracted, such as references or interests, are correct when dropped). The LLM fallback is stubbed (always "other"), so this measures the deterministic stages and the embedding models only. The content is synthetic: results show sensitivity to layout and headings, not accuracy on real resumes. The heading lexicon and the example headings of the heading classifier were written by the same author as the corpora; "standard" wording is what the lexicon was built around, "alternate" and "industry" wording were chosen to be different from it.
 
@@ -10,7 +10,7 @@ Line accuracy by heading wording, adding one stage at a time. "alternate" (base 
 
 | Configuration | Base standard | Base alternate | Industries standard | Industries industry |
 |---|---|---|---|---|
-| words only (lexicon) | 0.994 | 0.254 | 0.933 | 0.576 |
+| words only (lexicon) | 0.994 | 0.254 | 0.924 | 0.573 |
 | + heading style | 0.994 | 0.292 | 0.943 | 0.614 |
 | + heading classifier (+ LLM with --heading-llm) | 0.994 | 0.608 | 0.941 | 0.783 |
 

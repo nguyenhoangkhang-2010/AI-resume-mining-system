@@ -1,7 +1,10 @@
 from pathlib import Path
 from typing import BinaryIO, Mapping
 
+from app.core.config.settings import settings
+from app.core.constants.app_constants import ALLOWED_EXTENSIONS
 from app.resume_processing.parsers.docx_parser import archive_problem
+from app.resume_processing.parsers.image_parser import IMAGE_EXTENSIONS, image_problem
 from app.core.exceptions import (
     FileTooLargeError,
     InvalidUploadError,
@@ -17,7 +20,19 @@ PDF_HEADER_WINDOW = 1024
 SIGNATURES: Mapping[str, bytes] = {
     ".pdf": b"%PDF-",
     ".docx": b"PK\x03\x04",
+    ".png": b"\x89PNG\r\n\x1a\n",
+    ".jpg": b"\xff\xd8\xff",
+    ".jpeg": b"\xff\xd8\xff",
 }
+
+
+def allowed_extensions() -> frozenset:
+    """Images are only taken when OCR is on: without it they could not be read."""
+
+    if settings.OCR_ENABLED:
+        return frozenset(ALLOWED_EXTENSIONS) | IMAGE_EXTENSIONS
+
+    return frozenset(ALLOWED_EXTENSIONS)
 
 
 def validate_signature(extension: str, header: bytes) -> None:
@@ -85,11 +100,15 @@ def save_upload(
         if written == 0:
             raise InvalidUploadError("The uploaded file is empty.")
 
+        problem = None
+
         if extension == ".docx":
             problem = archive_problem(destination)
+        elif extension in IMAGE_EXTENSIONS:
+            problem = image_problem(destination)
 
-            if problem:
-                raise InvalidUploadError(problem)
+        if problem:
+            raise InvalidUploadError(problem)
 
     except BaseException:
         destination.unlink(missing_ok=True)

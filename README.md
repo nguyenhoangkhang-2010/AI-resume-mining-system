@@ -13,18 +13,24 @@ its report; the limits of each measurement are stated next to it.
 
 ## What it does
 
-1. **Reads a CV** (PDF or Word .docx): text, page layout, columns, and the sections
-   (experience, education, skills, projects ...) in English and Vietnamese,
-   whatever the heading style.
+1. **Reads a CV** (PDF, Word .docx, or a PNG/JPEG photo when OCR is on): text,
+   page layout, columns, and the sections (experience, education, skills,
+   projects ...), whatever the heading style. English and Vietnamese are covered
+   in depth; French, Spanish, German, Portuguese and Russian have vocabulary
+   files checked on a small invented set only.
 2. **Extracts a profile**: name and contact details, skills (normalised against
    the ESCO taxonomy), jobs, schools, certificates, projects. Regular sections
    are read with rules; a local LLM handles the rest.
-3. **Indexes it**: a multilingual sentence embedding goes into FAISS, the
+3. **Says how far to trust it**: every processed CV gets a confidence score
+   with the reasons that lowered it (sections guessed by a model, text from OCR,
+   dates that match no entry ...), so a recruiter knows which CVs to read
+   ([confidence](docs/evaluation/confidence.md)).
+4. **Indexes it**: a multilingual sentence embedding goes into FAISS, the
    profile into MongoDB.
-4. **Matches and ranks** candidates for a job: skill coverage, semantic
+5. **Matches and ranks** candidates for a job: skill coverage, semantic
    similarity and experience, with a per-component breakdown, plus the skills a
    candidate lacks and ways to learn them.
-5. **Protects the data**: API keys with admin/user roles, rate limits, CORS
+6. **Protects the data**: API keys with admin/user roles, rate limits, CORS
    allow-list, and defences against prompt injection hidden in CVs.
 
 ## Architecture
@@ -159,7 +165,9 @@ lists them with explanations. The ones to know:
 | `LLM_PROVIDER`, `LLM_GGUF_MODEL_PATH` | local GGUF model or Hugging Face |
 | `EXTRACTION_RULES_FIRST` | read regular sections with rules, model as fallback |
 | `LLM_PREFIX_CACHE_MB` | memory for reusing the model state after each prompt's instructions |
-| `OCR_ENABLED` | read scanned PDFs (needs Tesseract) |
+| `OCR_ENABLED` | read scanned PDFs and accept PNG/JPEG photos of a CV (needs Tesseract) |
+| `LOW_CONFIDENCE_WARNING`, `REVIEW_BELOW_CONFIDENCE` | confidence below which a CV is warned about, or held as `needs_review` (off by default) |
+| `VOCABULARY_DIR` | extra vocabulary files: more languages, or a field's own words ([docs/vocabulary.md](docs/vocabulary.md)) |
 | `CORS_ORIGINS`, `RATE_LIMIT_*` | browser access and request limits |
 
 ## Project layout
@@ -212,15 +220,23 @@ The optional dashboard (`pip install -r requirements-analytics.txt`):
   weaker than on synthetic data (companies recall 0.47 even with the LLM). See
   [real-CV evaluation](docs/evaluation/real_cv_README.md).
 - **Languages:** headings, dates and job-title rules cover English and
-  Vietnamese. Other languages fall back to the LLM, which is slower and
-  unmeasured.
+  Vietnamese in depth. French, Spanish, German, Portuguese and Russian have
+  vocabulary files; on 15 invented CVs they take lines placed in the right
+  section from about 0.25 to 0.82-1.00 and companies, titles and schools from 0
+  to 0.8-1.0, but those CVs were written by the author of the files, so this
+  shows the mechanism, not accuracy on real CVs
+  ([details](docs/evaluation/multilingual_README.md)). Other languages fall back
+  to the LLM, which is slower and unmeasured; Chinese, Japanese and Thai headings
+  are recognised, their word lists are not.
 - **Speed on unusual layouts:** the 42 s figure is for CVs the rules can read.
   On the real CVs available the rules read little of the experience sections
   (they refuse headers they cannot split into role and company); those go to the
   CPU LLM and take minutes (133 s per CV on average in the real-CV run).
 - **Skills:** recall on the evaluated vocabulary is 0.47; many modern tools are
   missing from the taxonomy.
-- **Formats:** PDF and DOCX. Word text in pictures, footers and legacy `.doc`
+- **Formats:** PDF, DOCX, and PNG/JPEG when OCR is on (OCR itself was not run
+  here: Tesseract is not installed on the development machine, so image text is
+  untested beyond the conversion to a page). Word text in pictures, footers and legacy `.doc`
   files are not read; a Word file has no page geometry, so layout is simulated
   from paragraphs, tables and text boxes (see [docx parsing](docs/evaluation/docx_parsing.md)).
 - **Scale and auth:** one process, in-memory rate limits, static API keys; no

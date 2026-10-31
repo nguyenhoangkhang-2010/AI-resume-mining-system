@@ -1,0 +1,60 @@
+{
+  "language": "pt",
+  "headings": {
+    "personal_info": ["dados pessoais", "informações pessoais", "contato", "contacto", "informações de contato"],
+    "summary": ["perfil", "perfil profissional", "resumo", "resumo profissional", "objetivo", "objetivo profissional", "sobre mim", "apresentação", "sobre"],
+    "experience": ["experiência", "experiência profissional", "experiência de trabalho", "histórico profissional", "trajetória profissional", "estágio", "estágios", "voluntariado", "atividades"],
+    "education": ["educação", "formação", "formação acadêmica", "formação académica", "escolaridade", "estudos", "formação e educação"],
+    "skills": ["competências", "habilidades", "competências técnicas", "habilidades técnicas", "conhecimentos", "ferramentas", "tecnologias"],
+    "projects": ["projetos", "projectos", "projetos pessoais", "portfólio"],
+    "certifications": ["certificações", "certificados", "cursos", "licenças", "prêmios", "conquistas", "realizações", "formação complementar"],
+    "other": ["referências", "interesses", "hobbies", "idiomas", "línguas"]
+  },
+  "filler_words": ["e", "de", "do", "da", "dos", "das", "em", "meus", "outros"],
+  "roles": {
+    "words": [
+      "engenheiro", "engenheira", "desenvolvedor", "desenvolvedora", "programador", "programadora",
+      "gerente", "analista", "consultor", "consultora", "assistente", "estagiário", "estagiária",
+      "técnico", "técnica", "contador", "contadora", "enfermeiro", "enfermeira", "professor",
+      "professora", "arquiteto", "arquiteta", "administrador", "administradora", "coordenador",
+      "coordenadora", "diretor", "diretora", "supervisor", "supervisora", "especialista",
+      "designer", "médico", "médica", "advogado", "advogada", "pesquisador", "pesquisadora",
+      "secretário", "secretária", "vendedor", "vendedora", "auxiliar", "líder", "gestor",
+      "gestora", "executivo", "executiva", "trainee", "freelancer", "autônomo"
+    ],
+    "phrases": []
+  },
+  "companies": {
+    "words": [
+      "ltda", "sa", "eireli", "epp", "lda", "empresa", "grupo", "banco", "hospital", "clínica",
+      "consultoria", "soluções", "sistemas", "serviços", "fundação", "instituto", "agência",
+      "laboratórios", "indústria", "indústrias", "seguros", "prefeitura", "ministério", "inc", "ltd"
+    ],
+    "phrases": []
+  },
+  "company_suffixes": ["ltda", "sa", "lda", "eireli"],
+  "institutions": {
+    "words": ["universidade", "faculdade", "escola", "instituto", "colégio", "academia", "politécnico"],
+    "phrases": ["instituto federal", "centro universitário"]
+  },
+  "degrees": {
+    "words": [
+      "bacharelado", "bacharel", "licenciatura", "mestrado", "doutorado", "mba", "graduação",
+      "especialização", "tecnólogo", "licenciado", "licenciada"
+    ],
+    "phrases": ["pós-graduação", "ensino médio", "ensino superior"]
+  },
+  "months": [
+    "janeiro de", "fevereiro de", "março de", "abril de", "maio de", "junho de", "julho de",
+    "agosto de", "setembro de", "outubro de", "novembro de", "dezembro de",
+    "janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro",
+    "outubro", "novembro", "dezembro", "jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago",
+    "set", "out", "nov", "dez"
+  ],
+  "present": ["atual", "atualmente", "presente", "até o momento", "o momento", "até hoje", "hoje", "atualidade", "cursando"],
+  "range_words": ["a", "até", "ate"],
+  "places": {
+    "words": ["brasil", "portugal", "lisboa", "porto", "brasília", "curitiba", "remoto", "teletrabalho"],
+    "phrases": ["são paulo", "rio de janeiro", "belo horizonte", "porto alegre", "salvador", "recife", "fortaleza"]
+  }
+}

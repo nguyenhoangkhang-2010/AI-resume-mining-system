@@ -21,8 +21,14 @@ File format (every key except "language" is optional):
       "institutions": {"words": [...], "phrases": [...]},
       "degrees":      {"words": [...], "phrases": [...]},
       "places":       {"words": [...], "phrases": [...]},
-      "months": [...], "present": [...], "range_words": [...]
+      "months": [...], "present": [...], "range_words": [...],
+      "headings": {"experience": [...], "education": [...], ...},
+      "filler_words": [...]
     }
+
+"headings" lists the section headings of the language (see HEADING_SECTIONS
+for the section names) and "filler_words" the small words that may surround a
+heading ("and", "de", "und").
 
 A "word" matches one whole word of the text; a "phrase" matches several
 consecutive words.
@@ -41,7 +47,17 @@ BUILTIN_DIRECTORY = Path(__file__).parent / "vocabulary"
 
 TERM_GROUPS = ("roles", "companies", "institutions", "degrees", "places")
 LIST_KEYS = ("months", "present", "range_words", "company_suffixes")
-KNOWN_KEYS = {"language", *TERM_GROUPS, *LIST_KEYS}
+HEADING_SECTIONS = (
+    "personal_info",
+    "summary",
+    "experience",
+    "education",
+    "skills",
+    "projects",
+    "certifications",
+    "other",
+)
+KNOWN_KEYS = {"language", "headings", "filler_words", *TERM_GROUPS, *LIST_KEYS}
 
 
 @dataclass(frozen=True)
@@ -88,6 +104,9 @@ class Vocabulary:
     months: Tuple[str, ...] = ()
     present: Tuple[str, ...] = ()
     range_words: Tuple[str, ...] = ()
+    # (section, phrases) pairs; a tuple, because the vocabulary is hashed.
+    headings: Tuple[Tuple[str, Tuple[str, ...]], ...] = ()
+    filler_words: FrozenSet[str] = frozenset()
     languages: Tuple[str, ...] = field(default_factory=tuple)
 
 
@@ -126,9 +145,26 @@ def read_file(path: Path) -> Dict[str, Any]:
             for kind in terms:
                 _strings(terms[kind], f"{path.name}: {group}.{kind}")
 
-    for key in LIST_KEYS:
+    for key in (*LIST_KEYS, "filler_words"):
         if key in data:
             _strings(data[key], f"{path.name}: {key}")
+
+    if "headings" in data:
+        headings = data["headings"]
+
+        if not isinstance(headings, dict):
+            raise ValueError(f"{path.name}: 'headings' needs a section name for each key")
+
+        unknown_sections = sorted(set(headings) - set(HEADING_SECTIONS))
+
+        if unknown_sections:
+            raise ValueError(
+                f"{path.name}: unknown sections {unknown_sections} in 'headings' "
+                f"(use {list(HEADING_SECTIONS)})"
+            )
+
+        for section, phrases in headings.items():
+            _strings(phrases, f"{path.name}: headings.{section}")
 
     return data
 
@@ -139,6 +175,8 @@ def build(files: Sequence[Dict[str, Any]]) -> Vocabulary:
     words: Dict[str, set] = {group: set() for group in TERM_GROUPS}
     phrases: Dict[str, List[str]] = {group: [] for group in TERM_GROUPS}
     lists: Dict[str, List[str]] = {key: [] for key in LIST_KEYS}
+    headings: Dict[str, List[str]] = {}
+    fillers: set = set()
     languages: List[str] = []
 
     for data in files:
@@ -160,6 +198,19 @@ def build(files: Sequence[Dict[str, Any]]) -> Vocabulary:
                 if normalised and normalised not in phrases[group]:
                     phrases[group].append(normalised)
 
+        for section, entries in (data.get("headings") or {}).items():
+            known = headings.setdefault(section, [])
+
+            for entry in entries:
+                normalised = normalise(entry)
+
+                if normalised and normalised not in known:
+                    known.append(normalised)
+
+        for entry in data.get("filler_words") or []:
+            if normalise(entry):
+                fillers.add(normalise(entry))
+
         for key in LIST_KEYS:
             for entry in data.get(key) or []:
                 if entry.strip() and entry.strip().casefold() not in lists[key]:
@@ -175,6 +226,8 @@ def build(files: Sequence[Dict[str, Any]]) -> Vocabulary:
         months=tuple(lists["months"]),
         present=tuple(lists["present"]),
         range_words=tuple(lists["range_words"]),
+        headings=tuple((section, tuple(items)) for section, items in headings.items()),
+        filler_words=frozenset(fillers),
         languages=tuple(languages),
     )
 
@@ -209,3 +262,8 @@ def get_vocabulary() -> Vocabulary:
 
 def clear_cache() -> None:
     _cached.cache_clear()
+
+    # The heading lexicon keeps what it read from the vocabulary.
+    from app.extraction.section import heading_lexicon
+
+    heading_lexicon.clear_cache()

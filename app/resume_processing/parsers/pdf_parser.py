@@ -147,11 +147,14 @@ class PDFParser:
             "dict"
         )
 
+        used_ocr = False
+
         if not PDFParser._has_text(raw_dict):
             raw_dict = PDFParser._ocr_dict(
                 page,
                 raw_dict,
             )
+            used_ocr = PDFParser._has_text(raw_dict)
 
         blocks: List[Dict[str, Any]] = []
 
@@ -323,6 +326,7 @@ class PDFParser:
             ),
             "blocks": blocks,
             "images": images,
+            "ocr": used_ocr,
         }
 
     @staticmethod
