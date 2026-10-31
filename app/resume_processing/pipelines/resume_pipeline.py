@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 from loguru import logger
 
-from app.resume_processing.parsers.pdf_parser import PDFParser
+from app.resume_processing.parsers.document_parser import DocumentParser
 from app.resume_processing.cleaners.text_cleaner import TextCleaner
 from app.resume_processing.layout.layout_representation import LayoutDocument
 from app.resume_processing.layout.layout_analyzer import LayoutAnalyzer
@@ -25,7 +25,7 @@ class ResumePipeline:
         extraction_engine: ExtractionEngine,
     ) -> None:
 
-        self.parser = PDFParser()
+        self.parser = DocumentParser()
         self.cleaner = TextCleaner()
         self.section_detector = section_detector
         self.extraction_engine = extraction_engine

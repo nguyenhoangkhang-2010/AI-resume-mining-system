@@ -26,4 +26,5 @@ transformers==5.12.1
 huggingface_hub==1.19.0
 
 pymupdf==1.27.2.3
+python-docx==1.2.0
 flashtext==2.7

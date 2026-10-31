@@ -13,7 +13,7 @@ its report; the limits of each measurement are stated next to it.
 
 ## What it does
 
-1. **Reads a CV** (PDF): text, page layout, columns, and the sections
+1. **Reads a CV** (PDF or Word .docx): text, page layout, columns, and the sections
    (experience, education, skills, projects ...) in English and Vietnamese,
    whatever the heading style.
 2. **Extracts a profile**: name and contact details, skills (normalised against
@@ -30,10 +30,10 @@ its report; the limits of each measurement are stated next to it.
 ## Architecture
 
 ```text
-CV (PDF)
+CV (PDF or DOCX)
    │  validation, size and type checks
    ▼
-Parsing ── PyMuPDF (+ optional OCR) ── text cleaning
+Parsing ── PyMuPDF (+ optional OCR) or python-docx ── text cleaning
    │
    ▼
 Layout analysis ── blocks, columns, reading order, regions
@@ -143,8 +143,9 @@ All routes are under `/api/v1` and need an API key (`X-API-Key` or
 
 A CV that cannot be read (for example a scanned PDF without OCR) is stored as
 `needs_review` with a reason code instead of being indexed as an empty
-candidate. `.docx` files pass upload validation but cannot be parsed yet: they
-end as `failed` with reason `unreadable_file`.
+candidate. A `.docx` that is not a real Word document (or unpacks to an absurd
+size) is refused at upload; one that opens but cannot be read ends as `failed`
+with reason `unreadable_file`.
 
 ## Configuration
 
@@ -219,7 +220,9 @@ The optional dashboard (`pip install -r requirements-analytics.txt`):
   CPU LLM and take minutes (133 s per CV on average in the real-CV run).
 - **Skills:** recall on the evaluated vocabulary is 0.47; many modern tools are
   missing from the taxonomy.
-- **Formats:** PDF only; DOCX parsing is not implemented.
+- **Formats:** PDF and DOCX. Word text in pictures, footers and legacy `.doc`
+  files are not read; a Word file has no page geometry, so layout is simulated
+  from paragraphs, tables and text boxes (see [docx parsing](docs/evaluation/docx_parsing.md)).
 - **Scale and auth:** one process, in-memory rate limits, static API keys; no
   user accounts or JWT. Scanned CVs need Tesseract.
 - **Fairness** has not been audited yet.
