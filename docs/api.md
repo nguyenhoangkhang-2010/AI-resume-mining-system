@@ -38,6 +38,10 @@ Swagger UI). `/`, `/health` and the docs stay open. Keys are configured with
   `GET /candidates/{id}` and in match results; lists and search results show
   the name and skills only.
 
+## Health and metrics
+
+`GET /health` (liveness), `GET /ready` (database, models, warm-up and worker threads; 503 until all are up) and `GET /metrics` (Prometheus text, admin key when auth is on). Every response has an `X-Request-ID` header. See [platform](platform.md).
+
 ## Resumes
 
 | Method | Path | Purpose |

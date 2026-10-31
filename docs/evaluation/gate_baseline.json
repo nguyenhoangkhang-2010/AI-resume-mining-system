@@ -1,0 +1,12 @@
+{
+  "generated": "2026-10-31",
+  "tolerance": 0.02,
+  "metrics": {
+    "ranking.family_only.mrr": 1.0,
+    "ranking.family_only.ndcg@10": 0.9244,
+    "ranking.seniority_aware.mrr": 1.0,
+    "ranking.seniority_aware.ndcg@10": 0.8939,
+    "sections.english_vietnamese.line_accuracy": 0.8974,
+    "sections.other_languages.line_accuracy": 0.9233
+  }
+}

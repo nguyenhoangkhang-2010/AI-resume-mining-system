@@ -129,11 +129,14 @@ async def upload_resume(
         filename=file.filename,
     )
 
-    background_tasks.add_task(
-        resume_service.process_resume,
-        resume.id,
-    )
+    if settings.PROCESSING_MODE == "inline":
+        background_tasks.add_task(
+            resume_service.process_resume,
+            resume.id,
+        )
 
+    # In queue mode the resume is already waiting (status pending) and a
+    # worker takes it; nothing else to do here.
     logger.info(
         "Resume {} queued for background processing.",
         resume.id,

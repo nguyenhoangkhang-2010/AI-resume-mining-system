@@ -103,6 +103,13 @@ jobs:
       - name: Integration tests (MongoDB)
         run: pytest -m integration
 
+      # Fails when ranking quality, section detection or the fairness checks
+      # get worse than docs/evaluation/gate_baseline.json (about 1.5 minutes).
+      # After a deliberate change run `python -m scripts.eval_gate --update`
+      # and commit the new baseline with the change.
+      - name: Evaluation gate
+        run: python -m scripts.eval_gate
+
       - name: Upload coverage report
         if: always()
         uses: actions/upload-artifact@v4

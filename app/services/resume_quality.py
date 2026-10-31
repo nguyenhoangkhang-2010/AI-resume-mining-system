@@ -77,6 +77,16 @@ def assess_extraction(extracted: Dict[str, Any]) -> ExtractionAssessment:
     return ExtractionAssessment(PROCESSED, warnings=warnings)
 
 
+def is_retryable(error: BaseException) -> bool:
+    """
+    Only errors nobody has classified may be temporary (a model hiccup, a
+    database timeout). A damaged, encrypted or missing file will fail the
+    same way next time.
+    """
+
+    return failure_reason(error) == PROCESSING_ERROR
+
+
 def failure_reason(error: BaseException) -> str:
     """
     A short machine-readable reason for a processing failure. The message of

@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
-from pathlib import Path
-from fastapi import FastAPI, Request
+from fastapi import Depends, FastAPI, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.concurrency import run_in_threadpool
 from fastapi.responses import JSONResponse
@@ -17,17 +16,15 @@ from app.core.auth.huggingface import login_huggingface
 
 from app.api.exceptions import register_exception_handlers
 
-from app.extraction.llm.llm_extractor import LLMExtractor
-from app.extraction.section.section_classifier import SectionClassifier
-from app.extraction.section.section_semantic_classifier import (
-    SectionSemanticClassifier,
+from app.api.security import require_admin
+from app.bootstrap import (
+    build_processing_stack,
+    build_queue,
+    build_worker,
+    start_warm_up,
 )
-from app.extraction.section.heading_cache import HeadingCache
-from app.extraction.section.heading_classifier import HeadingClassifier
-from app.extraction.section.section_detector import SectionDetector
-from app.extraction.extraction_engine import ExtractionEngine
-from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
-from app.services.resume_service import ResumeService
+from app.core.observability import metrics
+from app.core.observability.request_context import observe_request
 
 
 setup_logger()
@@ -60,41 +57,28 @@ async def lifespan(app: FastAPI):
         "Initializing resume processing pipeline..."
     )
 
-    llm_extractor = LLMExtractor()
+    stack = build_processing_stack()
 
-    section_classifier = SectionClassifier(
-        llm_extractor=llm_extractor,
-    )
+    for name, value in stack.state().items():
+        setattr(app.state, name, value)
 
-    semantic_classifier = SectionSemanticClassifier()
+    app.state.worker = None
 
-    section_detector = SectionDetector(
-        semantic_classifier=semantic_classifier,
-        llm_classifier=section_classifier,
-        heading_classifier=HeadingClassifier(),
-        heading_cache=HeadingCache(Path(settings.HEADING_CACHE_PATH)),
-    )
+    if settings.PROCESSING_MODE == "queue":
+        queue = build_queue()
+        app.state.queue = queue
 
-    extraction_engine = ExtractionEngine(
-        llm_extractor=llm_extractor,
-    )
+        if settings.METRICS_ENABLED:
+            metrics.watch_queue(queue.stats)
 
-    resume_pipeline = ResumePipeline(
-        section_detector=section_detector,
-        extraction_engine=extraction_engine,
-    )
+        if settings.WORKER_EMBEDDED:
+            app.state.worker = build_worker(stack.resume_service, queue)
+            app.state.worker.start()
 
-    resume_service = ResumeService(
-        resume_pipeline=resume_pipeline,
-    )
-
-    app.state.llm_extractor = llm_extractor
-    app.state.section_classifier = section_classifier
-    app.state.semantic_classifier = semantic_classifier
-    app.state.section_detector = section_detector
-    app.state.extraction_engine = extraction_engine
-    app.state.resume_pipeline = resume_pipeline
-    app.state.resume_service = resume_service
+    if settings.WARMUP_ENABLED:
+        start_warm_up(app.state)
+    else:
+        app.state.warm = True
 
     logger.success(
         "Resume processing pipeline initialized successfully."
@@ -105,6 +89,9 @@ async def lifespan(app: FastAPI):
     logger.info(
         "Shutting down API..."
     )
+
+    if app.state.worker is not None:
+        app.state.worker.stop()
 
     FaissManager.shutdown()
 
@@ -119,6 +106,11 @@ app = FastAPI(
 )
 
 register_exception_handlers(app)
+
+
+@app.middleware("http")
+async def add_request_context(request: Request, call_next):
+    return await observe_request(request, call_next)
 
 
 @app.middleware("http")
@@ -172,3 +164,40 @@ async def health_check() -> JSONResponse:
             "database": "connected" if database_up else "disconnected",
         },
     )
+
+
+@app.get("/ready", tags=["Health"])
+async def readiness_check(request: Request) -> JSONResponse:
+    """
+    Ready to take traffic: the database answers, the models are loaded and,
+    when this process runs the queue worker, the worker threads are alive.
+    """
+
+    database_up = await run_in_threadpool(mongo_db.ping)
+    models_loaded = (
+        getattr(request.app.state, "resume_service", None) is not None
+        and getattr(request.app.state, "warm", True)
+    )
+    worker = getattr(request.app.state, "worker", None)
+    worker_up = worker is None or worker.alive
+
+    ready = database_up and models_loaded and worker_up
+
+    return JSONResponse(
+        status_code=200 if ready else 503,
+        content={
+            "status": "ready" if ready else "not_ready",
+            "database": "connected" if database_up else "disconnected",
+            "models": "loaded" if models_loaded else "loading",
+            "worker": "n/a" if worker is None else ("running" if worker_up else "stopped"),
+        },
+    )
+
+
+if settings.METRICS_ENABLED:
+
+    @app.get("/metrics", tags=["Health"], include_in_schema=False)
+    def metrics_endpoint(_: object = Depends(require_admin)) -> Response:
+        body, content_type = metrics.render()
+
+        return Response(content=body, media_type=content_type)
