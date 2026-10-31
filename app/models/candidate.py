@@ -1,7 +1,24 @@
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
+
+
+
+def _as_string_list(value: Any) -> Any:
+    """
+    Older documents stored some list fields as a single string (for
+    example an experience description). Coerce them so those candidates
+    still load instead of failing validation.
+    """
+
+    if value is None:
+        return []
+
+    if isinstance(value, str):
+        return [value] if value.strip() else []
+
+    return value
 
 
 class PersonalInfo(BaseModel):
@@ -47,6 +64,11 @@ class Experience(BaseModel):
         default_factory=list
     )
 
+    @field_validator("description", "achievements", mode="before")
+    @classmethod
+    def _coerce_lists(cls, value):
+        return _as_string_list(value)
+
 
 class Project(BaseModel):
     # Field names below match ProjectExtractor's output exactly
@@ -77,6 +99,17 @@ class Project(BaseModel):
     metadata: Dict[str, Any] = Field(
         default_factory=dict
     )
+
+    @field_validator(
+        "description",
+        "technologies",
+        "responsibilities",
+        "achievements",
+        mode="before",
+    )
+    @classmethod
+    def _coerce_lists(cls, value):
+        return _as_string_list(value)
 
 
 class Certification(BaseModel):
@@ -112,6 +145,11 @@ class CandidateModel(BaseModel):
         description="Structured personal information extracted from the resume.",
     )
 
+    summary: Optional[str] = Field(
+        default=None,
+        description="Professional summary or objective extracted from the resume.",
+    )
+
     skills: List[str] = Field(
         default_factory=list,
         description="List of skills extracted from the resume.",
@@ -145,6 +183,11 @@ class CandidateModel(BaseModel):
     faiss_id: int = Field(
         ...,
         description="The ID used in the FAISS vector index.",
+    )
+
+    embedding_version: Optional[str] = Field(
+        default=None,
+        description="Version of the text used to build the FAISS vector.",
     )
 
     created_at: datetime = Field(

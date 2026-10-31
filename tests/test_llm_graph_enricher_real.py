@@ -1,3 +1,5 @@
+import pytest
+
 from app.knowledge_graph.models.node import Node
 
 from app.knowledge_graph.enrichment.providers.huggingface_provider import (
@@ -11,6 +13,9 @@ from app.knowledge_graph.enrichment.providers.llm_enricher import (
 from app.knowledge_graph.enrichment.prompt_builder import (
     PromptBuilder,
 )
+
+
+pytestmark = pytest.mark.slow
 
 
 def test_llm_graph_enricher():

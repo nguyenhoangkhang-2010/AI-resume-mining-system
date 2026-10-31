@@ -29,7 +29,7 @@ class ExtractionEngine:
         self.llm_extractor = llm_extractor
         self.ner_service = NERService()
 
-        self.extractors = {
+        self.extractors: Dict[str, Any] = {
             "personal_info": PersonalExtractor(
                 ner_service=self.ner_service,
             ),

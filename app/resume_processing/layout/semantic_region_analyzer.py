@@ -1,7 +1,8 @@
 from __future__ import annotations
 
+import statistics
 from dataclasses import dataclass, field
-from typing import Dict, List, Tuple
+from typing import List, Tuple
 
 from app.resume_processing.layout.layout_analyzer import (
     LayoutAnalysis,
@@ -32,6 +33,9 @@ class SemanticRegionAnalysis:
 
 
 class SemanticRegionAnalyzer:
+
+    # Blocks whose left edges are this close (in points) are in one column.
+    LEFT_EDGE_TOLERANCE = 12.0
 
     def analyze(
         self,
@@ -237,15 +241,23 @@ class SemanticRegionAnalyzer:
         block_x0 = self._bbox_x0(block)
         block_x1 = self._bbox_x1(block)
 
-        group_x0 = min(
+        # The typical extent of the column, not its widest block: one wide
+        # heading must not stretch the column over its neighbour (a heading
+        # reaching into the gutter made the narrow blocks of the next column
+        # overlap it, and two columns were read as one).
+        group_x0 = statistics.median(
             self._bbox_x0(item)
             for item in group
         )
 
-        group_x1 = max(
+        group_x1 = statistics.median(
             self._bbox_x1(item)
             for item in group
         )
+
+        # Text in a column shares its left edge.
+        if abs(block_x0 - group_x0) <= self.LEFT_EDGE_TOLERANCE:
+            return True
 
         overlap = max(
             0.0,

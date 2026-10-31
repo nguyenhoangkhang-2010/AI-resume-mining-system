@@ -1,4 +1,4 @@
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from loguru import logger
 from app.extraction.skills.strategies.matching_strategy import (
@@ -74,18 +74,6 @@ class SkillExtractionPipeline:
         ]
 
         return normalized
-
-    def extract_with_confidence(
-        self,
-        text: str,
-    ):
-        scan_text = self._mask_non_skill_entities(
-            text
-        )
-
-        return self.strategy.extract_with_confidence(
-            scan_text
-        )
 
     def _mask_non_skill_entities(
         self,

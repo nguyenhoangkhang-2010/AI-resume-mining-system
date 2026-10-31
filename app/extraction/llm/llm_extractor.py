@@ -1,16 +1,41 @@
 from __future__ import annotations
 
+import hashlib
 import os
+import threading
+from collections import OrderedDict
 from typing import Any, Dict, List, Optional
 
 from loguru import logger
 
 from app.core.config.settings import settings
+from app.extraction.llm.prefix_cache import PrefixCache
+from app.core.security.prompt_safety import (
+    sanitize_untrusted_text,
+    strip_control_tokens,
+)
+
+
+# The prompt text up to and including this line is the same for every
+# resume (instructions); what follows is the resume. See PrefixCache.
+INPUT_MARKER = "--- Input Text ---" + chr(10)
 
 
 class LLMExtractor:
 
     def __init__(self) -> None:
+
+        # llama.cpp contexts are not thread-safe, and resumes are processed
+        # in worker threads.
+        self._lock = threading.RLock()
+
+        self._results: "OrderedDict[str, str]" = OrderedDict()
+        self._result_limit = max(
+            0,
+            int(getattr(settings, "LLM_RESULT_CACHE_SIZE", 0)),
+        )
+
+        self._prefixes: Optional[PrefixCache] = None
 
         self._provider = (
             getattr(
@@ -115,6 +140,11 @@ class LLMExtractor:
             verbose=False,
         )
 
+        prefix_mb = int(getattr(settings, "LLM_PREFIX_CACHE_MB", 0))
+
+        if prefix_mb > 0:
+            self._prefixes = PrefixCache(prefix_mb * 1024 * 1024)
+
         logger.success(
             "LLM model loaded successfully (llama_cpp backend).",
         )
@@ -159,10 +189,23 @@ class LLMExtractor:
             return ""
 
         try:
+            cache_key = self._result_key(
+                full_prompt,
+                max_new_tokens,
+            )
+
+            cached = self._remembered(cache_key)
+
+            if cached is not None:
+                logger.debug("LLM result served from memory.")
+                return cached
+
             generated_text = self._generate(
                 prompt=full_prompt,
                 max_new_tokens=max_new_tokens,
             )
+
+            self._remember(cache_key, generated_text)
 
             if not generated_text:
                 logger.warning(
@@ -176,11 +219,6 @@ class LLMExtractor:
                 len(generated_text),
             )
 
-            logger.debug(
-                "LLM generated text preview: {}",
-                generated_text[:1000],
-            )
-
             return generated_text
 
         except Exception as exc:
@@ -189,6 +227,58 @@ class LLMExtractor:
                 exc,
             )
             raise
+
+    # ------------------------------------------------------------------
+    # Results kept in memory
+    # ------------------------------------------------------------------
+    # Generation is deterministic (temperature 0), so the same prompt gives
+    # the same answer: reprocessing a resume, or two uploads of the same
+    # file, need not run the model again. Nothing is written to disk, so
+    # deleting a candidate leaves no copy of their data behind.
+
+    @staticmethod
+    def _result_key(
+        prompt: str,
+        max_new_tokens: Optional[int],
+    ) -> str:
+
+        digest = hashlib.sha256()
+        digest.update(prompt.encode("utf-8"))
+        digest.update(str(max_new_tokens).encode("ascii"))
+
+        return digest.hexdigest()
+
+    def _remembered(
+        self,
+        key: str,
+    ) -> Optional[str]:
+
+        if self._result_limit <= 0:
+            return None
+
+        with self._lock:
+            value = self._results.get(key)
+
+            if value is not None:
+                self._results.move_to_end(key)
+
+            return value
+
+    def _remember(
+        self,
+        key: str,
+        value: str,
+    ) -> None:
+
+        if self._result_limit <= 0 or not value:
+            return
+
+        with self._lock:
+            self._results[key] = value
+            self._results.move_to_end(key)
+
+            while len(self._results) > self._result_limit:
+                self._results.popitem(last=False)
 
     @staticmethod
     def _resolve_device() -> int:
@@ -284,7 +374,7 @@ class LLMExtractor:
             12000,
         )
 
-        text = text.strip()
+        text = sanitize_untrusted_text(text).strip()
 
         if len(text) > max_chars:
             logger.warning(
@@ -521,23 +611,63 @@ class LLMExtractor:
         generation_limit: int,
     ) -> str:
 
-        wrapped_prompt = f"[INST] {prompt} [/INST]"
+        # The prompt may contain resume text: it must not be able to close
+        # the instruction block or open a new one.
+        wrapped_prompt = f"[INST] {strip_control_tokens(prompt)} [/INST]"
 
-        response = self._llama(
-            wrapped_prompt,
-            max_tokens=generation_limit,
-            temperature=0.0,
-            top_p=1.0,
-            stop=[
-                "</s>",
-                "[INST]",
-            ],
-            echo=False,
-        )
+        with self._lock:
+            self._reuse_instructions(wrapped_prompt)
+
+            response = self._llama(
+                wrapped_prompt,
+                max_tokens=generation_limit,
+                temperature=0.0,
+                top_p=1.0,
+                stop=[
+                    "</s>",
+                    "[INST]",
+                ],
+                echo=False,
+            )
 
         return self._extract_llama_cpp_text(
             response,
         )
+
+    def _reuse_instructions(
+        self,
+        wrapped_prompt: str,
+    ) -> None:
+        """
+        Leaves the model with the instructions of the prompt already read.
+
+        The instructions are long (several hundred tokens) and identical for
+        every resume, while reading them is a large part of the time a call
+        takes on a CPU. The state after reading them is kept per
+        instruction text and restored before the call, so only the resume
+        itself has to be read. Any mismatch just means no reuse: the call
+        then reads the whole prompt, exactly as before.
+        """
+
+        if self._prefixes is None:
+            return
+
+        split = wrapped_prompt.find(INPUT_MARKER)
+
+        if split < 0:
+            return
+
+        instructions = wrapped_prompt[:split + len(INPUT_MARKER)]
+
+        try:
+            self._prefixes.prepare(self._llama, instructions, wrapped_prompt)
+        except Exception as exc:
+            logger.warning(
+                "Instruction cache unavailable, reading the full prompt: {}",
+                exc,
+            )
+
+            self._prefixes = None
 
     @staticmethod
     def _extract_llama_cpp_text(

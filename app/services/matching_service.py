@@ -1,18 +1,27 @@
 from bson import ObjectId
+from bson.errors import InvalidId
 from loguru import logger
 from typing import List
 
+from app.core.exceptions import NotFoundError
 from app.database.mongodb.connection import mongo_db
 
 from app.models.job import JobModel
 from app.models.candidate import CandidateModel
 
 from app.schemas.matching_schema import MatchResponse
+from app.schemas.ranking_schema import RankingMetadata
 
 from app.embeddings.services.embedding_service import EmbeddingService
 
 from app.vector_store.vector_store import VectorStore
 
+from app.core.constants.app_constants import EMBEDDING_VERSION
+from app.matching.embedding_text import JobTextBuilder
+from app.core.config.settings import settings
+from app.matching.ranking.candidate_scorer import HybridCandidateScorer
+from app.matching.reranking.cross_encoder_reranker import build_reranker
+from app.matching.ranking.ranking_config import RankingConfig
 from app.matching.ranking.ranking_pipeline import RankingPipeline
 
 
@@ -20,7 +29,20 @@ class MatchingService:
     def __init__(self):
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
-        self.ranking_pipeline = RankingPipeline()
+        self.job_text_builder = JobTextBuilder()
+        self.ranking_config = RankingConfig()
+        self.ranking_pipeline = RankingPipeline(
+            candidate_scorer=HybridCandidateScorer(),
+            reranker=(
+                build_reranker(
+                    settings.RERANKER_MODEL,
+                    settings.RERANKER_TOP_N,
+                    settings.RERANKER_WEIGHT,
+                )
+                if settings.RERANKER_ENABLED
+                else None
+            ),
+        )
         
     @property
     def db(self):
@@ -42,33 +64,32 @@ class MatchingService:
         )
         job = self._get_job(job_id)
         if not job:
-            raise ValueError(
-                "Job not found"
+            raise NotFoundError(
+                f"Job not found: {job_id}"
             )
-        job_text = " ".join(
-            job.required_skills
-        )
         embedding = (
             self.embedding_service
-            .generate_embedding(job_text)
+            .generate_embedding(
+                self.job_text_builder.text(job)
+            )
         )
         faiss_results = (
             self.vector_store
             .search_similar_candidates(
                 embedding,
-                top_k=10
+                top_k=self.ranking_config.retrieval_top_k
             )
         )
         if not faiss_results:
             return MatchResponse(
                 job_id=job_id,
                 results=[],
-                metadata={
-                    "total_candidates":0,
-                    "ranked_candidates":0,
-                    "filtered_candidates":0,
-                    "similarity_threshold":0
-                }
+                metadata=RankingMetadata(
+                    total_candidates=0,
+                    ranked_candidates=0,
+                    filtered_candidates=0,
+                    similarity_threshold=0,
+                )
             )
         faiss_ids = [
             item["faiss_id"]
@@ -79,6 +100,17 @@ class MatchingService:
                 faiss_ids
             )
         )
+        stale = [
+            candidate
+            for candidate in candidates
+            if candidate.embedding_version != EMBEDDING_VERSION
+        ]
+        if stale:
+            logger.warning(
+                f"{len(stale)} of {len(candidates)} candidates were indexed "
+                f"with an older embedding version; run "
+                f"scripts/reindex_candidates.py to rebuild the index."
+            )
         score_map = {
             item["faiss_id"]:
             item["similarity_score"]
@@ -102,9 +134,14 @@ class MatchingService:
         self,
         job_id:str
     ):
+        try:
+            object_id = ObjectId(job_id)
+        except (InvalidId, TypeError):
+            return None
+
         data = self.jobs_col.find_one(
             {
-                "_id":ObjectId(job_id)
+                "_id":object_id
             }
         )
         if not data:

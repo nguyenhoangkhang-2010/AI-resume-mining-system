@@ -1,0 +1,63 @@
+{
+  "language": "es",
+  "headings": {
+    "personal_info": ["datos personales", "información personal", "contacto", "datos de contacto", "información de contacto"],
+    "summary": ["perfil", "perfil profesional", "resumen", "resumen profesional", "objetivo", "objetivo profesional", "sobre mí", "acerca de mí", "presentación"],
+    "experience": ["experiencia", "experiencia laboral", "experiencia profesional", "historial laboral", "trayectoria profesional", "empleo", "prácticas", "voluntariado", "actividades"],
+    "education": ["educación", "formación", "formación académica", "estudios", "educación y formación", "historial académico", "titulación"],
+    "skills": ["habilidades", "competencias", "habilidades técnicas", "aptitudes", "conocimientos", "herramientas", "tecnologías", "conocimientos informáticos"],
+    "projects": ["proyectos", "proyectos personales", "proyectos académicos", "portafolio", "portfolio"],
+    "certifications": ["certificaciones", "certificados", "cursos", "formación complementaria", "licencias", "premios", "logros", "reconocimientos"],
+    "other": ["referencias", "intereses", "aficiones", "idiomas", "hobbies", "otros datos"]
+  },
+  "filler_words": ["y", "de", "del", "la", "el", "los", "las", "en", "mis", "otros"],
+  "roles": {
+    "words": [
+      "ingeniero", "ingeniera", "desarrollador", "desarrolladora", "director", "directora",
+      "gerente", "analista", "consultor", "consultora", "asistente", "becario", "becaria",
+      "técnico", "técnica", "contador", "contadora", "enfermero", "enfermera", "profesor",
+      "profesora", "docente", "arquitecto", "arquitecta", "administrador", "administradora",
+      "coordinador", "coordinadora", "responsable", "jefe", "jefa", "especialista",
+      "diseñador", "diseñadora", "médico", "médica", "abogado", "abogada", "investigador",
+      "investigadora", "secretario", "secretaria", "vendedor", "vendedora", "supervisor",
+      "supervisora", "auxiliar", "programador", "programadora", "practicante", "pasante",
+      "ejecutivo", "ejecutiva", "encargado", "encargada", "operario", "operaria", "comercial",
+      "tutor", "tutora", "autónomo", "freelance"
+    ],
+    "phrases": []
+  },
+  "companies": {
+    "words": [
+      "sa", "sl", "slu", "srl", "sas", "ltda", "cia", "empresa", "grupo", "banco", "hospital",
+      "clínica", "consultoría", "soluciones", "sistemas", "servicios", "fundación", "instituto",
+      "agencia", "laboratorios", "corporación", "industrias", "seguros", "ayuntamiento",
+      "ministerio", "inc", "ltd", "gmbh"
+    ],
+    "phrases": []
+  },
+  "company_suffixes": ["sa", "sl", "slu", "srl", "sas", "ltda", "cia"],
+  "institutions": {
+    "words": ["universidad", "escuela", "instituto", "colegio", "facultad", "academia", "politécnica", "politécnico"],
+    "phrases": []
+  },
+  "degrees": {
+    "words": [
+      "grado", "licenciatura", "licenciado", "licenciada", "máster", "master", "maestría",
+      "doctorado", "bachillerato", "diplomado", "tecnólogo", "mba"
+    ],
+    "phrases": ["técnico superior", "formación profesional"]
+  },
+  "months": [
+    "enero de", "febrero de", "marzo de", "abril de", "mayo de", "junio de", "julio de",
+    "agosto de", "septiembre de", "setiembre de", "octubre de", "noviembre de", "diciembre de",
+    "enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto", "septiembre",
+    "setiembre", "octubre", "noviembre", "diciembre", "ene", "feb", "mar", "abr", "may", "jun",
+    "jul", "ago", "sep", "sept", "oct", "nov", "dic"
+  ],
+  "present": ["actualidad", "la actualidad", "actual", "presente", "actualmente", "hasta la fecha", "la fecha", "en curso", "hoy"],
+  "range_words": ["a", "al", "hasta"],
+  "places": {
+    "words": ["españa", "méxico", "perú", "chile", "argentina", "colombia", "uruguay", "venezuela", "ecuador", "remoto", "teletrabajo"],
+    "phrases": ["madrid", "barcelona", "valencia", "sevilla", "bilbao", "bogotá", "lima", "santiago", "buenos aires", "ciudad de méxico", "monterrey", "medellín"]
+  }
+}

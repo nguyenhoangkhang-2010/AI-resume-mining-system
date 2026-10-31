@@ -17,7 +17,7 @@ class ResultAggregator:
 
         results = []
 
-        for skill, items in grouped.items():
+        for items in grouped.values():
 
             best = max(
                 items,

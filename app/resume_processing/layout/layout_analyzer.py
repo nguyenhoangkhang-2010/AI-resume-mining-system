@@ -240,7 +240,7 @@ class LayoutAnalyzer:
 
         for line in block.lines:
 
-            line_data = {
+            line_data: Dict[str, Any] = {
                 "text": line.text,
                 "bbox": dict(line.bbox),
                 "line_index": line.line_index,

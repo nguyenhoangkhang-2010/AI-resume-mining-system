@@ -1,7 +1,6 @@
 import sys
 from pathlib import Path
 import streamlit as st
-from loguru import logger
 
 root_path = Path(__file__).parent.parent.parent.parent
 if str(root_path) not in sys.path:

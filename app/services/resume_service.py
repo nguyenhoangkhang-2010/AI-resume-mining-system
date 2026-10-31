@@ -1,4 +1,5 @@
 import time
+from typing import Any
 
 from bson import ObjectId
 from loguru import logger
@@ -11,11 +12,25 @@ from app.models.candidate import (
     Experience,
     Project,
 )
+from app.core.config.settings import settings
 from app.schemas.resume_schema import ResumeResponse
 from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
 from app.models.resume import ResumeModel
 from app.embeddings.services.embedding_service import EmbeddingService
 from app.vector_store.vector_store import VectorStore
+from app.core.constants.app_constants import EMBEDDING_VERSION
+from app.services.confidence import assess_confidence
+from app.services.resume_quality import (
+    FAILED,
+    LOW_CONFIDENCE,
+    NEEDS_REVIEW,
+    PROCESSED,
+    assess_extraction,
+    failure_reason,
+    is_retryable,
+)
+from app.database.mongodb.id_generator import next_faiss_id
+from app.matching.embedding_text import CandidateTextBuilder
 from app.matching.skills.factory.skill_normalizer_factory import (
     create_skill_normalizer,
 )
@@ -31,6 +46,7 @@ class ResumeService:
         self.embedding_service = EmbeddingService()
         self.vector_store = VectorStore()
         self.skill_normalizer = create_skill_normalizer()
+        self.candidate_text_builder = CandidateTextBuilder()
 
     @property
     def db(self):
@@ -77,7 +93,14 @@ class ResumeService:
     def process_resume(
         self,
         resume_id: str,
+        retry_possible: bool = False,
     ) -> None:
+        """
+        Runs the pipeline on a resume and records the result. On failure the
+        resume is marked `failed` and the error is raised again, unless
+        `retry_possible` is set and the error may be temporary: then it is
+        only raised, and the caller (the queue worker) decides what happens.
+        """
 
         logger.info(
             "Starting background resume processing: {}",
@@ -138,19 +161,65 @@ class ResumeService:
                 filename,
             )
 
+            assessment = assess_extraction(
+                extracted_data
+            )
+
+            confidence = assess_confidence(
+                extracted_data
+            ).to_dict()
+
+            if (
+                assessment.status == PROCESSED
+                and confidence["score"]
+                < settings.REVIEW_BELOW_CONFIDENCE
+            ):
+                assessment.status = NEEDS_REVIEW
+                assessment.reason = LOW_CONFIDENCE
+
+            elif (
+                assessment.status == PROCESSED
+                and confidence["score"]
+                < settings.LOW_CONFIDENCE_WARNING
+            ):
+                assessment.warnings.append(
+                    LOW_CONFIDENCE
+                )
+
+            if assessment.status != PROCESSED:
+                # Nothing usable was extracted: keep the result for review
+                # instead of indexing an empty candidate.
+                self._update_resume_status(
+                    resume_id,
+                    assessment.status,
+                    extracted_data,
+                    reason=assessment.reason,
+                    confidence=confidence,
+                )
+
+                logger.warning(
+                    "Resume {} needs review: {}",
+                    resume_id,
+                    assessment.reason,
+                )
+
+                return
+
             candidate = self._build_candidate(
                 resume_id=resume_id,
                 extracted_data=extracted_data,
             )
 
-            self._insert_candidate(
+            self._save_candidate(
                 candidate
             )
 
             self._update_resume_status(
                 resume_id,
-                "processed",
+                PROCESSED,
                 extracted_data,
+                warnings=assessment.warnings,
+                confidence=confidence,
             )
 
             logger.success(
@@ -166,10 +235,14 @@ class ResumeService:
                 e,
             )
 
+            if retry_possible and is_retryable(e):
+                raise
+
             try:
                 self._update_resume_status(
                     resume_id,
-                    "failed",
+                    FAILED,
+                    reason=failure_reason(e),
                 )
             except Exception as status_error:
                 logger.exception(
@@ -202,85 +275,53 @@ class ResumeService:
             and skill.strip()
         ]
 
-        embedding_text = " ".join(
-            normalized_skills
-        )
-
-        embedding = (
-            self.embedding_service.generate_embedding(
-                embedding_text
-            )
-        )
-
-        faiss_id = self._generate_faiss_id()
-
-        self.vector_store.add_candidate_embedding(
-            faiss_id=faiss_id,
-            embedding=embedding,
-        )
-
-        education_data = (
-            extracted_data.get(
-                "education"
-            )
-            or []
-        )
-
         education_models = [
             Education.model_validate(
                 education
             )
-            for education in education_data
-        ]
-
-        experience_data = (
-            extracted_data.get(
-                "experience"
+            for education in (
+                extracted_data.get("education") or []
             )
-            or []
-        )
+        ]
 
         experience_models = [
             Experience.model_validate(
                 experience
             )
-            for experience in experience_data
-        ]
-
-        projects_data = (
-            extracted_data.get(
-                "projects"
+            for experience in (
+                extracted_data.get("experience") or []
             )
-            or []
-        )
+        ]
 
         project_models = [
             Project.model_validate(
                 project
             )
-            for project in projects_data
-        ]
-
-        certifications_data = (
-            extracted_data.get(
-                "certifications"
+            for project in (
+                extracted_data.get("projects") or []
             )
-            or []
-        )
+        ]
 
         certification_models = [
             Certification.model_validate(
                 certification
             )
-            for certification in certifications_data
+            for certification in (
+                extracted_data.get("certifications") or []
+            )
         ]
 
-        return CandidateModel(
+        summary = extracted_data.get("summary")
+
+        faiss_id = self._generate_faiss_id()
+
+        candidate = CandidateModel(
             resume_id=resume_id,
             personal_info=extracted_data.get(
                 "personal_info",
                 {},
             ),
+            summary=summary if isinstance(summary, str) else None,
             skills=skills,
             normalized_skills=normalized_skills,
             education=education_models,
@@ -288,16 +329,36 @@ class ResumeService:
             projects=project_models,
             certifications=certification_models,
             faiss_id=faiss_id,
+            embedding_version=EMBEDDING_VERSION,
         )
+
+        # The vector is added last: if any model above fails validation,
+        # nothing has been written to the index yet.
+        embedding = (
+            self.embedding_service.generate_embedding(
+                self.candidate_text_builder.text(
+                    candidate
+                )
+            )
+        )
+
+        if not self.vector_store.add_candidate_embedding(
+            faiss_id=faiss_id,
+            embedding=embedding,
+        ):
+            raise RuntimeError(
+                f"Could not add the embedding for resume {resume_id} "
+                f"to the vector index."
+            )
+
+        return candidate
 
     def _generate_faiss_id(
         self,
     ) -> int:
 
-        return int(
-            time.time() * 1000
-        ) % (
-            2**63 - 1
+        return next_faiss_id(
+            self.db
         )
 
     def _insert_resume(
@@ -316,31 +377,76 @@ class ResumeService:
             result.inserted_id
         )
 
-    def _insert_candidate(
+    def _save_candidate(
         self,
         candidate: CandidateModel,
     ) -> str:
+        """
+        Stores the candidate, replacing the one already saved for the same
+        resume so reprocessing a resume never leaves two candidates (and two
+        vectors) behind. If the write fails, the vector added for it is
+        removed again.
+        """
 
-        result = self.candidates_col.insert_one(
-            candidate.model_dump(
-                by_alias=True,
-                exclude={"id"},
+        document = candidate.model_dump(
+            by_alias=True,
+            exclude={"id"},
+        )
+
+        previous = self.candidates_col.find_one(
+            {
+                "resume_id": candidate.resume_id,
+            },
+            {
+                "faiss_id": 1,
+            },
+        )
+
+        try:
+            if previous:
+                self.candidates_col.replace_one(
+                    {
+                        "_id": previous["_id"],
+                    },
+                    document,
+                )
+                candidate_id = str(previous["_id"])
+            else:
+                candidate_id = str(
+                    self.candidates_col.insert_one(
+                        document
+                    ).inserted_id
+                )
+
+        except Exception:
+            self.vector_store.remove_candidate_embedding(
+                candidate.faiss_id
             )
-        )
+            raise
 
-        return str(
-            result.inserted_id
-        )
+        old_faiss_id = (previous or {}).get("faiss_id")
+
+        if old_faiss_id is not None and old_faiss_id != candidate.faiss_id:
+            self.vector_store.remove_candidate_embedding(
+                old_faiss_id
+            )
+
+        return candidate_id
 
     def _update_resume_status(
         self,
         resume_id: str,
         status: str,
         data: dict | None = None,
+        reason: str | None = None,
+        warnings: list[str] | None = None,
+        confidence: dict | None = None,
     ) -> None:
 
-        update_data = {
+        update_data: dict[str, Any] = {
             "upload_status": status,
+            "status_reason": reason,
+            "warnings": warnings or [],
         }
 
         if data is not None:
@@ -348,13 +454,22 @@ class ResumeService:
                 "extracted_data"
             ] = data
 
+        if confidence is not None:
+            update_data[
+                "confidence"
+            ] = confidence
+
+        update: dict[str, Any] = {"$set": update_data}
+
+        if status != "processing":
+            # The attempt is over: the queue's lease no longer applies.
+            update["$unset"] = {"lease_expires": "", "worker_id": ""}
+
         self.resumes_col.update_one(
             {
                 "_id": ObjectId(
                     resume_id
                 )
             },
-            {
-                "$set": update_data
-            },
+            update,
         )

@@ -3,10 +3,22 @@ from typing import List, Optional
 
 from pydantic import BaseModel, Field
 
+from app.core.config.settings import settings
+
 
 class JobCreateRequest(BaseModel):
-    title: str = Field(..., description="The title of the job.")
-    description: str = Field(..., description="The raw job description text.")
+    title: str = Field(..., min_length=1, max_length=200, description="The title of the job.")
+    description: str = Field(
+        ...,
+        min_length=1,
+        max_length=settings.MAX_JOB_DESCRIPTION_CHARS,
+        description="The raw job description text.",
+    )
+    location: Optional[str] = Field(
+        default=None,
+        max_length=120,
+        description="Where the job is based (free text, for example a city or 'Remote').",
+    )
 
 
 class JobResponse(BaseModel):
@@ -19,9 +31,20 @@ class JobResponse(BaseModel):
     experience_years: Optional[int] = Field(None, description="Minimum years of experience required.")
     responsibilities: List[str] = Field(default_factory=list, description="List of main job responsibilities.")
     occupation: Optional[str] = Field(None, description="Normalized occupation from a taxonomy like O*NET.")
+    location: Optional[str] = Field(None, description="Where the job is based.")
     created_at: datetime = Field(..., description="Timestamp of when the job was created")
     updated_at: datetime = Field(default_factory=datetime.utcnow, description="Timestamp of the last update")
 
     class Config:
         from_attributes = True
         populate_by_name = True
+
+
+class JobSummary(BaseModel):
+    id: str
+    title: str
+    occupation: Optional[str] = None
+    location: Optional[str] = None
+    required_skills: List[str] = Field(default_factory=list)
+    experience_years: Optional[int] = None
+    created_at: datetime

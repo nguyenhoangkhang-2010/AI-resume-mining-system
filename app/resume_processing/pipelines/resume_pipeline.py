@@ -2,11 +2,11 @@ from __future__ import annotations
 
 import time
 from pathlib import Path
-from typing import Any, Dict
+from typing import Any, Dict, List
 
 from loguru import logger
 
-from app.resume_processing.parsers.pdf_parser import PDFParser
+from app.resume_processing.parsers.document_parser import DocumentParser
 from app.resume_processing.cleaners.text_cleaner import TextCleaner
 from app.resume_processing.layout.layout_representation import LayoutDocument
 from app.resume_processing.layout.layout_analyzer import LayoutAnalyzer
@@ -15,6 +15,7 @@ from app.resume_processing.layout.semantic_region_analyzer import (
 )
 from app.extraction.section.section_detector import SectionDetector
 from app.extraction.extraction_engine import ExtractionEngine
+from app.extraction.rules import stats
 
 
 class ResumePipeline:
@@ -25,7 +26,7 @@ class ResumePipeline:
         extraction_engine: ExtractionEngine,
     ) -> None:
 
-        self.parser = PDFParser()
+        self.parser = DocumentParser()
         self.cleaner = TextCleaner()
         self.section_detector = section_detector
         self.extraction_engine = extraction_engine
@@ -103,21 +104,9 @@ class ResumePipeline:
 
             start = time.perf_counter()
 
-            layout_document = (
-                LayoutDocument.from_parser_result(
+            layout_analysis, region_analysis = (
+                self._analyze_layout(
                     parsed
-                )
-            )
-
-            layout_analysis = (
-                self.layout_analyzer.analyze(
-                    layout_document
-                )
-            )
-
-            region_analysis = (
-                self.region_analyzer.analyze(
-                    layout_analysis
                 )
             )
 
@@ -176,11 +165,18 @@ class ResumePipeline:
 
             start = time.perf_counter()
 
-            extracted_data = (
-                self.extraction_engine.extract_resume(
-                    sections
+            counting = stats.begin_document()
+
+            try:
+                extracted_data = (
+                    self.extraction_engine.extract_resume(
+                        sections
+                    )
                 )
-            )
+            finally:
+                methods = stats.end_document(
+                    counting
+                )
 
             elapsed = time.perf_counter() - start
 
@@ -197,10 +193,26 @@ class ResumePipeline:
             # 6. BUILD RESULT
             # ==================================================
 
+            pages = parsed.get("pages") or []
+
             resume_data = {
                 "raw_text": raw_text,
                 "cleaned_text": cleaned_text,
                 **extracted_data,
+                # What the pipeline observed about its own work, for the
+                # confidence score (see app/services/confidence.py).
+                "signals": {
+                    "sections": list(
+                        sections.get("__provenance__") or []
+                    ),
+                    "methods": methods,
+                    "pages": len(pages),
+                    "ocr_pages": sum(
+                        1
+                        for page in pages
+                        if page.get("ocr")
+                    ),
+                },
             }
 
             # ==================================================
@@ -240,6 +252,60 @@ class ResumePipeline:
             )
 
             raise
+
+    def _analyze_layout(
+        self,
+        parsed: Dict[str, Any],
+    ):
+
+        layout_document = (
+            LayoutDocument.from_parser_result(
+                parsed
+            )
+        )
+
+        layout_analysis = (
+            self.layout_analyzer.analyze(
+                layout_document
+            )
+        )
+
+        region_analysis = (
+            self.region_analyzer.analyze(
+                layout_analysis
+            )
+        )
+
+        return layout_analysis, region_analysis
+
+    def detect_sections(
+        self,
+        file_path: str | Path,
+    ) -> Dict[str, List[str]]:
+        """
+        Parsing, layout analysis and section detection only, without the
+        extraction stage. Used to measure section detection on its own.
+        """
+
+        parsed = self.parser.parse(
+            file_path
+        )
+
+        cleaned_text = self.cleaner.clean(
+            parsed["text"]
+        )
+
+        layout_analysis, region_analysis = (
+            self._analyze_layout(
+                parsed
+            )
+        )
+
+        return self.section_detector.detect(
+            layout_analysis=layout_analysis,
+            region_analysis=region_analysis,
+            cleaned_text=cleaned_text,
+        )
 
     @staticmethod
     def _log_timing_summary(

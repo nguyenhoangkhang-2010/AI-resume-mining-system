@@ -1,0 +1,60 @@
+{
+  "language": "de",
+  "headings": {
+    "personal_info": ["kontakt", "persönliche daten", "persönliche angaben", "kontaktdaten", "angaben zur person"],
+    "summary": ["profil", "berufsprofil", "kurzprofil", "zusammenfassung", "über mich", "ziel", "berufsziel"],
+    "experience": ["berufserfahrung", "erfahrung", "praktische erfahrung", "beruflicher werdegang", "werdegang", "berufliche erfahrung", "praktika", "praktikum", "ehrenamt", "tätigkeiten"],
+    "education": ["ausbildung", "bildung", "bildungsweg", "studium", "akademische laufbahn", "schulbildung", "ausbildung und studium", "akademischer werdegang"],
+    "skills": ["kenntnisse", "fähigkeiten", "kompetenzen", "fachkenntnisse", "edv kenntnisse", "it kenntnisse", "technische kenntnisse", "qualifikationen", "werkzeuge", "technologien"],
+    "projects": ["projekte", "projekt", "persönliche projekte", "portfolio"],
+    "certifications": ["zertifikate", "zertifizierungen", "weiterbildung", "fortbildungen", "auszeichnungen", "preise", "lizenzen"],
+    "other": ["referenzen", "interessen", "hobbys", "sprachen", "sprachkenntnisse"]
+  },
+  "filler_words": ["und", "der", "die", "das", "in", "meine", "sonstige", "weitere"],
+  "roles": {
+    "words": [
+      "ingenieur", "ingenieurin", "entwickler", "entwicklerin", "leiter", "leiterin", "manager",
+      "managerin", "berater", "beraterin", "analyst", "analystin", "projektleiter",
+      "projektleiterin", "sachbearbeiter", "sachbearbeiterin", "assistent", "assistentin",
+      "praktikant", "praktikantin", "werkstudent", "werkstudentin", "techniker", "technikerin",
+      "buchhalter", "buchhalterin", "lehrer", "lehrerin", "krankenpfleger", "krankenschwester",
+      "arzt", "ärztin", "architekt", "architektin", "geschäftsführer", "geschäftsführerin",
+      "referent", "referentin", "koordinator", "koordinatorin", "mitarbeiter", "mitarbeiterin",
+      "designer", "designerin", "forscher", "forscherin", "administrator", "verkäufer",
+      "verkäuferin", "auszubildender", "auszubildende", "azubi", "trainee", "consultant",
+      "fachkraft", "spezialist", "spezialistin", "softwareentwickler", "softwareentwicklerin",
+      "softwareingenieur", "projektmanager", "produktmanager", "vertriebsleiter", "teamleiter",
+      "teamleiterin", "abteilungsleiter", "abteilungsleiterin", "bereichsleiter", "systemadministrator",
+      "werkstudent", "freelancer", "selbstständiger", "geschäftsführung"
+    ],
+    "phrases": ["head of"]
+  },
+  "companies": {
+    "words": [
+      "gmbh", "ag", "kg", "ohg", "ug", "se", "mbh", "gruppe", "bank", "krankenhaus", "klinik",
+      "unternehmen", "verlag", "versicherung", "stiftung", "verein", "institut", "beratung",
+      "lösungen", "systeme", "werke", "handel", "dienstleistungen", "inc", "ltd"
+    ],
+    "phrases": []
+  },
+  "company_suffixes": ["gmbh", "ag", "kg", "ohg", "ug", "mbh", "se"],
+  "institutions": {
+    "words": ["universität", "hochschule", "fachhochschule", "akademie", "institut", "gymnasium", "schule", "berufsschule", "fakultät", "realschule", "kolleg"],
+    "phrases": ["technische universität"]
+  },
+  "degrees": {
+    "words": ["bachelor", "master", "diplom", "magister", "promotion", "doktor", "abitur", "staatsexamen", "mba", "msc", "bsc"],
+    "phrases": ["dipl ing", "dr ing"]
+  },
+  "months": [
+    "januar", "februar", "märz", "maerz", "april", "mai", "juni", "juli", "august", "september",
+    "oktober", "november", "dezember", "jan", "feb", "mär", "mrz", "apr", "jun", "jul", "aug",
+    "sep", "sept", "okt", "nov", "dez"
+  ],
+  "present": ["heute", "aktuell", "derzeit", "laufend", "gegenwart", "jetzt"],
+  "range_words": ["bis"],
+  "places": {
+    "words": ["deutschland", "österreich", "schweiz", "berlin", "münchen", "hamburg", "köln", "frankfurt", "stuttgart", "düsseldorf", "wien", "zürich", "leipzig", "dresden", "hannover", "nürnberg", "homeoffice"],
+    "phrases": []
+  }
+}

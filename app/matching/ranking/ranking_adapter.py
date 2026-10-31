@@ -10,7 +10,7 @@ class RankingAdapter:
     def build_score_map(
         self,
         retrieval_results: List[Dict[str, Any]],
-    ) -> Dict[str, float]:
+    ) -> Dict[int, float]:
 
         return {
             item["faiss_id"]: item["similarity_score"]

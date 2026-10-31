@@ -1,0 +1,6 @@
+# Streamlit dashboard (app/analytics) and the data-processing scripts.
+-r requirements.txt
+
+pandas==3.0.3
+plotly==6.8.0
+streamlit==1.58.0

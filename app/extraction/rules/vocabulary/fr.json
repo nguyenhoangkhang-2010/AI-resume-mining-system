@@ -1,0 +1,61 @@
+{
+  "language": "fr",
+  "headings": {
+    "personal_info": ["contact", "coordonnées", "informations personnelles", "informations de contact", "état civil"],
+    "summary": ["profil", "profil professionnel", "résumé professionnel", "objectif", "objectif professionnel", "à propos", "présentation", "introduction"],
+    "experience": ["expérience", "expériences", "expérience professionnelle", "expériences professionnelles", "parcours professionnel", "parcours", "emploi", "historique professionnel", "stage", "stages", "bénévolat", "activités"],
+    "education": ["formation", "formations", "éducation", "études", "parcours académique", "formation académique", "diplômes", "formation et diplômes", "cursus", "scolarité"],
+    "skills": ["compétences", "compétences clés", "compétences techniques", "compétences professionnelles", "savoir-faire", "outils", "technologies", "expertise", "logiciels"],
+    "projects": ["projets", "projets personnels", "projets académiques", "réalisations", "portfolio"],
+    "certifications": ["certifications", "certification", "certificats", "licences", "formations complémentaires", "distinctions", "récompenses", "prix"],
+    "other": ["références", "loisirs", "centres d'intérêt", "intérêts", "langues", "divers"]
+  },
+  "filler_words": ["et", "de", "du", "des", "la", "le", "les", "en", "d", "l", "mes", "autres"],
+  "roles": {
+    "words": [
+      "ingénieur", "ingénieure", "développeur", "développeuse", "directeur", "directrice",
+      "responsable", "analyste", "consultant", "consultante", "gestionnaire", "assistant",
+      "assistante", "stagiaire", "technicien", "technicienne", "comptable", "infirmier",
+      "infirmière", "enseignant", "enseignante", "professeur", "conseiller", "conseillère",
+      "architecte", "administrateur", "administratrice", "coordinateur", "coordinatrice",
+      "commercial", "vendeur", "vendeuse", "concepteur", "conceptrice", "médecin",
+      "pharmacien", "pharmacienne", "juriste", "avocat", "avocate", "chercheur", "chercheuse",
+      "secrétaire", "apprenti", "apprentie", "alternant", "alternante", "président",
+      "présidente", "formateur", "formatrice", "auditeur", "contrôleur", "superviseur",
+      "opérateur", "mécanicien", "ouvrier", "designer", "chef", "cheffe", "gérant", "gérante",
+      "attaché", "attachée", "chargé", "chargée", "directeur général", "freelance"
+    ],
+    "phrases": ["chef de projet", "chargé de mission", "chargée de mission", "responsable de"]
+  },
+  "companies": {
+    "words": [
+      "sarl", "sas", "sasu", "sa", "eurl", "snc", "société", "groupe", "banque", "hôpital",
+      "clinique", "entreprise", "cabinet", "agence", "laboratoires", "institut", "fondation",
+      "association", "mairie", "ministère", "assurances", "industries", "consulting",
+      "solutions", "systèmes", "services", "inc", "ltd", "gmbh"
+    ],
+    "phrases": []
+  },
+  "company_suffixes": ["sarl", "sas", "sasu", "sa", "eurl", "snc"],
+  "institutions": {
+    "words": ["université", "école", "lycée", "collège", "institut", "faculté", "académie", "iut", "cnam", "polytechnique"],
+    "phrases": ["grande école"]
+  },
+  "degrees": {
+    "words": [
+      "licence", "master", "doctorat", "bts", "dut", "bac", "baccalauréat", "diplôme", "mba",
+      "deug", "msc", "bsc"
+    ],
+    "phrases": ["bac +2", "bac +3", "bac +5", "diplôme d'ingénieur", "école d'ingénieurs"]
+  },
+  "months": [
+    "janvier", "février", "mars", "avril", "mai", "juin", "juillet", "août", "septembre",
+    "octobre", "novembre", "décembre", "janv", "févr", "avr", "juil", "sept", "oct", "nov", "déc"
+  ],
+  "present": ["aujourd'hui", "à ce jour", "ce jour", "présent", "actuel", "actuellement", "en cours", "à aujourd'hui"],
+  "range_words": ["à", "au", "jusqu'à", "jusqu'au"],
+  "places": {
+    "words": ["france", "belgique", "suisse", "luxembourg", "québec", "maroc", "tunisie", "algérie", "sénégal", "télétravail"],
+    "phrases": ["paris", "lyon", "marseille", "toulouse", "bordeaux", "nantes", "lille", "strasbourg", "nice", "montréal", "bruxelles", "genève", "île-de-france"]
+  }
+}

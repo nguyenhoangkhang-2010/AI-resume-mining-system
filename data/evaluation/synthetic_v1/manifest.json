@@ -1,0 +1,10 @@
+{
+  "seed": 42,
+  "jobs": 30,
+  "candidates": 300,
+  "extraction_documents": 100,
+  "qrels": [
+    "family_only",
+    "seniority_aware"
+  ]
+}

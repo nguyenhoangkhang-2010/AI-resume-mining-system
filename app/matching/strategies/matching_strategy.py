@@ -9,7 +9,10 @@ class MatchingStrategy(ABC):
         self,
         candidate_id: str,
         job_id: str,
-        skill_score: float,
-        semantic_score: float,
+        skill_score: float | None,
+        semantic_score: float | None,
+        experience_score: float | None = None,
+        matched_skills: list[str] | None = None,
+        missing_skills: list[str] | None = None,
     ) -> MatchingScore:
         ...

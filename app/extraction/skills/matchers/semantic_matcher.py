@@ -1,11 +1,14 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Tuple
+import hashlib
+import threading
+from typing import Any, Dict, List, Optional, Tuple
 
 import numpy as np
 from loguru import logger
 from sentence_transformers import util
 
+from app.core.config.settings import settings
 from app.embeddings.models.embedding_model import EmbeddingModelSingleton
 from app.extraction.skills.repository import SkillRepository
 from app.extraction.skills.matchers.base_matcher import BaseMatcher
@@ -17,6 +20,11 @@ class SemanticSkillMatcher(BaseMatcher):
 
     MIN_NGRAM = 2
     MAX_NGRAM = 4
+
+    # Encoding the whole skill taxonomy takes ~30s, so the embeddings
+    # are computed once per (model, corpus) and shared by every matcher.
+    _corpus_embedding_cache: Dict[Tuple[str, str], Any] = {}
+    _corpus_embedding_lock = threading.Lock()
 
     def __init__(self):
         self.repository = SkillRepository()
@@ -34,9 +42,23 @@ class SemanticSkillMatcher(BaseMatcher):
             for skill in self.skill_objects
         ]
 
-        self.skill_embeddings = self._encode(
-            self.corpus
-        )
+        self.skill_embeddings = self._get_corpus_embeddings()
+
+    def _get_corpus_embeddings(self):
+        corpus_hash = hashlib.sha256(
+            "\x1f".join(self.corpus).encode("utf-8")
+        ).hexdigest()
+
+        cache_key = (settings.MODEL_NAME, corpus_hash)
+
+        with self._corpus_embedding_lock:
+            embeddings = self._corpus_embedding_cache.get(cache_key)
+
+            if embeddings is None:
+                embeddings = self._encode(self.corpus)
+                self._corpus_embedding_cache[cache_key] = embeddings
+
+        return embeddings
 
     def find_best_match(
         self,

@@ -28,11 +28,17 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v5
 
+      # llama.cpp is compiled from source and takes many minutes, so the
+      # pull-request build leaves it out; the published image includes it.
       - name: Build Docker image
         run: |
-          docker build \
-            -f docker/Dockerfile \
-            -t ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:test .
+          docker build             -f docker/Dockerfile             --build-arg WITH_LLAMA_CPP=false             -t ${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:test .
+
+      - name: Smoke test the image
+        run: |
+          IMAGE=${{ env.REGISTRY }}/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:test
+          test "$(docker run --rm "$IMAGE" id -u)" != "0"
+          docker run --rm "$IMAGE" python -c "from app.main import app; print(len(app.routes), 'routes')"
 
   publish:
     name: Publish Docker Image to GHCR

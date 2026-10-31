@@ -5,6 +5,11 @@ from typing import Any, Dict, List
 
 from loguru import logger
 
+from app.core.config.settings import settings
+from app.extraction.grounding import ground_entries
+from app.extraction.rules import stats
+from app.extraction.rules.experience_rules import parse_experience
+from app.extraction.llm.json_recovery import recover_array_objects
 from app.extraction.llm.llm_extractor import LLMExtractor
 
 
@@ -54,8 +59,6 @@ class ExperienceExtractor:
     - Return ONLY the JSON object.
 """
 
-    MAX_NEW_TOKENS = 180
-
     def __init__(
         self,
         llm_extractor: LLMExtractor,
@@ -70,6 +73,20 @@ class ExperienceExtractor:
         if not text or not text.strip():
             return []
 
+        # Regular layouts are read directly; only the rest needs the model.
+        if settings.EXTRACTION_RULES_FIRST:
+            by_rules = parse_experience(text)
+
+            stats.record("experience", by_rules is not None)
+
+            if by_rules is not None:
+                logger.debug(
+                    "Experience read by rules: {} entries.",
+                    len(by_rules),
+                )
+
+                return by_rules
+
         logger.debug(
             "Starting semantic experience extraction."
         )
@@ -77,7 +94,7 @@ class ExperienceExtractor:
         raw_result = self.llm_extractor.extract_info(
             text=text,
             prompt_template=self.EXTRACTION_PROMPT,
-            max_new_tokens=self.MAX_NEW_TOKENS,
+            max_new_tokens=settings.LLM_EXPERIENCE_MAX_TOKENS,
         )
 
         if not raw_result:
@@ -86,8 +103,11 @@ class ExperienceExtractor:
             )
             return []
 
-        result = self._parse_result(
-            raw_result
+        result = ground_entries(
+            self._parse_result(raw_result),
+            ("company", "role", "location"),
+            text,
+            "experience",
         )
 
         logger.debug(
@@ -232,6 +252,19 @@ class ExperienceExtractor:
                 return json.loads(candidate)
             except json.JSONDecodeError:
                 pass
+
+        # The model stops at its token limit in the middle of the list:
+        # keep the entries that were completed instead of losing them all.
+        recovered = recover_array_objects(text, "experience")
+
+        if recovered:
+            logger.warning(
+                "LLM output appears truncated. Recovered {} complete "
+                "experience entr{}.",
+                len(recovered),
+                "y" if len(recovered) == 1 else "ies",
+            )
+            return recovered
 
         return None
 

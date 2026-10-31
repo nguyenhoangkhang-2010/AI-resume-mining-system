@@ -1,6 +1,13 @@
 from pydantic import BaseModel, Field
-from typing import List, Dict, Any, Optional
-from app.models.personal_info import PersonalInfo
+from datetime import datetime
+from typing import List, Optional
+from app.models.candidate import (
+    Certification,
+    Education,
+    Experience,
+    PersonalInfo,
+    Project,
+)
 
 
 class CandidateResponse(BaseModel):
@@ -13,8 +20,10 @@ class CandidateResponse(BaseModel):
         default_factory=PersonalInfo,
         description="Extracted personal details"
     )
-    education: List[Dict[str, Any]] = Field(default_factory=list, description="List of educational backgrounds")
-    experience: List[Dict[str, Any]] = Field(default_factory=list, description="List of work experiences")
+    education: List[Education] = Field(default_factory=list, description="List of educational backgrounds")
+    experience: List[Experience] = Field(default_factory=list, description="List of work experiences")
+    projects: List[Project] = Field(default_factory=list, description="List of projects")
+    certifications: List[Certification] = Field(default_factory=list, description="List of certifications")
     skills: List[str] = Field(default_factory=list, description="List of extracted skills")
     normalized_skills: List[str] = Field(
         default_factory=list,
@@ -24,3 +33,21 @@ class CandidateResponse(BaseModel):
     class Config:
         from_attributes = True
         populate_by_name = True
+
+
+class CandidateSummary(BaseModel):
+    """
+    A candidate as shown in lists and search results. Contact details are
+    left out; they are only returned by the detail endpoint.
+    """
+
+    id: str
+    resume_id: str
+    full_name: Optional[str] = None
+    skills: List[str] = Field(
+        default_factory=list,
+        description="Up to ten normalised skills",
+    )
+    skill_count: int = 0
+    experience_entries: int = 0
+    created_at: Optional[datetime] = None

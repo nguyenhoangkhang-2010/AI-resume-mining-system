@@ -1,0 +1,75 @@
+{
+  "language": "en",
+  "roles": {
+    "words": [
+      "engineer", "developer", "programmer", "manager", "analyst", "nurse",
+      "teacher", "accountant", "intern", "assistant", "specialist", "director",
+      "lead", "officer", "consultant", "designer", "architect", "administrator",
+      "coordinator", "supervisor", "technician", "executive", "representative",
+      "scientist", "researcher", "instructor", "lecturer", "auditor", "advisor",
+      "adviser", "chief", "president", "associate", "trainee",
+      "founder", "tester", "qa", "sre", "devops", "secretary", "clerk",
+      "cashier", "salesperson", "marketer", "writer", "editor", "producer",
+      "operator", "mechanic", "physician", "doctor", "surgeon", "pharmacist",
+      "therapist", "tutor", "professor", "planner", "buyer", "agent",
+      "recruiter", "controller", "strategist", "ceo", "cto", "cfo", "coo",
+      "vp", "owner", "partner", "member", "volunteer", "apprentice", "fellow",
+      "technologist", "statistician", "economist", "translator", "interpreter",
+      "paralegal", "lawyer", "attorney", "counsellor", "counselor", "handler",
+      "associate", "freelancer", "contractor", "supporter"
+    ],
+    "phrases": ["head of", "head chef"]
+  },
+  "companies": {
+    "words": [
+      "inc", "ltd", "llc", "corp", "corporation", "company", "group", "bank",
+      "hospital", "clinic", "school", "university", "college", "labs", "lab",
+      "systems", "software", "solutions", "agency", "studio", "partners",
+      "capital", "insurance", "institute", "centre", "center", "foundation",
+      "industries", "works", "consulting", "holdings", "analytics", "ventures",
+      "plc", "gmbh", "sa", "ag", "bv", "pty", "limited", "enterprises",
+      "laboratories", "laboratory", "airlines", "motors", "pharma",
+      "pharmaceuticals", "logistics", "media", "network", "networks",
+      "associates", "trust", "council", "department", "ministry", "club"
+    ],
+    "phrases": []
+  },
+  "company_suffixes": ["inc", "ltd", "llc", "corp", "co", "plc", "sa", "ag", "gmbh", "pty", "bv"],
+  "institutions": {
+    "words": ["university", "college", "institute", "school", "academy", "polytechnic", "universite", "faculty"],
+    "phrases": []
+  },
+  "degrees": {
+    "words": [
+      "bsc", "ba", "bs", "be", "beng", "bachelor", "bachelors", "master",
+      "masters", "msc", "ma", "ms", "mba", "meng", "med", "bed", "mphil",
+      "phd", "doctorate", "doctoral", "diploma", "associate", "degree", "gcse"
+    ],
+    "phrases": ["high school diploma"]
+  },
+  "months": [
+    "january", "february", "march", "april", "may", "june", "july", "august",
+    "september", "october", "november", "december",
+    "jan", "feb", "mar", "apr", "jun", "jul", "aug", "sep", "sept", "oct", "nov", "dec"
+  ],
+  "present": ["present", "pres", "current", "currently", "now", "today", "ongoing", "to date", "till date", "date"],
+  "range_words": ["to", "until", "till", "through"],
+  "places": {
+    "words": [
+      "afghanistan", "argentina", "australia", "austria", "bangladesh",
+      "belgium", "brazil", "bulgaria", "cambodia", "canada", "chile", "china",
+      "colombia", "croatia", "cuba", "czechia", "denmark", "egypt", "estonia",
+      "ethiopia", "finland", "france", "germany", "ghana", "greece",
+      "guadeloupe", "hungary", "iceland", "india", "indonesia", "iran", "iraq",
+      "ireland", "israel", "italy", "japan", "jordan", "kenya", "korea",
+      "laos", "latvia", "lebanon", "lithuania", "luxembourg", "malaysia",
+      "mexico", "mongolia", "morocco", "myanmar", "nepal", "netherlands",
+      "zealand", "nigeria", "norway", "pakistan", "peru", "philippines",
+      "poland", "portugal", "qatar", "romania", "russia", "saudi", "serbia",
+      "singapore", "slovakia", "slovenia", "spain", "sweden", "switzerland",
+      "taiwan", "thailand", "turkey", "ukraine", "emirates", "kingdom",
+      "states", "uk", "usa", "uruguay", "venezuela", "vietnam", "viet nam"
+    ],
+    "phrases": ["united kingdom", "united states", "new zealand", "south africa", "south korea", "hong kong", "ho chi minh city", "ho chi minh", "ha noi", "hanoi", "da nang", "can tho", "hai phong", "remote"]
+  }
+}

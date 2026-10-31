@@ -1,0 +1,156 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+      - develop
+      - "feat/**"
+      - "fix/**"
+      - "ci/**"
+      - "refactor/**"
+      - "docs/**"
+      - "perf/**"
+
+  pull_request:
+    branches:
+      - main
+      - develop
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.11"
+
+jobs:
+  lint:
+    name: Lint (ruff)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Install ruff
+        run: pip install ruff
+
+      - name: Run ruff
+        run: ruff check .
+
+  frontend:
+    name: Frontend (types, tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      # The types come from the API's own description (frontend/openapi.json),
+      # so a change to a response shape fails here. The Python test
+      # tests/test_openapi_contract.py fails when that file is out of date.
+      - name: Types
+        working-directory: frontend
+        run: npx tsc -b
+
+      - name: Tests
+        working-directory: frontend
+        run: npm test
+
+      - name: Build (live and demo)
+        working-directory: frontend
+        run: |
+          npm run build
+          npm run build:demo
+
+  test:
+    name: Types and tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+
+    services:
+      mongo:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd "mongosh --quiet --eval 'db.runCommand({ping:1})'"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      MONGO_URI: mongodb://localhost:27017
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      # The CPU build of torch is a few hundred MB instead of several GB. It is
+      # installed first, from its own index, at the version pinned in
+      # requirements.txt. llama-cpp-python, Streamlit and the other optional
+      # extras are not needed by the API or the tests.
+      - name: Install dependencies
+        run: |
+          grep '^torch==' requirements.txt             | xargs pip install --index-url https://download.pytorch.org/whl/cpu
+          pip install -r requirements-dev.txt
+
+      - name: Cache Hugging Face models
+        uses: actions/cache@v4
+        with:
+          path: ~/.cache/huggingface
+          key: hf-${{ runner.os }}-paraphrase-multilingual-minilm-l12-v2
+
+      - name: Type check (mypy)
+        run: mypy
+
+      - name: Unit tests with coverage
+        run: pytest --cov --cov-report=term --cov-report=xml
+
+      - name: Integration tests (MongoDB)
+        run: pytest -m integration
+
+      # Fails when ranking quality, section detection or the fairness checks
+      # get worse than docs/evaluation/gate_baseline.json (about 1.5 minutes).
+      # After a deliberate change run `python -m scripts.eval_gate --update`
+      # and commit the new baseline with the change.
+      - name: Evaluation gate
+        run: python -m scripts.eval_gate
+
+      - name: Upload coverage report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-xml
+          path: coverage.xml
+          if-no-files-found: ignore

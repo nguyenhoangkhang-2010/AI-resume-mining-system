@@ -11,3 +11,9 @@ class RecommendationItem(BaseModel):
 
 class RecommendationResponse(BaseModel):
     recommendations: List[RecommendationItem]
+
+class SkillRecommendations(BaseModel):
+    job_id: str
+    candidate_id: str
+    missing_skills: List[str]
+    recommendations: List[RecommendationItem]

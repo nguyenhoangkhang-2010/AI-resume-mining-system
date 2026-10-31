@@ -1,13 +1,16 @@
-import shutil
 import uuid
 from pathlib import Path
 
-from bson import ObjectId
-from bson.errors import InvalidId
+from typing import Optional
 
 from app.database.mongodb.connection import mongo_db
+from app.schemas.page import Page
 from app.schemas.resume_schema import (
+    ConfidenceInfo,
+    ResumeDetail,
+    ResumeListItem,
     ResumeResponse,
+    ResumeStatus,
     ResumeStatusResponse,
 )
 
@@ -17,13 +20,27 @@ from fastapi import (
     Depends,
     File,
     HTTPException,
+    Query,
+    Response,
     UploadFile,
     status,
 )
 from loguru import logger
 
-from app.api.dependencies import get_resume_service
-from app.core.constants.app_constants import ALLOWED_EXTENSIONS
+from app.api.dependencies import (
+    get_job_recommendation_service,
+    get_resume_catalog_service,
+    get_resume_service,
+)
+from app.api.pagination import PageParams, page_params
+from app.api.security import heavy_rate_limit, require_admin
+from app.core.config.settings import settings
+from app.core.exceptions import AppError, NotFoundError, UnsupportedFileTypeError
+from app.core.identifiers import parse_object_id
+from app.schemas.job_match_schema import JobMatchResponse
+from app.services.job_recommendation_service import JobRecommendationService
+from app.services.resume_catalog_service import KNOWN_STATUSES, ResumeCatalogService
+from app.services.upload_validation import allowed_extensions, save_upload
 from app.services.resume_service import ResumeService
 
 
@@ -36,6 +53,7 @@ UPLOAD_DIR = Path("data/uploads")
     "/upload",
     response_model=ResumeResponse,
     status_code=status.HTTP_202_ACCEPTED,
+    dependencies=[Depends(heavy_rate_limit)],
 )
 async def upload_resume(
     background_tasks: BackgroundTasks,
@@ -60,13 +78,12 @@ async def upload_resume(
         file.filename
     ).suffix.lower()
 
-    if file_ext not in ALLOWED_EXTENSIONS:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=(
-                "Invalid file type. "
-                f"Allowed extensions: {ALLOWED_EXTENSIONS}"
-            ),
+    allowed = allowed_extensions()
+
+    if file_ext not in allowed:
+        raise UnsupportedFileTypeError(
+            "Invalid file type. "
+            f"Allowed extensions: {sorted(allowed)}"
         )
 
     unique_filename = (
@@ -78,13 +95,17 @@ async def upload_resume(
     )
 
     try:
-        with file_path.open("wb") as buffer:
-            shutil.copyfileobj(
-                file.file,
-                buffer,
-            )
+        save_upload(
+            file.file,
+            file_path,
+            file_ext,
+            settings.MAX_UPLOAD_MB * 1024 * 1024,
+        )
 
-    except Exception:
+    except AppError:
+        raise
+
+    except Exception as exc:
         logger.exception(
             "Failed to save uploaded resume: {}",
             file.filename,
@@ -93,7 +114,7 @@ async def upload_resume(
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Could not save uploaded file.",
-        )
+        ) from exc
 
     finally:
         await file.close()
@@ -108,11 +129,14 @@ async def upload_resume(
         filename=file.filename,
     )
 
-    background_tasks.add_task(
-        resume_service.process_resume,
-        resume.id,
-    )
+    if settings.PROCESSING_MODE == "inline":
+        background_tasks.add_task(
+            resume_service.process_resume,
+            resume.id,
+        )
 
+    # In queue mode the resume is already waiting (status pending) and a
+    # worker takes it; nothing else to do here.
     logger.info(
         "Resume {} queued for background processing.",
         resume.id,
@@ -123,21 +147,78 @@ async def upload_resume(
     )
     
 @router.get(
+    "/",
+    response_model=Page[ResumeListItem],
+)
+def list_resumes(
+    status_filter: Optional[ResumeStatus] = Query(
+        default=None,
+        alias="status",
+        description="Only resumes in this processing status",
+    ),
+    page: PageParams = Depends(page_params),
+    catalog: ResumeCatalogService = Depends(get_resume_catalog_service),
+):
+    return catalog.list_resumes(status_filter, page.limit, page.offset)
+
+
+@router.get(
+    "/{resume_id}",
+    response_model=ResumeDetail,
+)
+def get_resume(
+    resume_id: str,
+    catalog: ResumeCatalogService = Depends(get_resume_catalog_service),
+):
+    return catalog.get_resume(resume_id)
+
+
+@router.get(
+    "/{resume_id}/jobs",
+    response_model=JobMatchResponse,
+    dependencies=[Depends(heavy_rate_limit)],
+)
+def recommend_jobs_for_resume(
+    resume_id: str,
+    top_k: int = Query(default=10, ge=1, le=50, description="Jobs to return"),
+    min_score: Optional[float] = Query(default=None, ge=0, le=100),
+    location: Optional[str] = Query(default=None, max_length=120),
+    service: JobRecommendationService = Depends(get_job_recommendation_service),
+):
+    """
+    Jobs that fit the candidate built from this resume. Returns 409 until
+    the resume has been processed.
+    """
+
+    return service.recommend_for_resume(
+        resume_id, top_k=top_k, min_score=min_score, location=location
+    )
+
+
+@router.delete(
+    "/{resume_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    dependencies=[Depends(require_admin)],
+)
+def delete_resume(
+    resume_id: str,
+    catalog: ResumeCatalogService = Depends(get_resume_catalog_service),
+):
+    catalog.delete_resume(resume_id)
+
+    return Response(status_code=status.HTTP_204_NO_CONTENT)
+
+
+@router.get(
     "/{resume_id}/status",
     response_model=ResumeStatusResponse,
     status_code=status.HTTP_200_OK,
 )
-async def get_resume_status(
+def get_resume_status(
     resume_id: str,
 ) -> ResumeStatusResponse:
 
-    try:
-        object_id = ObjectId(resume_id)
-    except InvalidId:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Invalid resume_id.",
-        )
+    object_id = parse_object_id(resume_id, "Resume")
 
     db = mongo_db.get_db()
 
@@ -148,22 +229,14 @@ async def get_resume_status(
     )
 
     if not resume:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Resume not found: {resume_id}",
-        )
+        raise NotFoundError(f"Resume not found: {resume_id}")
 
     upload_status = resume.get(
         "upload_status",
         "pending",
     )
 
-    if upload_status not in {
-        "pending",
-        "processing",
-        "processed",
-        "failed",
-    }:
+    if upload_status not in KNOWN_STATUSES:
         logger.warning(
             "Unknown resume status '{}' for resume {}. "
             "Falling back to 'pending'.",
@@ -176,4 +249,7 @@ async def get_resume_status(
     return ResumeStatusResponse(
         resume_id=str(resume["_id"]),
         status=upload_status,
+        reason=resume.get("status_reason"),
+        warnings=resume.get("warnings") or [],
+        confidence=ConfidenceInfo.from_document(resume),
     )

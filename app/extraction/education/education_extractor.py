@@ -5,6 +5,11 @@ from typing import Any, Dict, List
 
 from loguru import logger
 
+from app.core.config.settings import settings
+from app.extraction.grounding import ground_entries
+from app.extraction.rules import stats
+from app.extraction.rules.education_rules import parse_education
+from app.extraction.llm.json_recovery import recover_array_objects
 from app.extraction.llm.llm_extractor import LLMExtractor
 
 
@@ -98,6 +103,19 @@ class EducationExtractor:
         if not text:
             return []
 
+        if settings.EXTRACTION_RULES_FIRST:
+            by_rules = parse_education(text)
+
+            stats.record("education", by_rules is not None)
+
+            if by_rules is not None:
+                logger.debug(
+                    "Education read by rules: {} entries.",
+                    len(by_rules),
+                )
+
+                return by_rules
+
         logger.debug(
             "Starting semantic education extraction | input_chars={}",
             len(text),
@@ -106,7 +124,7 @@ class EducationExtractor:
         raw_result = self.llm_extractor.extract_info(
             text=text,
             prompt_template=self.EXTRACTION_PROMPT,
-            max_new_tokens=192,
+            max_new_tokens=settings.LLM_EDUCATION_MAX_TOKENS,
         )
 
         if not raw_result:
@@ -115,8 +133,11 @@ class EducationExtractor:
             )
             return []
 
-        result = self._parse_result(
-            raw_result
+        result = ground_entries(
+            self._parse_result(raw_result),
+            ("institution",),
+            text,
+            "education",
         )
 
         logger.debug(
@@ -146,11 +167,23 @@ class EducationExtractor:
             parsed = json.loads(text)
 
         except json.JSONDecodeError as exc:
+            recovered = recover_array_objects(text, "education")
+
+            if not recovered:
+                logger.warning(
+                    "Failed to parse education LLM output as JSON: {}",
+                    exc,
+                )
+                return []
+
             logger.warning(
-                "Failed to parse education LLM output as JSON: {}",
-                exc,
+                "LLM output appears truncated. Recovered {} complete "
+                "education entr{}.",
+                len(recovered),
+                "y" if len(recovered) == 1 else "ies",
             )
-            return []
+
+            parsed = {"education": recovered}
 
         if not isinstance(parsed, dict):
             return []

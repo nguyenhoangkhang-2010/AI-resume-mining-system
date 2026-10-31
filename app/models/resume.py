@@ -7,7 +7,7 @@ class ResumeModel(BaseModel):
     id: Optional[str] = Field(default=None, alias="_id")
     filename: str
     file_path: str
-    upload_status: str = Field(default="pending", description="Status can be pending, processed, or failed")
+    upload_status: str = Field(default="pending", description="Status can be pending, processing, processed, needs_review, or failed")
     raw_text: Optional[str] = Field(default=None, description="Extracted raw text from the resume")
     created_at: datetime = Field(default_factory=datetime.utcnow)
 
