@@ -74,6 +74,7 @@ on real hiring data.
 | Ranking | hybrid nDCG@10 0.894 vs BM25 0.784 and TF-IDF 0.786 (seniority-aware labels, 30 jobs, 300 candidates, paired bootstrap CIs; on family-only labels the hybrid is not distinguishable from BM25) | [evaluation/](docs/evaluation/README.md) |
 | Section detection | line accuracy 0.978 on 144 CVs across 6 industries, 6 page layouts and 2 languages with the LLM answering unfamiliar headings (0.860 without the LLM) | [section detection](docs/evaluation/section_detection_README.md) |
 | Extraction speed | 407 s → 42 s per CV on CPU (4 CVs); companies, roles and degrees found 1/9, 1/7, 2/4 → 9/9, 7/7, 4/4 | [extraction speed](docs/evaluation/extraction_speed_README.md) |
+| Real CVs (9 different CVs, provisional labels) | core entity F1 0.61 [0.55, 0.68] with the LLM, 0.49 without it; much lower than on synthetic CVs | [real CVs](docs/evaluation/real_cv_README.md) |
 | Code quality | about 760 tests, 81% coverage, ruff and mypy clean in CI | [CI](https://github.com/nguyenhoangkhang-2010/AI-resume-mining-system/actions/workflows/ci.yml) |
 
 ## Quick start
@@ -202,17 +203,19 @@ The optional dashboard (`pip install -r requirements-analytics.txt`):
 
 ## Limitations
 
-- **No published real-CV result yet.** Every figure above uses synthetic CVs
-  and candidates, so none is hiring accuracy. Tooling to label and score a
-  private set of real CVs exists ([real-CV evaluation](docs/evaluation/real_cv_README.md));
-  the available CVs are too similar to each other to support a claim yet.
+- **Real-CV results are preliminary.** Apart from the real-CV row, every figure above
+  uses synthetic CVs and candidates, so none is hiring accuracy. The only real CVs
+  available are 9 different ones (78 files, the rest are copies), labelled by an AI
+  assistant and not yet checked by a person; on them entity extraction is much
+  weaker than on synthetic data (companies recall 0.35 even with the LLM). See
+  [real-CV evaluation](docs/evaluation/real_cv_README.md).
 - **Languages:** headings, dates and job-title rules cover English and
   Vietnamese. Other languages fall back to the LLM, which is slower and
   unmeasured.
 - **Speed on unusual layouts:** the 42 s figure is for CVs the rules can read.
-  On 78 real CVs the experience rules answered only 7 of 64 (50 shared one
-  header they deliberately do not guess); the rest use the CPU LLM and take
-  minutes.
+  On the real CVs available the rules read little of the experience sections
+  (they refuse headers they cannot split into role and company); those go to the
+  CPU LLM and take minutes (133 s per CV on average in the real-CV run).
 - **Skills:** recall on the evaluated vocabulary is 0.47; many modern tools are
   missing from the taxonomy.
 - **Formats:** PDF only; DOCX parsing is not implemented.

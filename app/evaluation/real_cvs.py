@@ -44,6 +44,11 @@ MIN_GROUP = 3
 
 INDEX_NAME = "index.json"
 
+# Texts at least this similar are the same CV (a copy of the file), which
+# would count twice in the scores; a template shared by different people
+# is less similar and may appear a few times.
+COPY_SIMILARITY = 0.9
+
 
 @dataclass
 class LabelFile:
@@ -299,7 +304,18 @@ def pick_diverse(
     pool: List[Candidate] = []
 
     for group in near_duplicate_groups(candidates):
-        pool.extend(candidates[i] for i in group[:per_template])
+        kept: List[Candidate] = []
+
+        for index in group:
+            copy = any(
+                similarity(candidates[index].text, other.text) >= COPY_SIMILARITY
+                for other in kept
+            )
+
+            if not copy and len(kept) < per_template:
+                kept.append(candidates[index])
+
+        pool.extend(kept)
 
     if len(pool) <= count:
         return pool

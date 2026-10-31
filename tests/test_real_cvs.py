@@ -174,6 +174,19 @@ def test_a_template_used_many_times_is_capped():
     assert "other" in {c.name for c in picked}
 
 
+def test_copies_of_the_same_cv_are_never_both_picked():
+    pool = [
+        candidate("a", TEMPLATE),
+        candidate("a_copy", TEMPLATE),
+        candidate("b", TEMPLATE + " with a few other words added at the end of it for a different person"),
+    ]
+
+    names = {c.name for c in pick_diverse(pool, count=10, per_template=3)}
+
+    assert not {"a", "a_copy"} <= names
+    assert "b" in names
+
+
 def test_picking_prefers_variety():
     pool = [
         candidate(f"en{n}", f"english cv number {n} " * 30 + str(n), columns=1)

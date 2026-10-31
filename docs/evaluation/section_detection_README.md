@@ -54,7 +54,7 @@ language.
 - Matching unfamiliar headings by embedding similarity was tried and
   rejected: it mislabelled ordinary lines (for example the major name
   "Information Technology" scored as a skills heading with similarity 0.82).
-- 78 real CVs (unlabelled, 1 page each) are not part of the score. After the
+- 78 real files (unlabelled, 1 page each) are not part of the score. (The 78 files turned out to be only 9 different CVs, the rest exact copies, so counts out of 78 overstate how varied they are; see [real_cv_README.md](real_cv_README.md).) After the
   change an experience section is found in 63 of them (it was found
   confidently in 1 of 66 before) and the regions needing the LLM fell from 43%
   to 37 in total; 15 of the 78 still show none of experience, education or
@@ -150,7 +150,7 @@ the same heading is free.
   from. It is tested but not yet run on real extraction output, which needs
   the 7B model for every CV (about 8 minutes each on CPU); that belongs to the
   speed work.
-- On the 78 real CVs (unlabelled, not scored) the new stages ran without
+- On the 78 real files (unlabelled, not scored) the new stages ran without (The 78 files turned out to be only 9 different CVs, the rest exact copies, so counts out of 78 overstate how varied they are; see [real_cv_README.md](real_cv_README.md).)
   failures and kept the same sections (skills found in 75 of 78); an average
   of 0.8 headings per CV were found by their look (almost all "Additional
   Information"), and the regions sent to the LLM fallback fell from 41 to 36.

@@ -94,7 +94,7 @@ Per stage, before and after (seconds per CV):
   written by the same author as the corpus, so the 100% on companies, roles and
   schools is optimistic. The comparison that matters is the one between rows:
   the same CVs, with and without each change.
-- **On real CVs the rules answer less often.** On 78 real CVs (unlabelled, not
+- **On real CVs the rules answer less often.** (The 78 files turned out to be only 9 different CVs, the rest exact copies, so counts out of 78 overstate how varied they are; see [real_cv_README.md](real_cv_README.md).) On 78 real CVs (unlabelled, not
   scored) they read the education section in 72 of 78 cases and the summary in
   55 of 56, but the experience section in only 7 of 64: 50 of those CVs share
   one header ("ABBREVIATION - Company name", no job title) that the rules
