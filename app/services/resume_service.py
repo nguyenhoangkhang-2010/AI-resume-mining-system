@@ -27,6 +27,7 @@ from app.services.resume_quality import (
     PROCESSED,
     assess_extraction,
     failure_reason,
+    is_retryable,
 )
 from app.database.mongodb.id_generator import next_faiss_id
 from app.matching.embedding_text import CandidateTextBuilder
@@ -92,7 +93,14 @@ class ResumeService:
     def process_resume(
         self,
         resume_id: str,
+        retry_possible: bool = False,
     ) -> None:
+        """
+        Runs the pipeline on a resume and records the result. On failure the
+        resume is marked `failed` and the error is raised again, unless
+        `retry_possible` is set and the error may be temporary: then it is
+        only raised, and the caller (the queue worker) decides what happens.
+        """
 
         logger.info(
             "Starting background resume processing: {}",
@@ -226,6 +234,9 @@ class ResumeService:
                 resume_id,
                 e,
             )
+
+            if retry_possible and is_retryable(e):
+                raise
 
             try:
                 self._update_resume_status(
@@ -448,13 +459,17 @@ class ResumeService:
                 "confidence"
             ] = confidence
 
+        update: dict[str, Any] = {"$set": update_data}
+
+        if status != "processing":
+            # The attempt is over: the queue's lease no longer applies.
+            update["$unset"] = {"lease_expires": "", "worker_id": ""}
+
         self.resumes_col.update_one(
             {
                 "_id": ObjectId(
                     resume_id
                 )
             },
-            {
-                "$set": update_data
-            },
+            update,
         )

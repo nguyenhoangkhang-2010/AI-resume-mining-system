@@ -78,6 +78,7 @@ on real hiring data.
 | Area | Result | Report |
 |---|---|---|
 | Ranking | hybrid nDCG@10 0.894 vs BM25 0.784 and TF-IDF 0.786 (seniority-aware labels, 30 jobs, 300 candidates, paired bootstrap CIs; on family-only labels the hybrid is not distinguishable from BM25) | [evaluation/](docs/evaluation/README.md) |
+| Platform | uploads wait in a durable queue (survives restarts, retries, bounded concurrency); Prometheus metrics, request ids, `/ready`; CI fails when ranking or section quality drops; load test: matching holds 7-13 requests/s on CPU from 1 to 16 callers (latency grows with callers) | [platform](docs/platform.md) |
 | Reranking | a cross-encoder second stage made nDCG@10 worse at every weight (0.880 → 0.855 at the lowest, test set of 60 jobs); kept as an option, off by default | [ranking quality](docs/evaluation/ranking_quality.md) |
 | Fairness | counterfactual audit: a pronoun or a name in the summary moved scores of up to half the candidates; removing them before embedding brought the shift to 0.00. A women-in-engineering line (ratio 0.87) and a Vietnamese-language CV (0.91) still score slightly lower | [ranking quality](docs/evaluation/ranking_quality.md) |
 | Section detection | line accuracy 0.978 on 144 CVs across 6 industries, 6 page layouts and 2 languages with the LLM answering unfamiliar headings (0.860 without the LLM) | [section detection](docs/evaluation/section_detection_README.md) |
@@ -241,9 +242,10 @@ The optional dashboard (`pip install -r requirements-analytics.txt`):
   untested beyond the conversion to a page). Word text in pictures, footers and legacy `.doc`
   files are not read; a Word file has no page geometry, so layout is simulated
   from paragraphs, tables and text boxes (see [docx parsing](docs/evaluation/docx_parsing.md)).
+- **Scale:** the vector index lives in the memory of the API process, so the CV workers run inside it and one process serves traffic; scaling out needs a shared vector store ([platform](docs/platform.md)).
 - **Scale and auth:** one process, in-memory rate limits, static API keys; no
   user accounts or JWT. Scanned CVs need Tesseract.
-- **Fairness** has not been audited yet.
+- **Fairness** was audited only with synthetic counterfactual pairs (pronouns, names, CV language, career break); two small gaps remain, and nothing is known about bias that exists only in real CVs ([ranking quality](docs/evaluation/ranking_quality.md)).
 
 ## Roadmap
 

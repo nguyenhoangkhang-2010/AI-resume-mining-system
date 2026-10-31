@@ -354,17 +354,19 @@ def _pool(dataset: EvalDataset, candidates: List[EvalCandidate]) -> EvalDataset:
     )
 
 
-def audit(
+def score_shift(
     ranker: Ranker,
     dataset: EvalDataset,
     counterfactual: Counterfactual,
-    top_k: int = 10,
-    repeats: int = 8,
     seed: int = 0,
-) -> AuditResult:
-    """Runs one counterfactual against one ranker."""
+) -> Tuple[float, float, float, float]:
+    """
+    The same candidates scored once as group A and once as group B. Returns
+    the mean difference (A minus B) in points with its 95% interval over
+    jobs, and the share of candidate-job pairs that moved by one point or
+    more.
+    """
 
-    # Score shift: every candidate once as A and once as B.
     rng = random.Random(seed)
     as_a = [counterfactual.group_a(c, random.Random(rng.random())) for c in dataset.candidates]
     as_b = [counterfactual.group_b(c, random.Random(rng.random())) for c in dataset.candidates]
@@ -388,7 +390,24 @@ def audit(
         moved += sum(abs(shift) >= MOVED_BY_POINTS for shift in shifts)
         compared += len(shifts)
 
-    mean_shift, shift_low, shift_high = metrics.bootstrap_mean_ci(per_job_shift, seed=seed)
+    mean, low, high = metrics.bootstrap_mean_ci(per_job_shift, seed=seed)
+
+    return mean, low, high, moved / compared if compared else 0.0
+
+
+def audit(
+    ranker: Ranker,
+    dataset: EvalDataset,
+    counterfactual: Counterfactual,
+    top_k: int = 10,
+    repeats: int = 8,
+    seed: int = 0,
+) -> AuditResult:
+    """Runs one counterfactual against one ranker."""
+
+    mean_shift, shift_low, shift_high, share_moved = score_shift(
+        ranker, dataset, counterfactual, seed
+    )
 
     # Selection ratio: random halves, one pool with both groups.
     units: List[Unit] = []
@@ -425,7 +444,7 @@ def audit(
         mean_shift=mean_shift,
         shift_low=shift_low,
         shift_high=shift_high,
-        share_moved=moved / compared if compared else 0.0,
+        share_moved=share_moved,
         selected=sum(u.selected_a + u.selected_b for u in units),
         per_unit=units,
     )

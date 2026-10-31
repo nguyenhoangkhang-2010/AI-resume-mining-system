@@ -14,6 +14,7 @@ INDEXES: Dict[str, List[dict]] = {
     ],
     "resumes": [
         {"keys": [("upload_status", ASCENDING)], "name": "upload_status"},
+        {"keys": [("upload_status", ASCENDING), ("created_at", ASCENDING)], "name": "upload_status_created"},
     ],
     "jobs": [
         {"keys": [("created_at", DESCENDING)], "name": "created_at_desc"},

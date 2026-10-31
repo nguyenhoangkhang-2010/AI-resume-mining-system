@@ -109,6 +109,24 @@ docker build -f docker/Dockerfile --build-arg WITH_LLAMA_CPP=false -t ai-resume-
   docker compose exec api python -m scripts.reindex_candidates --dry-run
   ```
 
+## Processing queue, health and metrics
+
+Uploaded CVs wait in the database and worker threads inside the API process take
+them (`PROCESSING_MODE=queue`, the default): they survive a restart, failures that
+may be temporary are retried, and `WORKER_CONCURRENCY` limits how many run at
+once. Details and limits: [platform.md](platform.md).
+
+| Endpoint | Use |
+|---|---|
+| `/health` | liveness; 503 while MongoDB is unreachable |
+| `/ready` | readiness: database up, models loaded, warm-up finished, worker threads alive; point the orchestrator's readiness probe here (the warm-up takes about half a minute after the models load) |
+| `/metrics` | Prometheus text; needs an admin key when authentication is on (`Authorization: Bearer <admin key>`); `METRICS_ENABLED=false` removes it |
+
+Set `LOG_FORMAT=json` for one JSON object per log line; every line carries the
+`request_id` (also returned as the `X-Request-ID` header) and, in the worker,
+the `resume_id`. After an upgrade that changes the embedding text
+(`EMBEDDING_VERSION`), stop the API and run `scripts.reindex_candidates`.
+
 ## Dependencies
 
 `requirements.txt` holds the pinned runtime dependencies. Optional extras:

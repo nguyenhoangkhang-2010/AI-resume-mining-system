@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Literal, Optional
 
 from pydantic_settings import BaseSettings
 
@@ -158,6 +158,51 @@ class Settings(BaseSettings):
     HEADING_CACHE_PATH: str = "faiss_index/heading_cache.json"
 
     LOG_LEVEL: str = "INFO"
+
+    # "text" for people, "json" (one object per line) for log collectors.
+    LOG_FORMAT: Literal["text", "json"] = "text"
+
+    # --- Processing of uploaded CVs ---------------------------------------
+    # "queue": uploads wait in the database and a worker takes them one by
+    # one, so they survive a restart, are retried and are limited in number.
+    # "inline": the old behaviour, a background task of the API process.
+    PROCESSING_MODE: Literal["queue", "inline"] = "queue"
+
+    # Run the worker threads inside the API process. They have to be here:
+    # the vector index lives in the memory of the process that adds to it, so
+    # a separate worker process would index CVs the API could not find. False
+    # only stops processing (uploads wait in the queue), for maintenance.
+    WORKER_EMBEDDED: bool = True
+
+    # CVs processed at the same time. The language model runs one prompt at a
+    # time, so more than 2 mostly adds memory use.
+    WORKER_CONCURRENCY: int = 1
+
+    WORKER_POLL_SECONDS: float = 2.0
+
+    # A worker that has not renewed its lease for this long is presumed dead
+    # and its CV is given to another. Longer than the slowest CV on your CPU.
+    WORKER_LEASE_SECONDS: int = 600
+
+    # Tries per CV for errors that may be temporary; the delay before the
+    # next try doubles from WORKER_RETRY_BACKOFF_SECONDS.
+    WORKER_MAX_ATTEMPTS: int = 3
+
+    WORKER_RETRY_BACKOFF_SECONDS: int = 30
+
+    # How long a stopping API waits for CVs being processed.
+    WORKER_SHUTDOWN_SECONDS: int = 30
+
+    # Vectors of single texts kept in memory (a job or a search query that
+    # is asked again is not embedded again). 0 turns it off.
+    EMBEDDING_CACHE_SIZE: int = 512
+
+    # Load the job services and models used by the first request while the
+    # API starts instead of when the first caller arrives (/ready says when).
+    WARMUP_ENABLED: bool = True
+
+    # Prometheus metrics at /metrics (needs an admin key when auth is on).
+    METRICS_ENABLED: bool = True
 
     hf_token: Optional[str] = None
 
