@@ -12,7 +12,7 @@ python -m scripts.run_evaluation --dataset data/evaluation/synthetic_v1 --out do
 (semantic rows are then not meaningful) and `--skip-extraction` skips the
 skill-extraction benchmark. The full report is in
 [synthetic_v1.md](synthetic_v1.md). Recommending jobs to candidates is evaluated in
-[job_recommendation.md](job_recommendation.md). What the extraction-quality branch changed: [extraction_quality.md](extraction_quality.md). Reranking and the fairness audit: [ranking_quality.md](ranking_quality.md). Evaluation on real CVs (private labels,
+[job_recommendation.md](job_recommendation.md). What the extraction-quality branch changed: [extraction_quality.md](extraction_quality.md). Reranking and the fairness audit: [ranking_quality.md](ranking_quality.md); the platform and the load test: [../platform.md](../platform.md). Evaluation on real CVs (private labels,
 aggregate results only) is described in [real_cv_README.md](real_cv_README.md).
 
 ## How the data and labels are built

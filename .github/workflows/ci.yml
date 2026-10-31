@@ -47,6 +47,43 @@ jobs:
       - name: Run ruff
         run: ruff check .
 
+  frontend:
+    name: Frontend (types, tests, build)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v5
+
+      - name: Set up Node
+        uses: actions/setup-node@v5
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install
+        working-directory: frontend
+        run: npm ci
+
+      # The types come from the API's own description (frontend/openapi.json),
+      # so a change to a response shape fails here. The Python test
+      # tests/test_openapi_contract.py fails when that file is out of date.
+      - name: Types
+        working-directory: frontend
+        run: npx tsc -b
+
+      - name: Tests
+        working-directory: frontend
+        run: npm test
+
+      - name: Build (live and demo)
+        working-directory: frontend
+        run: |
+          npm run build
+          npm run build:demo
+
   test:
     name: Types and tests
     runs-on: ubuntu-latest

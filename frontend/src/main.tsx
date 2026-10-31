@@ -1,26 +1,17 @@
 import React from "react";
 import ReactDOM from "react-dom/client";
 
-import {
-  BrowserRouter,
-} from "react-router-dom";
-
 import App from "./app/App";
-import { Providers } from "./app/providers";
+import { ConnectionProvider } from "./app/context";
+import "@fontsource-variable/fraunces";
+import "@fontsource-variable/geist";
+import "@fontsource-variable/geist-mono";
+import "./styles.css";
 
-import "./styles/globals.css";
-
-
-ReactDOM
-  .createRoot(
-    document.getElementById("root")!
-  )
-  .render(
-    <React.StrictMode>
-      <Providers>
-        <BrowserRouter>
-          <App />
-        </BrowserRouter>
-      </Providers>
-    </React.StrictMode>
-  );
+ReactDOM.createRoot(document.getElementById("root")!).render(
+  <React.StrictMode>
+    <ConnectionProvider>
+      <App />
+    </ConnectionProvider>
+  </React.StrictMode>,
+);
