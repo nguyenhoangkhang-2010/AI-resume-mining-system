@@ -35,6 +35,7 @@ class RankingPipeline:
         ranking_sorter=None,
         candidate_scorer=None,
         score_filter=None,
+        reranker=None,
     ):
         self.similarity_engine = (
             similarity_engine
@@ -67,6 +68,7 @@ class RankingPipeline:
         )
 
         self.candidate_scorer = candidate_scorer
+        self.reranker = reranker
 
         self.score_filter = score_filter or ScoreThresholdFilter(
             threshold=self.ranking_filter.config.min_overall_score,
@@ -80,6 +82,7 @@ class RankingPipeline:
     ) -> RankingResult:
 
         ranked_list = []
+        profile_of: Dict[int, CandidateModel] = {}
         filtered_candidates = 0
         hybrid = self.candidate_scorer is not None
 
@@ -110,10 +113,18 @@ class RankingPipeline:
             ranked_list.append(
                 ranked_candidate
             )
+            profile_of[id(ranked_candidate)] = candidate
 
         ranked_list = self.ranking_sorter.sort(
             ranked_list
         )
+
+        if self.reranker is not None and hybrid:
+            ranked_list = self.reranker.rerank(
+                job,
+                ranked_list,
+                profile_of,
+            )
 
         return RankingResult(
             results=ranked_list,

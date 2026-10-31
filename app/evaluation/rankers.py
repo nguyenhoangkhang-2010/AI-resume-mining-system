@@ -10,9 +10,10 @@ from app.evaluation.pooling import ProfileEmbedder
 from app.evaluation.dataset import EvalCandidate, EvalDataset, EvalJob
 from app.matching.embedding_text import CandidateTextBuilder, JobTextBuilder
 from app.matching.ranking.candidate_scorer import HybridCandidateScorer
+from app.matching.reranking.cross_encoder_reranker import PairScorer, fuse_scores
 from app.matching.scoring.skill_overlap_scorer import SkillOverlapScorer
 from app.matching.similarity.similarity_engine import SimilarityEngine
-from app.models.candidate import CandidateModel, Experience
+from app.models.candidate import CandidateModel, Experience, PersonalInfo
 from app.models.job import JobModel
 
 
@@ -126,6 +127,7 @@ def to_candidate_model(
 
     return CandidateModel(
         resume_id=candidate.id,
+        personal_info=PersonalInfo(full_name=candidate.full_name or None),
         summary=candidate.summary,
         skills=skills,
         normalized_skills=list(
@@ -450,6 +452,66 @@ class HybridRanker(Ranker):
             )
 
             result[candidate.resume_id] = matching.overall_score
+
+        return result
+
+
+class RerankedRanker(Ranker):
+    """
+    A first-stage ranker whose best `top_n` candidates are reordered by a
+    cross-encoder blended with the first-stage score, as the production
+    reranker does (CrossEncoderReranker). Candidates below the window keep
+    their first-stage order.
+    """
+
+    def __init__(
+        self,
+        base: Ranker,
+        pair_scorer: PairScorer,
+        normalizer,
+        top_n: int = 50,
+        weight: float = 0.5,
+        name: str | None = None,
+    ):
+        self.base = base
+        self.pair_scorer = pair_scorer
+        self.normalizer = normalizer
+        self.top_n = top_n
+        self.weight = weight
+        self.candidate_builder = CandidateTextBuilder()
+        self.job_builder = JobTextBuilder()
+        self.name = name or f"{base.name}+rerank(w={weight:g},n={top_n})"
+
+    def prepare(self, dataset: EvalDataset) -> None:
+        super().prepare(dataset)
+
+        self.base.prepare(dataset)
+
+        self.texts = {
+            candidate.id: self.candidate_builder.text(
+                to_candidate_model(candidate, index, self.normalizer)
+            )
+            for index, candidate in enumerate(dataset.candidates)
+        }
+
+    def scores(self, job: EvalJob) -> Dict[str, float]:
+        base_scores = self.base.scores(job)
+
+        ordered = sorted(base_scores, key=lambda cid: (-base_scores[cid], cid))
+        window, tail = ordered[: self.top_n], ordered[self.top_n:]
+
+        job_text = self.job_builder.text(to_job_model(job, self.normalizer))
+        raw = self.pair_scorer.score([(job_text, self.texts[cid]) for cid in window])
+        fused = fuse_scores([base_scores[cid] for cid in window], raw, self.weight)
+
+        result = dict(zip(window, fused))
+
+        # Everything below the window stays below it.
+        floor = min(fused, default=0.0) - 1.0
+        lowest = max((base_scores[cid] for cid in tail), default=0.0)
+
+        for cid in tail:
+            result[cid] = floor - (lowest - base_scores[cid])
 
         return result
 

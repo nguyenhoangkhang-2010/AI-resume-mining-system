@@ -22,6 +22,14 @@ class ScoreBreakdown(BaseModel):
         description="Candidate experience versus the job requirement (0-100)"
     )
 
+    rerank_score: Optional[float] = Field(
+        default=None,
+        description=(
+            "Cross-encoder score of the reranking stage, scaled 0-100 over the "
+            "reranked candidates; present only when reranking is enabled"
+        )
+    )
+
     confidence_score: float = Field(
         default=0.0,
         description="Average of the available component scores (0-100)"

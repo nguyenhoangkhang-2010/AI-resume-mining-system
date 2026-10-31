@@ -114,7 +114,8 @@ Each result has the job (`title`, `location`, `experience_years`,
 `required_skills`), a `score` (0-100) that orders the list, `skill_gaps` (the
 required skills the profile does not show) and a `score_breakdown` with the
 skill, semantic and experience scores, the matched skills and a sentence
-explaining each. Scores use the same hybrid scorer and weights as ranking
+explaining each (`rerank_score` is present only when reranking is enabled, see
+[ranking quality](evaluation/ranking_quality.md)). Scores use the same hybrid scorer and weights as ranking
 candidates for a job, so a job and a candidate get the same score whichever
 is the query. The `metadata` says how many jobs were retrieved, left out by
 the score and location filters, and how many jobs have no vector yet

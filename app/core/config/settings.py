@@ -122,6 +122,19 @@ class Settings(BaseSettings):
     # ones: more languages, or a field's own job titles and employer words.
     VOCABULARY_DIR: Optional[str] = None
 
+    # Second-stage reranking of the best matches with a cross-encoder (see
+    # docs/evaluation/ranking_quality.md). Off by default: it adds a model
+    # download and about one model run per reranked candidate per request.
+    RERANKER_ENABLED: bool = False
+
+    RERANKER_MODEL: str = "cross-encoder/mmarco-mMiniLMv2-L12-H384-v1"
+
+    # How many of the best candidates are reranked, and how much of the final
+    # score comes from the cross-encoder (0 = none, 1 = all of it).
+    RERANKER_TOP_N: int = 50
+
+    RERANKER_WEIGHT: float = 0.25
+
     # Read regular experience/education/summary sections with rules and
     # ask the model only when a layout is not understood.
     EXTRACTION_RULES_FIRST: bool = True

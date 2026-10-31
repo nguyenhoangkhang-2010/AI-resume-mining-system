@@ -16,4 +16,4 @@ EMBEDDING_DIMENSION = 384
 
 # Identifies how candidate/job vectors are built. Bump it whenever the text
 # builders change and rebuild the index with scripts/reindex_candidates.py.
-EMBEDDING_VERSION = "profile-v1"
+EMBEDDING_VERSION = "profile-v2"

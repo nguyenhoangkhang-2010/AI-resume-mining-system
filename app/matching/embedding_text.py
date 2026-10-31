@@ -9,6 +9,13 @@ long summary cannot push the skills out of the window.
 
 from typing import Any, Dict, Iterable, List
 
+from app.matching.neutral_text import neutralise
+
+
+# Gendered pronouns and the person's name are removed from the text of a
+# candidate before it is embedded (see neutral_text.py). Switched off only by
+# the fairness audit, to measure what it does.
+NEUTRALISE_TEXT = True
 
 MAX_ROLES = 3
 MAX_BULLETS = 8
@@ -67,7 +74,14 @@ class CandidateTextBuilder:
             getattr(entry, "role", None) for entry in experience
         )[:MAX_ROLES]
 
-        summary = getattr(candidate, "summary", None) or ""
+        full_name = getattr(
+            getattr(candidate, "personal_info", None), "full_name", None
+        )
+
+        def clean(text: str) -> str:
+            return neutralise(text, full_name) if NEUTRALISE_TEXT else text
+
+        summary = clean(getattr(candidate, "summary", None) or "")
 
         headline = ". ".join(
             part for part in (", ".join(roles), summary.strip()) if part
@@ -80,7 +94,7 @@ class CandidateTextBuilder:
         )
 
         bullets = _unique(
-            line
+            clean(line) if isinstance(line, str) else line
             for entry in experience
             for line in [
                 *(getattr(entry, "description", None) or []),
