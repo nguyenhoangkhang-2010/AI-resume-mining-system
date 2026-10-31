@@ -26,6 +26,7 @@ from typing import Any, Dict, List, Optional, Sequence, Tuple
 from loguru import logger
 
 from app.evaluation.cv_industries import IndustryCorpusBuilder, IndustryDocument
+from app.evaluation.pipeline_factory import build_pipeline as build_shared_pipeline
 from app.extraction.rules import stats
 from app.evaluation.field_eval import (
     FIELDS,
@@ -160,30 +161,10 @@ class TimedExtractor:
 
 
 def build_pipeline(recorder: RecordingLLM, timings: Dict[str, float]):
-    from app.extraction.extraction_engine import ExtractionEngine
-    from app.extraction.section.heading_cache import HeadingCache
-    from app.extraction.section.heading_classifier import HeadingClassifier
-    from app.extraction.section.section_classifier import SectionClassifier
-    from app.extraction.section.section_detector import SectionDetector
-    from app.extraction.section.section_semantic_classifier import (
-        SectionSemanticClassifier,
+    return build_shared_pipeline(
+        recorder,
+        lambda name, extractor: TimedExtractor(name, extractor, timings),
     )
-    from app.resume_processing.pipelines.resume_pipeline import ResumePipeline
-
-    detector = SectionDetector(
-        semantic_classifier=SectionSemanticClassifier(),
-        llm_classifier=SectionClassifier(llm_extractor=recorder),  # type: ignore[arg-type]
-        heading_classifier=HeadingClassifier(),
-        heading_cache=HeadingCache(),
-    )
-    engine = ExtractionEngine(llm_extractor=recorder)  # type: ignore[arg-type]
-
-    engine.extractors = {
-        name: TimedExtractor(name, extractor, timings)
-        for name, extractor in engine.extractors.items()
-    }
-
-    return ResumePipeline(detector, engine)
 
 
 def benchmark(
