@@ -33,6 +33,22 @@ def _is_school_line(line: str) -> bool:
     )
 
 
+def _is_broken_line(line: str) -> bool:
+    """
+    A line that is a piece of something else: the end of a wrapped line
+    (starts in lower case), a line cut in the middle of a word ("Confec-"), or
+    two sentences run together ("Biology. Faculty of ...").
+    """
+
+    text = line.strip()
+
+    return (
+        text[:1].islower()
+        or text.endswith("-")
+        or bool(re.search(r"[a-z)]\.\s+[A-Z]", text))
+    )
+
+
 def _years(lines: List[str]) -> tuple[Optional[int], Optional[int]]:
     for line in lines:
         found = find_range(line)
@@ -86,6 +102,9 @@ def parse_education(text: str) -> Optional[List[Dict[str, Any]]]:
     if not schools:
         return None
 
+    if any(_is_broken_line(lines[index]) for index in schools):
+        return None
+
     # Does the degree come before the school ("BSc / University / years")?
     degree_first = schools[0] > 0 and is_degree(lines[schools[0] - 1])
 
@@ -137,5 +156,16 @@ def parse_education(text: str) -> Optional[List[Dict[str, Any]]]:
                 "gpa": _gpa(others),
             }
         )
+
+    # A school with no degree and no year is probably not a school entry
+    # (an activity that mentions a university, a degree line that says
+    # "school"): better to let the model read the section.
+    if any(
+        not entry["degree_level"]
+        and entry["start_year"] is None
+        and entry["end_year"] is None
+        for entry in entries
+    ):
+        return None
 
     return entries

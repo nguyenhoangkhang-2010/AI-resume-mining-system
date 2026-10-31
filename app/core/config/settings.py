@@ -110,6 +110,10 @@ class Settings(BaseSettings):
     # prompt, so they are read once instead of for every resume. 0 turns it off.
     LLM_PREFIX_CACHE_MB: int = 1024
 
+    # Extra directory of vocabulary files (*.json) merged with the built-in
+    # ones: more languages, or a field's own job titles and employer words.
+    VOCABULARY_DIR: Optional[str] = None
+
     # Read regular experience/education/summary sections with rules and
     # ask the model only when a layout is not understood.
     EXTRACTION_RULES_FIRST: bool = True

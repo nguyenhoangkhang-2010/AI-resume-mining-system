@@ -75,7 +75,7 @@ on real hiring data.
 | Section detection | line accuracy 0.978 on 144 CVs across 6 industries, 6 page layouts and 2 languages with the LLM answering unfamiliar headings (0.860 without the LLM) | [section detection](docs/evaluation/section_detection_README.md) |
 | Extraction speed | 407 s → 42 s per CV on CPU (4 CVs); companies, roles and degrees found 1/9, 1/7, 2/4 → 9/9, 7/7, 4/4 | [extraction speed](docs/evaluation/extraction_speed_README.md) |
 | Job recommendation | for a candidate, hybrid nDCG@3 0.705 vs 0.152 for random order (seniority-aware labels, 300 candidates ranking 30 jobs; synthetic) | [job recommendation](docs/evaluation/job_recommendation.md) |
-| Real CVs (9 different CVs, provisional labels) | core entity F1 0.61 [0.55, 0.68] with the LLM, 0.49 without it; much lower than on synthetic CVs | [real CVs](docs/evaluation/real_cv_README.md) |
+| Real CVs (9 different CVs, provisional labels) | core entity F1 0.62 [0.53, 0.75] with the LLM, 0.46 without it; much lower than on synthetic CVs | [real CVs](docs/evaluation/real_cv_README.md) |
 | Code quality | about 760 tests, 81% coverage, ruff and mypy clean in CI | [CI](https://github.com/nguyenhoangkhang-2010/AI-resume-mining-system/actions/workflows/ci.yml) |
 
 ## Quick start
@@ -208,7 +208,7 @@ The optional dashboard (`pip install -r requirements-analytics.txt`):
   uses synthetic CVs and candidates, so none is hiring accuracy. The only real CVs
   available are 9 different ones (78 files, the rest are copies), labelled by an AI
   assistant and not yet checked by a person; on them entity extraction is much
-  weaker than on synthetic data (companies recall 0.35 even with the LLM). See
+  weaker than on synthetic data (companies recall 0.47 even with the LLM). See
   [real-CV evaluation](docs/evaluation/real_cv_README.md).
 - **Languages:** headings, dates and job-title rules cover English and
   Vietnamese. Other languages fall back to the LLM, which is slower and

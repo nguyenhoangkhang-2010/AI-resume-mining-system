@@ -107,10 +107,31 @@ the rules answered versus the model.
 
 ## First results (9 different real CVs, provisional labels)
 
-| Mode | Core entity F1 [95% interval] | Companies recall | Roles recall | Names found | Seconds per CV |
+The first row of each pair is the run before the vocabulary work
+(`refactor/data-driven-vocabulary`), the second the current code.
+
+| Mode | Core entity F1 [95% interval] | Companies: precision / recall | Roles: precision / recall | Names found | Seconds per CV |
 |---|---|---|---|---|---|
-| Rules, NER and embeddings only ([report](real_cv_results_rules.md)) | 0.49 [0.32, 0.68] | 0.12 | 0.26 | 5 of 9 | 8 |
-| Full pipeline with the local LLM ([report](real_cv_results.md)) | 0.61 [0.55, 0.68] | 0.35 | 0.63 | 6 of 9 | 133 (median 150; run while other jobs used the CPU) |
+| Rules only, before | 0.49 [0.32, 0.68] | 0.67 / 0.12 | 1.00 / 0.26 | 5 of 9 | 8 |
+| Rules only, now ([report](real_cv_results_rules.md)) | 0.46 [0.16, 0.74] | 1.00 / 0.29 | 1.00 / 0.37 | 5 of 9 | 7 |
+| Full pipeline, before | 0.61 [0.55, 0.68] | 0.75 / 0.35 | 0.85 / 0.63 | 6 of 9 | 133 |
+| Full pipeline, now ([report](real_cv_results.md)) | 0.62 [0.53, 0.75] | 0.89 / 0.47 | 0.86 / 0.68 | 6 of 9 | 162 |
+
+What changed in the rules: where they answer, they are now right (a wrong
+employer or title is no longer returned, and a school that may be misread goes to
+the model), and they answer more often for experience (4 of 8 sections instead
+of 3). They answer less often for education (3 of 9 instead of 6, the cost of
+the safeguard) and for projects (2 instead of 3, because header lines are now
+recognised more strictly). That shows as higher precision and recall for companies and roles. In the
+rules-only mode the core F1 does not rise, because the safeguards for education
+send more sections to the model, which that mode does not have; in the full
+pipeline the difference in core F1 (0.61 to 0.62) is far inside the interval and
+means nothing. Degrees look worse in the full pipeline (precision 0.64 to 0.50)
+because the model returns a level ("Bachelor") where the rules returned the line
+of the CV ("Bachelor of Information Technology"), and the scoring counts a
+one-word level as a miss; it is a difference of format, not necessarily of
+quality. Times of the two full runs are not comparable (other jobs were using
+the CPU in both).
 
 Section detection finds the sections these CVs have (education and skills 9
 of 9 and 8 of 8, experience 7 of 7, with one section reported that is not

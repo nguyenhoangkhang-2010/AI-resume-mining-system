@@ -160,9 +160,9 @@ def test_a_bullet_that_mentions_years_is_not_a_job():
     [
         ("Built things\nWrote code", "no date range"),
         ("", "no date range"),
-        ("Some stray line\nBackend Engineer - Northwind Labs\n2022 - 2025", "text before the first job"),
+        ("Some stray line\nBackend Engineer - Northwind Labs\n2022 - 2025", "role and company not told apart"),
         ("BAT - British American Tobacco\n2020 - 2022\n- Sold", "role and company not told apart"),
-        ("Acme\nBackend Engineer\nNorth\n2020 - 2022", "text before the first job"),
+        ("Acme\nBackend Engineer\nNorth\n2020 - 2022", "role and company not told apart"),
     ],
 )
 def test_unclear_layouts_are_left_to_the_model(text, reason):
@@ -308,3 +308,138 @@ def test_the_rules_can_be_turned_off(monkeypatch):
     ExperienceExtractor(llm).extract(HEADER_FIRST)
 
     assert len(llm.calls) == 1
+
+
+# ------------------------------------- layouts seen in real CVs (invented data)
+
+
+def pairs(jobs):
+    return [(job["role"], job["company"]) for job in jobs]
+
+
+def test_role_at_company_with_the_country_and_a_dotted_date():
+    jobs = parse_experience(
+        "Senior data scientist at Acme Corp (Luxembourg). 2021.04–pres.\n"
+        "⋄Natural language processing, topic modelling\n"
+        "Data analyst at Globex Ltd. (France).\n"
+        "2018.02–2018.12\n"
+        "⋄Data collection processes"
+    )
+
+    assert pairs(jobs) == [
+        ("Senior data scientist", "Acme Corp"),
+        ("Data analyst", "Globex Ltd."),
+    ]
+    assert [job["location"] for job in jobs] == ["Luxembourg", "France"]
+    assert jobs[0]["end_date"] == "pres."
+    assert jobs[1]["description"] == ["Data collection processes"]
+
+
+def test_title_dates_employer_and_city_in_that_order():
+    jobs = parse_experience(
+        "Undergraduate Research Assistant\nJune 2020 – Present\nTexas Tech University\n"
+        "Lubbock, TX\n• Developed a REST API\n"
+        "Information Technology Support Specialist\nSep. 2018 – Present\n"
+        "Southern University\nGeorgetown, TX\n• Maintained campus computers"
+    )
+
+    assert pairs(jobs) == [
+        ("Undergraduate Research Assistant", "Texas Tech University"),
+        ("Information Technology Support Specialist", "Southern University"),
+    ]
+    assert jobs[0]["location"] == "Lubbock, TX"
+    assert jobs[1]["description"] == ["Maintained campus computers"]
+
+
+def test_a_word_for_a_sector_in_a_title_does_not_make_it_an_employer():
+    jobs = parse_experience(
+        "Information Technology Support Specialist\n2018 - 2020\nSouthern University\n- Fixed printers"
+    )
+
+    assert pairs(jobs) == [("Information Technology Support Specialist", "Southern University")]
+
+
+MARKED = (
+    "• Alpha Systems\nAustin, TX\nSoftware Engineer\nOct 2016 - Present\n"
+    "◦Built pipelines for training the models used in production every day\n"
+    "• Beta Labs\nAustin, TX\nSenior Software Engineer\nJan 2014 - Oct 2016\n"
+    "◦Wrote the notification services that send millions of emails per day\n"
+)
+
+
+def test_employers_marked_with_their_own_symbol():
+    jobs = parse_experience(MARKED)
+
+    assert pairs(jobs) == [
+        ("Software Engineer", "Alpha Systems"),
+        ("Senior Software Engineer", "Beta Labs"),
+    ]
+    assert jobs[0]["description"][0].startswith("Built pipelines")
+
+
+def test_an_employer_without_a_readable_date_hands_the_section_to_the_model():
+    text = MARKED + "• Gamma Works\nBoston, MA\nData Scientist\nSummer 2012 and 2013\n◦Created models for hedging\n"
+
+    assert parse_experience(text) is None
+
+
+def test_employer_line_with_a_dash_dates_then_the_title():
+    jobs = parse_experience(
+        "BIG BANK PLC - HEAD OFFICE\nFeb 2026 - Present\nProduction Intern\n- Coordinated project documents"
+    )
+
+    assert pairs(jobs) == [("Production Intern", "BIG BANK PLC - HEAD OFFICE")]
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "Engineer\nManager\n2020 - 2022\n- Did things",
+        "Some Team\nOther Team\n2020 - 2022\n- Did things",
+        "Backend Engineer - Acme Systems\nStray Words\n2020 - 2022\n- Did things",
+    ],
+)
+def test_headers_that_cannot_be_typed_go_to_the_model(text):
+    assert parse_experience(text) is None
+
+
+def test_a_short_bullet_per_job_is_not_mistaken_for_an_employer_marker():
+    jobs = parse_experience(
+        "Backend Engineer - Acme Systems\n2022 - 2025\n- Wrote tests\n"
+        "Data Engineer - Globex Labs\n2019 - 2022\n- Fixed bugs\n"
+        "Intern - Initech Software\n2018 - 2019\n- Learned"
+    )
+
+    assert pairs(jobs) == [
+        ("Backend Engineer", "Acme Systems"),
+        ("Data Engineer", "Globex Labs"),
+        ("Intern", "Initech Software"),
+    ]
+
+
+# ------------------------------------------------------ education: safeguards
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        # a school line cut off in the middle of a word
+        "Bachelor of Science in Biology. Faculty of Experimental Confec-\ntionery. State Technical University.\n2006-2010",
+        # a degree and a school run together as two sentences
+        "Master in Economics. University of Sweets and Treats.\n2013-2015",
+        # the wrapped end of a line
+        "BSc in Nursing\nHue University\n2015 - 2019\nof Medicine and Pharmacy University",
+        # a mention of a university that is not an education entry
+        "Took part in writing, University Newsletter",
+        # a school with neither a degree nor a year
+        "Hue University\nPlease contact the office",
+    ],
+)
+def test_education_that_may_be_misread_goes_to_the_model(text):
+    assert parse_education(text) is None
+
+
+def test_clean_education_is_still_read():
+    entries = parse_education("BSc in Nursing\nHue University\n2015 - 2019")
+
+    assert entries[0]["institution"] == "Hue University"

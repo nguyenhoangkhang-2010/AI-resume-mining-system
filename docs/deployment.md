@@ -93,6 +93,9 @@ docker build -f docker/Dockerfile --build-arg WITH_LLAMA_CPP=false -t ai-resume-
   `HEADING_CACHE_PATH` (default `faiss_index/heading_cache.json`, so it lives
   in the same volume as the index). The first CV with a new heading takes a
   few seconds longer; the file can be deleted at any time.
+- The rule parsers' word lists are JSON files; add a language or a field's own
+  words by mounting a folder and setting `VOCABULARY_DIR` (see
+  [vocabulary.md](vocabulary.md)).
 - Jobs have their own vector index (`JOB_FAISS_INDEX_PATH`, default
   `faiss_index/job.index`, in the same volume as the candidate index). Jobs created
   before job recommendation existed have no vector; stop the API and run
