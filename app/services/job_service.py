@@ -12,25 +12,31 @@ from app.matching.skills.factory.skill_normalizer_factory import (
     create_skill_normalizer,
 )
 from app.models.job import JobModel
+from app.core.config.settings import settings
 from app.core.exceptions import NotFoundError
 from app.core.identifiers import parse_object_id
 from app.schemas.job_schema import JobCreateRequest, JobResponse, JobSummary
 from app.schemas.page import Page
+from app.services.job_indexer import JobIndexer
 
 
 BULLET_PREFIX = re.compile(r"^\s*(?:[-•*·–]|\d+[.)])\s*")
 
 
 class JobService:
+    _job_indexer: JobIndexer | None = None
+
     def __init__(
         self,
         job_pipeline: JobPipeline | None = None,
         skill_normalizer=None,
         occupation_matcher: OccupationMatcher | None = None,
+        job_indexer: JobIndexer | None = None,
     ):
         self.job_pipeline = job_pipeline or JobPipeline()
         self.skill_normalizer = skill_normalizer or create_skill_normalizer()
         self.occupation_matcher = occupation_matcher or OccupationMatcher()
+        self._job_indexer = job_indexer
 
     @property
     def db(self):
@@ -39,6 +45,15 @@ class JobService:
     @property
     def jobs_col(self):
         return self.db["jobs"]
+
+    @property
+    def job_indexer(self) -> JobIndexer | None:
+        """None when indexing is switched off and no indexer was given."""
+
+        if self._job_indexer is None and settings.JOB_INDEXING_ENABLED:
+            self._job_indexer = JobIndexer()
+
+        return self._job_indexer
 
     def create_job(self, request: JobCreateRequest) -> JobResponse:
         logger.info(f"Creating job: '{request.title}'")
@@ -65,10 +80,12 @@ class JobService:
                 job_data.get("responsibilities")
             ),
             occupation=self._find_occupation(request.title),
+            location=(request.location or "").strip() or None,
         )
 
         job_id = self._save_job(job_model)
         job_model.id = job_id
+        job_model.faiss_id = self._index_job(job_id, job_model)
 
         logger.success(f"Successfully created job (ID: {job_id})")
         return JobResponse.model_validate(job_model)
@@ -87,6 +104,7 @@ class JobService:
                     id=str(document["_id"]),
                     title=document.get("title", ""),
                     occupation=document.get("occupation"),
+                    location=document.get("location"),
                     required_skills=document.get("required_skills") or [],
                     experience_years=document.get("experience_years"),
                     created_at=document["created_at"],
@@ -109,10 +127,43 @@ class JobService:
         return JobResponse.model_validate(JobModel(**document))
 
     def delete_job(self, job_id: str) -> None:
-        result = self.jobs_col.delete_one({"_id": parse_object_id(job_id, "Job")})
+        object_id = parse_object_id(job_id, "Job")
+        document = self.jobs_col.find_one({"_id": object_id})
+        result = self.jobs_col.delete_one({"_id": object_id})
 
         if result.deleted_count == 0:
             raise NotFoundError(f"Job not found: {job_id}")
+
+        indexer = self.job_indexer
+
+        if indexer is not None and document:
+            indexer.remove(document.get("faiss_id"))
+
+    def _index_job(self, job_id: str, job: JobModel) -> int | None:
+        """
+        Stores the job's vector. A failure leaves the job saved but not
+        recommendable; scripts/reindex_jobs.py indexes such jobs later.
+        """
+
+        indexer = self.job_indexer
+
+        if indexer is None:
+            return None
+
+        try:
+            faiss_id = indexer.index(self.db, job)
+            self.jobs_col.update_one(
+                {"_id": parse_object_id(job_id, "Job")},
+                {"$set": {"faiss_id": faiss_id}},
+            )
+
+            return faiss_id
+        except Exception as exc:
+            logger.warning(
+                "Job {} was saved but could not be indexed: {}", job_id, exc
+            )
+
+            return None
 
     def _find_occupation(self, title: str) -> str | None:
         occupation = self.occupation_matcher.find(title)

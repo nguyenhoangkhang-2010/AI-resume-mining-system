@@ -291,7 +291,8 @@ def test_job_list_is_paginated_and_summarised(jobs, client):
     assert body["total"] == 3
     assert [j["title"] for j in body["items"]] == ["Job 2", "Job 1"]
     assert set(body["items"][0]) == {
-        "id", "title", "occupation", "required_skills", "experience_years", "created_at",
+        "id", "title", "occupation", "location", "required_skills", "experience_years",
+        "created_at",
     }
 
 

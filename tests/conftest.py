@@ -36,6 +36,9 @@ def model_reads_extraction_sections(monkeypatch):
     from app.core.config.settings import settings
 
     monkeypatch.setattr(settings, "EXTRACTION_RULES_FIRST", False)
+    # Tests that index jobs pass their own indexer; the rest must not load
+    # the embedding model.
+    monkeypatch.setattr(settings, "JOB_INDEXING_ENABLED", False)
 
 
 @pytest.fixture

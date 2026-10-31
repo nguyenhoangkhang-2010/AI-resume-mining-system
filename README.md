@@ -74,6 +74,7 @@ on real hiring data.
 | Ranking | hybrid nDCG@10 0.894 vs BM25 0.784 and TF-IDF 0.786 (seniority-aware labels, 30 jobs, 300 candidates, paired bootstrap CIs; on family-only labels the hybrid is not distinguishable from BM25) | [evaluation/](docs/evaluation/README.md) |
 | Section detection | line accuracy 0.978 on 144 CVs across 6 industries, 6 page layouts and 2 languages with the LLM answering unfamiliar headings (0.860 without the LLM) | [section detection](docs/evaluation/section_detection_README.md) |
 | Extraction speed | 407 s → 42 s per CV on CPU (4 CVs); companies, roles and degrees found 1/9, 1/7, 2/4 → 9/9, 7/7, 4/4 | [extraction speed](docs/evaluation/extraction_speed_README.md) |
+| Job recommendation | for a candidate, hybrid nDCG@3 0.705 vs 0.152 for random order (seniority-aware labels, 300 candidates ranking 30 jobs; synthetic) | [job recommendation](docs/evaluation/job_recommendation.md) |
 | Real CVs (9 different CVs, provisional labels) | core entity F1 0.61 [0.55, 0.68] with the LLM, 0.49 without it; much lower than on synthetic CVs | [real CVs](docs/evaluation/real_cv_README.md) |
 | Code quality | about 760 tests, 81% coverage, ruff and mypy clean in CI | [CI](https://github.com/nguyenhoangkhang-2010/AI-resume-mining-system/actions/workflows/ci.yml) |
 
@@ -138,7 +139,7 @@ All routes are under `/api/v1` and need an API key (`X-API-Key` or
 | Resumes | `POST /resumes/upload`, `GET /resumes/`, `GET /resumes/{id}`, `GET /resumes/{id}/status`, `DELETE /resumes/{id}` |
 | Jobs | `POST /jobs/`, `GET /jobs/`, `GET /jobs/{id}`, `DELETE /jobs/{id}` |
 | Candidates | `GET /candidates/`, `GET /candidates/{id}` |
-| Matching | `GET /matches/{job_id}`, `POST /search/candidates`, `GET /recommendations/?job_id=...&candidate_id=...` |
+| Matching | `GET /matches/{job_id}` (candidates for a job), `GET /candidates/{id}/jobs` and `GET /resumes/{id}/jobs` (jobs for a candidate), `POST /search/candidates`, `GET /recommendations/?job_id=...&candidate_id=...` |
 
 A CV that cannot be read (for example a scanned PDF without OCR) is stored as
 `needs_review` with a reason code instead of being indexed as an empty
