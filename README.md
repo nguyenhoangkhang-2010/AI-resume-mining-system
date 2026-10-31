@@ -78,6 +78,8 @@ on real hiring data.
 | Area | Result | Report |
 |---|---|---|
 | Ranking | hybrid nDCG@10 0.894 vs BM25 0.784 and TF-IDF 0.786 (seniority-aware labels, 30 jobs, 300 candidates, paired bootstrap CIs; on family-only labels the hybrid is not distinguishable from BM25) | [evaluation/](docs/evaluation/README.md) |
+| Reranking | a cross-encoder second stage made nDCG@10 worse at every weight (0.880 → 0.855 at the lowest, test set of 60 jobs); kept as an option, off by default | [ranking quality](docs/evaluation/ranking_quality.md) |
+| Fairness | counterfactual audit: a pronoun or a name in the summary moved scores of up to half the candidates; removing them before embedding brought the shift to 0.00. A women-in-engineering line (ratio 0.87) and a Vietnamese-language CV (0.91) still score slightly lower | [ranking quality](docs/evaluation/ranking_quality.md) |
 | Section detection | line accuracy 0.978 on 144 CVs across 6 industries, 6 page layouts and 2 languages with the LLM answering unfamiliar headings (0.860 without the LLM) | [section detection](docs/evaluation/section_detection_README.md) |
 | Extraction speed | 407 s → 42 s per CV on CPU (4 CVs); companies, roles and degrees found 1/9, 1/7, 2/4 → 9/9, 7/7, 4/4 | [extraction speed](docs/evaluation/extraction_speed_README.md) |
 | Job recommendation | for a candidate, hybrid nDCG@3 0.705 vs 0.152 for random order (seniority-aware labels, 300 candidates ranking 30 jobs; synthetic) | [job recommendation](docs/evaluation/job_recommendation.md) |

@@ -18,7 +18,9 @@ from app.vector_store.vector_store import VectorStore
 
 from app.core.constants.app_constants import EMBEDDING_VERSION
 from app.matching.embedding_text import JobTextBuilder
+from app.core.config.settings import settings
 from app.matching.ranking.candidate_scorer import HybridCandidateScorer
+from app.matching.reranking.cross_encoder_reranker import build_reranker
 from app.matching.ranking.ranking_config import RankingConfig
 from app.matching.ranking.ranking_pipeline import RankingPipeline
 
@@ -31,6 +33,15 @@ class MatchingService:
         self.ranking_config = RankingConfig()
         self.ranking_pipeline = RankingPipeline(
             candidate_scorer=HybridCandidateScorer(),
+            reranker=(
+                build_reranker(
+                    settings.RERANKER_MODEL,
+                    settings.RERANKER_TOP_N,
+                    settings.RERANKER_WEIGHT,
+                )
+                if settings.RERANKER_ENABLED
+                else None
+            ),
         )
         
     @property

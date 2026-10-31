@@ -31,6 +31,9 @@ class EvalCandidate:
     skills: List[str]
     experience: List[EvalExperience] = field(default_factory=list)
 
+    # The candidate's own name, if the profile has one. Not read by labels.
+    full_name: str = ""
+
     # Latent attributes used only to derive relevance labels. Rankers
     # must never read them.
     meta: Dict[str, Any] = field(default_factory=dict)
