@@ -193,6 +193,7 @@ def report(
     title: str,
     mode: str,
     group_keys: Sequence[str] = ("language", "layout", "industry"),
+    note: str = "",
 ) -> List[str]:
     if not results:
         return [f"# {title}", "", "No reviewed CVs."]
@@ -209,6 +210,9 @@ def report(
         "evidence of anything.",
         "",
     ]
+
+    if note:
+        lines += [note, ""]
 
     overall = core_f1(results)
     low, high = bootstrap_interval(results, core_f1)

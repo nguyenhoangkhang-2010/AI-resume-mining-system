@@ -34,6 +34,7 @@ def main() -> None:
     parser.add_argument("--mode", choices=("rules", "full"), default="rules")
     parser.add_argument("--out", default="docs/evaluation/real_cv_results.md")
     parser.add_argument("--title", default="Results on real CVs")
+    parser.add_argument("--note", default="", help="a sentence added under the intro of the report")
     args = parser.parse_args()
 
     logger.remove()
@@ -81,7 +82,7 @@ def main() -> None:
         if args.mode == "rules"
         else "full pipeline with the local language model"
     )
-    lines = report(results, args.title, mode_text)
+    lines = report(results, args.title, mode_text, note=args.note)
 
     output = Path(args.out)
     output.parent.mkdir(parents=True, exist_ok=True)

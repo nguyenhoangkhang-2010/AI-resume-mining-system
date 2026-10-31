@@ -21,14 +21,25 @@ python -m scripts.real_cv_prepare pick --folder data/uploads --count 40
 python -m scripts.real_cv_prepare draft --folder data/uploads
 
 # 3. for each CV: open it, correct the label, mark it reviewed
-python -m scripts.real_cv_prepare open cv-001
-python -m scripts.real_cv_prepare mark cv-001
+python -m scripts.real_cv_label_app             # a page with the PDF and a form
 python -m scripts.real_cv_prepare check         # what is left, any mistakes
 
 # 4. score (aggregate report) and list the weakest CVs by id
 python -m scripts.evaluate_real_cvs --mode rules --out docs/evaluation/real_cv_results.md
 python -m scripts.evaluate_real_cvs --mode full  --out docs/evaluation/real_cv_results_full.md
 ```
+
+### Correcting labels with the editor
+
+`python -m scripts.real_cv_label_app` opens a page in your browser: the CV's
+PDF on the left, a form on the right (one entity per line), buttons to save,
+to save and mark as reviewed, and to review and go to the next CV. "Hide the
+system's suggestions" shows empty fields, which is the way to label a CV from
+scratch without being anchored by the draft. The page listens on 127.0.0.1
+only, checks the host name, needs a token for every change, loads nothing from
+the internet and sends nothing anywhere; stop it with Ctrl+C. The files it
+writes are the same JSON files described below, so you can also edit them by
+hand (`real_cv_prepare open|mark` still work).
 
 `--mode rules` switches the language model off, so it shows what the rules, NER
 and embedding models do alone and runs in seconds. `--mode full` runs the
@@ -94,12 +105,40 @@ the rules answered versus the model.
 - **Representativeness.** The set is only as varied as the CVs collected. The
   score says how the system does on *these kinds* of CVs.
 
+## First results (9 different real CVs, provisional labels)
+
+| Mode | Core entity F1 [95% interval] | Companies recall | Roles recall | Names found | Seconds per CV |
+|---|---|---|---|---|---|
+| Rules, NER and embeddings only ([report](real_cv_results_rules.md)) | 0.49 [0.32, 0.68] | 0.12 | 0.26 | 5 of 9 | 8 |
+| Full pipeline with the local LLM ([report](real_cv_results.md)) | 0.61 [0.55, 0.68] | 0.35 | 0.63 | 6 of 9 | 133 (median 150; run while other jobs used the CPU) |
+
+Section detection finds the sections these CVs have (education and skills 9
+of 9 and 8 of 8, experience 7 of 7, with one section reported that is not
+there). Extraction is the weak part: even with the model, fewer than half of
+the companies are found, and names are missed in 3 of 9 CVs. This is far below
+the synthetic results, which is the reason this benchmark exists. Nine CVs
+give wide intervals, and several of them are public samples or templates; do
+not read these as the system's accuracy on real hiring data.
+
 ## Where the data stands
 
-The 78 PDFs currently in `data/uploads` are not varied enough to support a
-claim about "any language, industry or format": `pick` finds that 50 of them
-share almost the same text (one template), another 14 form a second group, and
-after removing near-duplicates 15 remain. All 78 have one page, 73 are English
-and 69 have one column. A set that tests the goals of this project needs, at
-least, CVs that are multi-page, in other languages, from other industries,
-with two-column and designed layouts, and some scanned ones.
+The 78 PDFs in `data/uploads` are only **9 different CVs**: the rest are
+byte-for-byte copies of the same text (uploads of the same file). `pick` now
+never selects two copies of one CV (texts at least 90% alike), which an
+earlier version did. Several of the 9 are public sample or template CVs
+(for example a design template with placeholder text), 7 are in English, 2 in
+Vietnamese, none has more than one page.
+
+That is too little for any claim about "any language, industry or format". A
+set that tests the goals of this project needs, at least, CVs that are
+multi-page, in other languages, from other industries, with two-column and
+designed layouts, and some scanned ones, from different people.
+
+## Who labelled the current set
+
+The 9 distinct CVs were labelled by Claude (the AI assistant used to build this
+project) reading each PDF, independently of the system's own draft, at the
+owner's request; a person has not checked them. Judgment calls are written in
+each label's `notes`. The six identical copies were left as drafts so the same
+CV is not scored twice. Treat the numbers as provisional until the labels are
+checked, for example in the label editor.
