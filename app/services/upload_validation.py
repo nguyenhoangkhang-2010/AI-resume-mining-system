@@ -1,6 +1,7 @@
 from pathlib import Path
 from typing import BinaryIO, Mapping
 
+from app.resume_processing.parsers.docx_parser import archive_problem
 from app.core.exceptions import (
     FileTooLargeError,
     InvalidUploadError,
@@ -83,6 +84,12 @@ def save_upload(
 
         if written == 0:
             raise InvalidUploadError("The uploaded file is empty.")
+
+        if extension == ".docx":
+            problem = archive_problem(destination)
+
+            if problem:
+                raise InvalidUploadError(problem)
 
     except BaseException:
         destination.unlink(missing_ok=True)

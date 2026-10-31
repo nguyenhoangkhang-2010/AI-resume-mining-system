@@ -87,7 +87,7 @@ def failure_reason(error: BaseException) -> str:
 
     name = type(error).__name__
 
-    if name in {"FileDataError", "EmptyFileError"}:
+    if name in {"FileDataError", "EmptyFileError", "UnreadableFileError"}:
         return UNREADABLE_FILE
 
     if isinstance(error, ValueError) and "decrypt" in str(error).lower():
